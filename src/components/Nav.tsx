@@ -1,20 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { UserMenu } from "./UserMenu";
 
 export function Nav() {
   return (
-    <header className="border-b bg-white">
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-        <Link href="/" className="font-semibold">
+    <header className="border-b bg-white sticky top-0 z-40">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+        <Link href="/" className="font-semibold text-lg">
           World Tests
         </Link>
-        <nav className="flex gap-4 text-sm">
-          <Link href="/test" className="hover:underline">
-            Тест
-          </Link>
-          <Link href="/leaderboard" className="hover:underline">
-            Рейтинг
-          </Link>
-        </nav>
+        <div className="flex items-center gap-4">
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

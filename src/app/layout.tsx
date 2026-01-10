@@ -16,10 +16,10 @@ export default function RootLayout({
     <html lang="ru">
       <body>
         <Nav />
-        <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
-        <footer className="mx-auto max-w-4xl px-4 pb-10 text-sm text-zinc-500">
-          <div className="border-t pt-6">
-            Demo starter • Next.js + Supabase • {new Date().getFullYear()}
+        <main className="min-h-screen bg-zinc-50">{children}</main>
+        <footer className="border-t bg-white py-6 mt-12">
+          <div className="max-w-7xl mx-auto px-4 text-sm text-zinc-500 text-center">
+            World Tests • Next.js + Supabase + Telegram • {new Date().getFullYear()}
           </div>
         </footer>
       </body>
