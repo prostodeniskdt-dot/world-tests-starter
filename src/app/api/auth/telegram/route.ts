@@ -43,10 +43,30 @@ export async function POST(req: Request) {
   }
 
   const telegramId = BigInt(authData.id);
-  const username =
+  
+  // Формируем username с гарантией длины от 2 до 24 символов
+  let username =
     authData.username ||
     `${authData.first_name || ""} ${authData.last_name || ""}`.trim() ||
     `user_${authData.id}`;
+
+  // Убираем лишние пробелы и нормализуем
+  username = username.trim().replace(/\s+/g, " ");
+
+  // Обрезаем до 24 символов
+  if (username.length > 24) {
+    username = username.substring(0, 24).trim();
+  }
+
+  // Гарантируем минимум 2 символа - если меньше, используем fallback
+  if (username.length < 2) {
+    // Используем telegram_id как основу, но гарантируем минимум 2 символа
+    const idStr = authData.id.toString();
+    username = `u${idStr}`.substring(0, 24); // u + id, максимум 24 символа
+    if (username.length < 2) {
+      username = "user" + idStr.substring(0, 20); // гарантированно минимум 4 символа
+    }
+  }
 
   // Проверяем, существует ли пользователь с таким telegram_id
   const { data: existingUser } = await supabaseAdmin
@@ -63,7 +83,7 @@ export async function POST(req: Request) {
     {
       p_user_id: userId,
       p_telegram_id: Number(telegramId),
-      p_username: username.substring(0, 24),
+      p_username: username,
       p_first_name: authData.first_name || null,
       p_last_name: authData.last_name || null,
       p_telegram_username: authData.username || null,

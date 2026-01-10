@@ -129,7 +129,33 @@ set search_path = public
 as $$
 declare
   v_user_id uuid;
+  v_username text;
 begin
+  -- Нормализуем username: обрезаем пробелы, ограничиваем длину
+  v_username := trim(p_username);
+  
+  -- Гарантируем минимум 2 символа
+  if char_length(v_username) < 2 then
+    v_username := 'user_' || p_telegram_id::text;
+  end if;
+  
+  -- Ограничиваем максимум 24 символа
+  if char_length(v_username) > 24 then
+    v_username := substring(v_username from 1 for 24);
+  end if;
+  
+  -- Убираем лишние пробелы внутри строки
+  v_username := regexp_replace(v_username, '\s+', ' ', 'g');
+  v_username := trim(v_username);
+  
+  -- Повторная проверка после нормализации
+  if char_length(v_username) < 2 then
+    v_username := 'user_' || p_telegram_id::text;
+    if char_length(v_username) > 24 then
+      v_username := substring(v_username from 1 for 24);
+    end if;
+  end if;
+  
   -- Пытаемся найти существующего пользователя по telegram_id
   select id into v_user_id
   from public.users
@@ -139,7 +165,7 @@ begin
     -- Обновляем существующего пользователя
     update public.users
     set
-      username = p_username,
+      username = v_username,
       first_name = p_first_name,
       last_name = p_last_name,
       telegram_username = p_telegram_username,
@@ -154,7 +180,7 @@ begin
       id, username, telegram_id, first_name, last_name, telegram_username, avatar_url
     )
     values (
-      p_user_id, p_username, p_telegram_id, p_first_name, p_last_name, p_telegram_username, p_avatar_url
+      p_user_id, v_username, p_telegram_id, p_first_name, p_last_name, p_telegram_username, p_avatar_url
     )
     on conflict (id) do update
     set
@@ -176,7 +202,7 @@ exception
     if v_user_id is not null then
       update public.users
       set
-        username = p_username,
+        username = v_username,
         first_name = p_first_name,
         last_name = p_last_name,
         telegram_username = p_telegram_username,
@@ -186,6 +212,45 @@ exception
       return v_user_id;
     end if;
     raise;
+  when check_violation then
+    -- Если всё равно нарушение check constraint, используем гарантированно валидный username
+    v_username := 'user_' || p_telegram_id::text;
+    if char_length(v_username) > 24 then
+      v_username := substring(v_username from 1 for 24);
+    end if;
+    -- Пытаемся снова
+    select id into v_user_id
+    from public.users
+    where telegram_id = p_telegram_id;
+    if v_user_id is not null then
+      update public.users
+      set
+        username = v_username,
+        first_name = p_first_name,
+        last_name = p_last_name,
+        telegram_username = p_telegram_username,
+        avatar_url = p_avatar_url,
+        updated_at = now()
+      where id = v_user_id;
+      return v_user_id;
+    else
+      insert into public.users (
+        id, username, telegram_id, first_name, last_name, telegram_username, avatar_url
+      )
+      values (
+        p_user_id, v_username, p_telegram_id, p_first_name, p_last_name, p_telegram_username, p_avatar_url
+      )
+      on conflict (id) do update
+      set
+        telegram_id = excluded.telegram_id,
+        username = v_username,
+        first_name = excluded.first_name,
+        last_name = excluded.last_name,
+        telegram_username = excluded.telegram_username,
+        avatar_url = excluded.avatar_url,
+        updated_at = now();
+      return p_user_id;
+    end if;
 end;
 $$;
 
