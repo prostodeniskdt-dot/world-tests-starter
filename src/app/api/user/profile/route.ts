@@ -37,12 +37,10 @@ export async function GET(req: Request) {
     ok: true,
     profile: {
       userId: user.id,
-      username: user.username,
+      email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
       telegramUsername: user.telegram_username,
-      telegramId: user.telegram_id,
-      avatarUrl: user.avatar_url,
       createdAt: user.created_at,
       stats: stats
         ? {

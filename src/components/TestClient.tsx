@@ -41,11 +41,11 @@ export function TestClient({ test }: { test: PublicTest }) {
         <p className="mt-1 text-zinc-600">{test.description}</p>
       </div>
 
-      <UserGate title="Никнейм для рейтинга">
+      <UserGate title="Для прохождения теста необходима регистрация">
         {(user) => (
           <div className="rounded-md border bg-white p-4">
             <div className="text-sm text-zinc-600">
-              Вы: <span className="font-medium text-zinc-900">{user.username}</span>
+              Вы: <span className="font-medium text-zinc-900">{user.firstName} {user.lastName}</span>
             </div>
 
             <div className="mt-6 space-y-6">
@@ -91,7 +91,6 @@ export function TestClient({ test }: { test: PublicTest }) {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
                         userId: user.userId,
-                        username: user.username,
                         testId: test.id,
                         answers,
                       }),

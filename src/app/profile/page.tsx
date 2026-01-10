@@ -66,27 +66,16 @@ export default async function ProfilePage({
         <h1 className="text-2xl font-bold">Личный кабинет</h1>
 
         <div className="mt-4 space-y-3">
-          {user.avatar_url && (
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 rounded-full bg-zinc-900 flex items-center justify-center text-white text-2xl font-medium">
+              {user.first_name?.charAt(0).toUpperCase() || "?"}
+            </div>
             <div>
-              <img
-                src={user.avatar_url}
-                alt="Аватар"
-                className="h-20 w-20 rounded-full object-cover"
-              />
+              <div className="text-2xl font-bold">
+                {user.first_name} {user.last_name}
+              </div>
+              <div className="text-sm text-zinc-600 mt-1">{user.email}</div>
             </div>
-          )}
-
-          <div>
-            <div className="text-sm text-zinc-600">Имя</div>
-            <div className="font-medium">
-              {user.first_name || "Не указано"}{" "}
-              {user.last_name || ""}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-sm text-zinc-600">Никнейм</div>
-            <div className="font-medium">{user.username}</div>
           </div>
 
           {user.telegram_username && (

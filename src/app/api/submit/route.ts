@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { userId, username, testId, answers } = parsed.data;
+  const { userId, testId, answers } = parsed.data;
 
   // Для стартера есть только один тест
   if (TEST_1_PUBLIC.id !== TEST_1_SECRET.id) {
@@ -80,10 +80,26 @@ export async function POST(req: Request) {
 
   const pointsAwarded = Math.max(0, Math.round(rawPoints));
 
+  // Проверяем, что пользователь существует
+  const { data: userExists } = await supabaseAdmin
+    .from("users")
+    .select("id")
+    .eq("id", userId)
+    .single();
+
+  if (!userExists) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Пользователь не найден. Пожалуйста, зарегистрируйтесь.",
+      },
+      { status: 404 }
+    );
+  }
+
   // Записываем в БД через RPC (атомарно обновляет user_stats)
   const { data, error } = await supabaseAdmin.rpc("record_attempt", {
     p_user_id: userId,
-    p_username: username,
     p_test_id: testId,
     p_score_percent: scorePercent,
     p_points_awarded: pointsAwarded,

@@ -17,7 +17,7 @@ export default function Page() {
           <div className="text-center py-20">
             <h1 className="text-3xl font-bold mb-4">World Tests</h1>
             <p className="text-zinc-600">
-              Пожалуйста, войдите через Telegram для доступа к тестам и рейтингу
+              Пожалуйста, зарегистрируйтесь для доступа к тестам и рейтингу
             </p>
           </div>
         </div>

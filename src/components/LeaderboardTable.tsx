@@ -1,12 +1,10 @@
 export type LeaderboardRow = {
   rank: number;
   user_id: string;
-  username: string;
-  first_name?: string | null;
-  last_name?: string | null;
-  telegram_username?: string | null;
-  telegram_id?: number | null;
-  avatar_url?: string | null;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  telegram_username: string | null;
   total_points: number;
   tests_completed: number;
 };
@@ -28,10 +26,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
         </thead>
         <tbody>
           {rows.map((r) => {
-            const fullName =
-              r.first_name || r.last_name
-                ? `${r.first_name || ""} ${r.last_name || ""}`.trim()
-                : null;
+            const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
 
             return (
               <tr key={r.user_id} className="border-b last:border-b-0">
@@ -42,19 +37,13 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                     className="hover:underline"
                   >
                     <div className="flex items-center gap-2">
-                      {r.avatar_url && (
-                        <img
-                          src={r.avatar_url}
-                          alt={r.username}
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
-                      )}
+                      <div className="h-8 w-8 rounded-full bg-zinc-300 flex items-center justify-center text-zinc-600 text-sm font-medium flex-shrink-0">
+                        {r.first_name?.charAt(0).toUpperCase() || "?"}
+                      </div>
                       <div>
-                        {fullName && (
-                          <div className="font-medium">{fullName}</div>
-                        )}
+                        <div className="font-medium">{fullName || "Без имени"}</div>
                         <div className="text-zinc-600 text-xs">
-                          {r.username}
+                          {r.email}
                         </div>
                       </div>
                     </div>

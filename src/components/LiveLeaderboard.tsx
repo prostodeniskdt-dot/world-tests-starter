@@ -6,11 +6,10 @@ import Link from "next/link";
 type LeaderboardRow = {
   rank: number;
   user_id: string;
-  username: string;
-  first_name?: string | null;
-  last_name?: string | null;
-  telegram_username?: string | null;
-  avatar_url?: string | null;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  telegram_username: string | null;
   total_points: number;
   tests_completed: number;
 };
@@ -69,10 +68,7 @@ export function LiveLeaderboard() {
           </thead>
           <tbody>
             {rows.slice(0, 20).map((r) => {
-              const fullName =
-                r.first_name || r.last_name
-                  ? `${r.first_name || ""} ${r.last_name || ""}`.trim()
-                  : null;
+              const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
 
               return (
                 <tr key={r.user_id} className="border-b hover:bg-zinc-50 transition-colors">
@@ -82,21 +78,21 @@ export function LiveLeaderboard() {
                       href={`/profile?userId=${r.user_id}`}
                       className="flex items-center gap-2 hover:underline"
                     >
-                      {r.avatar_url && (
-                        <img
-                          src={r.avatar_url}
-                          alt={r.username}
-                          className="h-6 w-6 rounded-full object-cover"
-                        />
-                      )}
+                      <div className="h-6 w-6 rounded-full bg-zinc-300 flex items-center justify-center text-zinc-600 text-xs font-medium flex-shrink-0">
+                        {r.first_name?.charAt(0).toUpperCase() || "?"}
+                      </div>
                       <div>
-                        {fullName ? (
-                          <div className="text-xs font-medium">{fullName}</div>
-                        ) : (
-                          <div className="text-xs font-medium">{r.username}</div>
-                        )}
+                        <div className="text-xs font-medium">{fullName || "Без имени"}</div>
                         {r.telegram_username && (
-                          <div className="text-xs text-blue-600">@{r.telegram_username}</div>
+                          <a
+                            href={`https://t.me/${r.telegram_username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            @{r.telegram_username}
+                          </a>
                         )}
                       </div>
                     </Link>

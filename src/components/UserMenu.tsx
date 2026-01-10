@@ -26,10 +26,7 @@ export function UserMenu() {
     return null;
   }
 
-  const fullName =
-    user.firstName || user.lastName
-      ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
-      : null;
+  const fullName = `${user.firstName} ${user.lastName}`.trim();
 
   return (
     <div className="relative" ref={menuRef}>
@@ -37,33 +34,26 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-full hover:bg-zinc-100 p-2 transition-colors"
       >
-        {user.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt={user.username}
-            className="h-8 w-8 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-8 w-8 rounded-full bg-zinc-300 flex items-center justify-center text-zinc-600 text-sm font-medium">
-            {user.username.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <span className="hidden md:block text-sm font-medium">{user.username}</span>
+        <div className="h-8 w-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-sm font-medium">
+          {user.firstName.charAt(0).toUpperCase()}
+        </div>
+        <span className="hidden md:block text-sm font-medium">{fullName}</span>
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-zinc-200 py-2 z-50">
           <div className="px-4 py-3 border-b border-zinc-200">
-            <div className="font-medium text-sm">
-              {fullName || user.username}
-            </div>
-            {fullName && (
-              <div className="text-xs text-zinc-500 mt-1">{user.username}</div>
-            )}
+            <div className="font-medium text-sm">{fullName}</div>
+            <div className="text-xs text-zinc-500 mt-1">{user.email}</div>
             {user.telegramUsername && (
-              <div className="text-xs text-blue-600 mt-1">
+              <a
+                href={`https://t.me/${user.telegramUsername}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline mt-1 block"
+              >
                 @{user.telegramUsername}
-              </div>
+              </a>
             )}
           </div>
           <Link

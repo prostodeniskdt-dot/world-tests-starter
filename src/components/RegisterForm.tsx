@@ -1,0 +1,147 @@
+"use client";
+
+import { useState } from "react";
+
+type RegisterFormProps = {
+  onSuccess: (user: {
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    telegramUsername?: string | null;
+  }) => void;
+};
+
+export function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [telegramUsername, setTelegramUsername] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          telegramUsername: telegramUsername.trim() || undefined,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.ok && result.user) {
+        onSuccess(result.user);
+      } else {
+        setError(result.error || "Ошибка регистрации");
+      }
+    } catch (err) {
+      setError("Ошибка при регистрации. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Нормализуем telegram username - убираем @ если пользователь вводит
+  const handleTelegramChange = (value: string) => {
+    const normalized = value.replace(/^@/, "");
+    setTelegramUsername(normalized);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium mb-1">
+          Email <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="example@email.com"
+          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+          Имя <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="firstName"
+          type="text"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          required
+          minLength={1}
+          maxLength={50}
+          placeholder="Ваше имя"
+          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+          Фамилия <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="lastName"
+          type="text"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          required
+          minLength={1}
+          maxLength={50}
+          placeholder="Ваша фамилия"
+          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="telegramUsername" className="block text-sm font-medium mb-1">
+          Ник в Telegram
+        </label>
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-500">@</span>
+          <input
+            id="telegramUsername"
+            type="text"
+            value={telegramUsername}
+            onChange={(e) => handleTelegramChange(e.target.value)}
+            maxLength={32}
+            placeholder="username"
+            className="flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          />
+        </div>
+        <p className="mt-1 text-xs text-zinc-500">
+          Укажите ваш ник в Telegram для связи (без @)
+        </p>
+      </div>
+
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        {loading ? "Регистрация..." : "Зарегистрироваться"}
+      </button>
+    </form>
+  );
+}

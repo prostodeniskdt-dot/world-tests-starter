@@ -16,7 +16,7 @@ export default function TestPage() {
           <div className="text-center py-20">
             <h1 className="text-2xl font-bold mb-4">Доступ к тесту ограничен</h1>
             <p className="text-zinc-600">
-              Пожалуйста, войдите через Telegram для прохождения теста
+              Пожалуйста, зарегистрируйтесь для прохождения теста
             </p>
           </div>
         </div>
