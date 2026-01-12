@@ -39,98 +39,63 @@ export async function POST(req: Request) {
     ? telegramUsername.replace(/^@/, "").trim() || null
     : null;
 
-  const normalizedEmail = email.toLowerCase().trim();
-  const normalizedFirstName = firstName.trim();
-  const normalizedLastName = lastName.trim();
+  const userId = crypto.randomUUID();
 
-  // Проверяем, существует ли пользователь с таким email
-  const { data: existingUser, error: checkError } = await supabaseAdmin
-    .from("users")
-    .select("id")
-    .eq("email", normalizedEmail)
-    .single();
+  // Регистрируем пользователя в БД через RPC функцию
+  // Функция register_user имеет security definer и обходит RLS
+  const { data: resultUserId, error } = await supabaseAdmin.rpc(
+    "register_user",
+    {
+      p_user_id: userId,
+      p_email: email.toLowerCase().trim(),
+      p_first_name: firstName.trim(),
+      p_last_name: lastName.trim(),
+      p_telegram_username: normalizedTelegramUsername,
+    }
+  );
 
-  if (checkError && checkError.code !== "PGRST116") {
-    // PGRST116 - это "not found", что нормально для нового пользователя
-    console.error("Error checking existing user:", checkError);
+  if (error) {
+    // Если ошибка уникальности - email уже существует
+    if (
+      error.message.includes("unique") ||
+      error.message.includes("duplicate") ||
+      error.code === "23505"
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Пользователь с таким email уже зарегистрирован",
+        },
+        { status: 409 }
+      );
+    }
+
+    console.error("Error registering user:", error);
+    
+    // Более информативное сообщение для ошибок схемы
+    let errorMessage = error.message;
+    if (error.message.includes("schema cache") || error.message.includes("not found")) {
+      errorMessage = "Ошибка базы данных: функция или таблица не найдены. Убедитесь, что выполнили supabase/schema.sql в SQL Editor Supabase.";
+    }
+    
     return NextResponse.json(
       {
         ok: false,
-        error: "Ошибка базы данных: " + checkError.message,
+        error: "Ошибка базы данных: " + errorMessage,
       },
       { status: 500 }
     );
   }
 
-  let userId: string;
-
-  if (existingUser) {
-    // Обновляем существующего пользователя
-    userId = existingUser.id;
-    const { error: updateError } = await supabaseAdmin
-      .from("users")
-      .update({
-        first_name: normalizedFirstName,
-        last_name: normalizedLastName,
-        telegram_username: normalizedTelegramUsername,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", userId);
-
-    if (updateError) {
-      console.error("Error updating user:", updateError);
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Ошибка базы данных: " + updateError.message,
-        },
-        { status: 500 }
-      );
-    }
-  } else {
-    // Создаём нового пользователя
-    userId = crypto.randomUUID();
-    const { error: insertError } = await supabaseAdmin
-      .from("users")
-      .insert({
-        id: userId,
-        email: normalizedEmail,
-        first_name: normalizedFirstName,
-        last_name: normalizedLastName,
-        telegram_username: normalizedTelegramUsername,
-      });
-
-    if (insertError) {
-      // Если ошибка уникальности - email уже существует (race condition)
-      if (
-        insertError.code === "23505" ||
-        insertError.message.includes("unique") ||
-        insertError.message.includes("duplicate")
-      ) {
-        return NextResponse.json(
-          {
-            ok: false,
-            error: "Пользователь с таким email уже зарегистрирован",
-          },
-          { status: 409 }
-        );
-      }
-
-      console.error("Error inserting user:", insertError);
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Ошибка базы данных: " + insertError.message,
-        },
-        { status: 500 }
-      );
-    }
-  }
+  const finalUserId = resultUserId || userId;
+  const normalizedEmail = email.toLowerCase().trim();
+  const normalizedFirstName = firstName.trim();
+  const normalizedLastName = lastName.trim();
 
   return NextResponse.json({
     ok: true,
     user: {
-      userId: userId,
+      userId: finalUserId,
       email: normalizedEmail,
       firstName: normalizedFirstName,
       lastName: normalizedLastName,
