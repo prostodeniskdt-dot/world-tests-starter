@@ -41,9 +41,9 @@ export async function POST(req: Request) {
     .single();
 
   // Обработка ошибок
-  if (error || !user) {
+  if (error) {
     // PGRST116 - это код ошибки "not found" в Supabase
-    if (error?.code === "PGRST116" || !user) {
+    if (error.code === "PGRST116") {
       return NextResponse.json(
         {
           ok: false,
@@ -62,6 +62,17 @@ export async function POST(req: Request) {
         error: "Ошибка базы данных: " + errorMessage,
       },
       { status: 500 }
+    );
+  }
+
+  // Если пользователь не найден (нет ошибки, но и нет данных)
+  if (!user) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Неверный email или пароль",
+      },
+      { status: 401 }
     );
   }
 
