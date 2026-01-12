@@ -19,6 +19,7 @@ create table public.users (
   first_name text not null check (char_length(first_name) between 1 and 50),
   last_name text not null check (char_length(last_name) between 1 and 50),
   telegram_username text check (telegram_username is null or char_length(telegram_username) between 1 and 32),
+  password_hash text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -47,6 +48,9 @@ create index if not exists attempts_user_id_created_at_idx
 
 create index if not exists user_stats_total_points_idx
   on public.user_stats (total_points desc);
+
+create index if not exists users_email_idx
+  on public.users(email);
 
 -- 4) Функция для автоматического обновления updated_at
 create or replace function public.set_updated_at()
@@ -120,7 +124,8 @@ create or replace function public.register_user(
   p_email text,
   p_first_name text,
   p_last_name text,
-  p_telegram_username text
+  p_telegram_username text,
+  p_password_hash text DEFAULT NULL
 )
 returns uuid
 language plpgsql
@@ -163,16 +168,17 @@ begin
       first_name = v_normalized_first_name,
       last_name = v_normalized_last_name,
       telegram_username = v_normalized_telegram_username,
+      password_hash = COALESCE(p_password_hash, password_hash),
       updated_at = now()
     where id = v_user_id;
     return v_user_id;
   else
     -- Создаём нового пользователя
     insert into public.users (
-      id, email, first_name, last_name, telegram_username
+      id, email, first_name, last_name, telegram_username, password_hash
     )
     values (
-      p_user_id, v_normalized_email, v_normalized_first_name, v_normalized_last_name, v_normalized_telegram_username
+      p_user_id, v_normalized_email, v_normalized_first_name, v_normalized_last_name, v_normalized_telegram_username, p_password_hash
     );
     return p_user_id;
   end if;
@@ -188,6 +194,7 @@ exception
         first_name = v_normalized_first_name,
         last_name = v_normalized_last_name,
         telegram_username = v_normalized_telegram_username,
+        password_hash = COALESCE(p_password_hash, password_hash),
         updated_at = now()
       where id = v_user_id;
       return v_user_id;
@@ -196,14 +203,42 @@ exception
 end;
 $$;
 
--- 8) Настройка прав доступа для функций
-revoke execute on function public.register_user(uuid, text, text, text, text) from public;
-grant execute on function public.register_user(uuid, text, text, text, text) to service_role;
+-- 8) Функция для проверки пароля пользователя
+create or replace function public.verify_user_password(
+  p_email text,
+  p_password_hash text
+)
+returns table (
+  user_id uuid,
+  email text,
+  first_name text,
+  last_name text,
+  telegram_username text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  RETURN QUERY
+  SELECT u.id, u.email, u.first_name, u.last_name, u.telegram_username
+  FROM public.users u
+  WHERE u.email = lower(trim(p_email))
+    AND u.password_hash = p_password_hash;
+END;
+$$;
+
+-- 9) Настройка прав доступа для функций
+revoke execute on function public.register_user(uuid, text, text, text, text, text) from public;
+grant execute on function public.register_user(uuid, text, text, text, text, text) to service_role;
+
+revoke execute on function public.verify_user_password(text, text) from public;
+grant execute on function public.verify_user_password(text, text) to service_role;
 
 revoke execute on function public.record_attempt(uuid, text, int, int) from public;
 grant execute on function public.record_attempt(uuid, text, int, int) to service_role;
 
--- 9) View для рейтинга
+-- 10) View для рейтинга
 create or replace view public.leaderboard as
 select
   us.user_id,
