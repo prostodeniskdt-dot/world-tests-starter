@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { validateEmail } from "@/lib/emailValidator";
 
 type RegisterFormProps = {
   onSuccess: (user: {
@@ -18,12 +19,28 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const [lastName, setLastName] = useState("");
   const [telegramUsername, setTelegramUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    // Валидация email перед отправкой
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      setError(emailValidation.error || "Неверный email");
+      setLoading(false);
+      return;
+    }
+
+    // Проверка на существующий email
+    if (emailError && emailError.includes("уже зарегистрирован")) {
+      setError(emailError);
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -57,6 +74,45 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     }
   };
 
+  // Проверка существующего email при вводе (debounce)
+  useEffect(() => {
+    const checkEmail = async () => {
+      if (!email || !email.includes("@")) {
+        setEmailError(null);
+        return;
+      }
+
+      // Сначала проверяем валидацию формата и временных email
+      const validation = validateEmail(email);
+      if (!validation.valid) {
+        setEmailError(validation.error || null);
+        return;
+      }
+
+      // Если валидация прошла, проверяем существование пользователя
+      try {
+        const response = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim() }),
+        });
+        const result = await response.json();
+        
+        if (result.ok && result.exists) {
+          setEmailError("Пользователь с таким email уже зарегистрирован. Войдите в систему.");
+        } else {
+          setEmailError(null);
+        }
+      } catch {
+        // Игнорируем ошибки проверки, чтобы не мешать пользователю
+        setEmailError(null);
+      }
+    };
+
+    const timeoutId = setTimeout(checkEmail, 500);
+    return () => clearTimeout(timeoutId);
+  }, [email]);
+
   // Нормализуем telegram username - убираем @ если пользователь вводит
   const handleTelegramChange = (value: string) => {
     const normalized = value.replace(/^@/, "");
@@ -76,8 +132,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="example@email.com"
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 ${
+            emailError ? "border-red-300" : ""
+          }`}
         />
+        {emailError && (
+          <p className="mt-1 text-xs text-red-600">{emailError}</p>
+        )}
       </div>
 
       <div>

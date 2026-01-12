@@ -31,17 +31,40 @@ function setLocalUser(user: LocalUser) {
 
 export function useLocalUser() {
   const [user, setUser] = useState<LocalUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setUser(getLocalUser());
+    // Загружаем пользователя при монтировании
+    const loadedUser = getLocalUser();
+    setUser(loadedUser);
+    setIsLoading(false);
+  }, []);
+
+  // Слушаем изменения localStorage из других вкладок
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleStorageChange = () => {
+      const loadedUser = getLocalUser();
+      setUser(loadedUser);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const api = useMemo(() => {
     return {
       user,
+      isLoading,
       setUser: (newUser: LocalUser) => {
         setLocalUser(newUser);
         setUser(newUser);
+        // Принудительно обновляем состояние через событие storage
+        if (typeof window !== "undefined") {
+          // Используем custom event для синхронизации в той же вкладке
+          window.dispatchEvent(new Event("storage"));
+        }
       },
       reset: () => {
         if (typeof window === "undefined") return;
@@ -50,7 +73,7 @@ export function useLocalUser() {
         setUser(null);
       },
     };
-  }, [user]);
+  }, [user, isLoading]);
 
   return api;
 }

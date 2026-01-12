@@ -13,12 +13,49 @@ export default function Page() {
     return (
       <>
         <LoginModal />
-        <div className="space-y-6">
-          <div className="text-center py-20">
-            <h1 className="text-3xl font-bold mb-4">World Tests</h1>
-            <p className="text-zinc-600">
-              Пожалуйста, зарегистрируйтесь для доступа к тестам и рейтингу
-            </p>
+        <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100">
+          <div className="max-w-7xl mx-auto px-4 py-20">
+            {/* Hero Section */}
+            <div className="text-center mb-16">
+              <h1 className="text-5xl font-bold mb-4 text-zinc-900">
+                World Tests
+              </h1>
+              <p className="text-xl text-zinc-600 mb-8 max-w-2xl mx-auto">
+                Проверьте свои знания, пройдите тесты и соревнуйтесь с другими участниками в мировом рейтинге
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="grid md:grid-cols-3 gap-8 mb-16">
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <div className="text-3xl mb-4">📝</div>
+                <h3 className="font-semibold mb-2">Проходите тесты</h3>
+                <p className="text-sm text-zinc-600">
+                  Проверьте свои знания в различных областях
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <div className="text-3xl mb-4">🏆</div>
+                <h3 className="font-semibold mb-2">Зарабатывайте очки</h3>
+                <p className="text-sm text-zinc-600">
+                  Ваши результаты влияют на ваш рейтинг
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <div className="text-3xl mb-4">🌍</div>
+                <h3 className="font-semibold mb-2">Соревнуйтесь</h3>
+                <p className="text-sm text-zinc-600">
+                  Сравните свои результаты с другими участниками
+                </p>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="text-center">
+              <p className="text-zinc-600 mb-4">
+                Зарегистрируйтесь или войдите, чтобы начать
+              </p>
+            </div>
           </div>
         </div>
       </>
