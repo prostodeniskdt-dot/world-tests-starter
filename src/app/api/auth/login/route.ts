@@ -50,13 +50,25 @@ export async function POST(req: Request) {
       );
     }
 
-    console.error("Error finding user:", error);
+    // Если есть ошибка, но это не "not found"
+    if (error) {
+      console.error("Error finding user:", error);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Ошибка базы данных: " + (error.message || String(error)),
+        },
+        { status: 500 }
+      );
+    }
+
+    // Если нет пользователя и нет ошибки (не должно происходить, но для безопасности)
     return NextResponse.json(
       {
         ok: false,
-        error: "Ошибка базы данных: " + error.message,
+        error: "Пользователь не найден",
       },
-      { status: 500 }
+      { status: 404 }
     );
   }
 
