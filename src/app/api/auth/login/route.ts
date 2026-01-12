@@ -38,9 +38,10 @@ export async function POST(req: Request) {
     .eq("email", normalizedEmail)
     .single();
 
-  if (error || !user) {
+  // Обработка ошибок
+  if (error) {
     // PGRST116 - это код ошибки "not found" в Supabase
-    if (error?.code === "PGRST116" || !user) {
+    if (error.code === "PGRST116") {
       return NextResponse.json(
         {
           ok: false,
@@ -50,23 +51,24 @@ export async function POST(req: Request) {
       );
     }
 
-    // Если есть ошибка, но это не "not found"
-    if (error) {
-      console.error("Error finding user:", error);
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Ошибка базы данных: " + (error.message || String(error)),
-        },
-        { status: 500 }
-      );
-    }
-
-    // Если нет пользователя и нет ошибки (не должно происходить, но для безопасности)
+    // Другие ошибки БД
+    console.error("Error finding user:", error);
+    const errorMessage = error.message || String(error);
     return NextResponse.json(
       {
         ok: false,
-        error: "Пользователь не найден",
+        error: "Ошибка базы данных: " + errorMessage,
+      },
+      { status: 500 }
+    );
+  }
+
+  // Если пользователь не найден (нет ошибки, но и нет данных)
+  if (!user) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Пользователь с таким email не найден. Пожалуйста, зарегистрируйтесь.",
       },
       { status: 404 }
     );
