@@ -39,12 +39,18 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
 
       const result = await response.json();
 
-      if (result.ok && result.user) {
+      if (!response.ok || !result.ok) {
+        setError(result.error || "Ошибка регистрации");
+        return;
+      }
+
+      if (result.user) {
         onSuccess(result.user);
       } else {
-        setError(result.error || "Ошибка регистрации");
+        setError("Ошибка регистрации");
       }
     } catch (err) {
+      console.error("Registration error:", err);
       setError("Ошибка при регистрации. Попробуйте ещё раз.");
     } finally {
       setLoading(false);

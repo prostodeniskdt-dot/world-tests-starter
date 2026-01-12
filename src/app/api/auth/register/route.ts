@@ -39,48 +39,101 @@ export async function POST(req: Request) {
     ? telegramUsername.replace(/^@/, "").trim() || null
     : null;
 
-  const userId = crypto.randomUUID();
+  const normalizedEmail = email.toLowerCase().trim();
+  const normalizedFirstName = firstName.trim();
+  const normalizedLastName = lastName.trim();
 
-  // Регистрируем пользователя в БД
-  const { data: resultUserId, error } = await supabaseAdmin.rpc(
-    "register_user",
-    {
-      p_user_id: userId,
-      p_email: email.toLowerCase().trim(),
-      p_first_name: firstName.trim(),
-      p_last_name: lastName.trim(),
-      p_telegram_username: normalizedTelegramUsername,
-    }
-  );
+  // Проверяем, существует ли пользователь с таким email
+  const { data: existingUser, error: checkError } = await supabaseAdmin
+    .from("users")
+    .select("id")
+    .eq("email", normalizedEmail)
+    .single();
 
-  if (error) {
-    // Если ошибка уникальности - email уже существует
-    if (error.message.includes("unique") || error.message.includes("duplicate")) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Пользователь с таким email уже зарегистрирован",
-        },
-        { status: 409 }
-      );
-    }
-
+  if (checkError && checkError.code !== "PGRST116") {
+    // PGRST116 - это "not found", что нормально для нового пользователя
+    console.error("Error checking existing user:", checkError);
     return NextResponse.json(
       {
         ok: false,
-        error: "Ошибка базы данных: " + error.message,
+        error: "Ошибка базы данных: " + checkError.message,
       },
       { status: 500 }
     );
   }
 
+  let userId: string;
+
+  if (existingUser) {
+    // Обновляем существующего пользователя
+    userId = existingUser.id;
+    const { error: updateError } = await supabaseAdmin
+      .from("users")
+      .update({
+        first_name: normalizedFirstName,
+        last_name: normalizedLastName,
+        telegram_username: normalizedTelegramUsername,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Error updating user:", updateError);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Ошибка базы данных: " + updateError.message,
+        },
+        { status: 500 }
+      );
+    }
+  } else {
+    // Создаём нового пользователя
+    userId = crypto.randomUUID();
+    const { error: insertError } = await supabaseAdmin
+      .from("users")
+      .insert({
+        id: userId,
+        email: normalizedEmail,
+        first_name: normalizedFirstName,
+        last_name: normalizedLastName,
+        telegram_username: normalizedTelegramUsername,
+      });
+
+    if (insertError) {
+      // Если ошибка уникальности - email уже существует (race condition)
+      if (
+        insertError.code === "23505" ||
+        insertError.message.includes("unique") ||
+        insertError.message.includes("duplicate")
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Пользователь с таким email уже зарегистрирован",
+          },
+          { status: 409 }
+        );
+      }
+
+      console.error("Error inserting user:", insertError);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Ошибка базы данных: " + insertError.message,
+        },
+        { status: 500 }
+      );
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     user: {
-      userId: resultUserId || userId,
-      email: email.toLowerCase().trim(),
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      userId: userId,
+      email: normalizedEmail,
+      firstName: normalizedFirstName,
+      lastName: normalizedLastName,
       telegramUsername: normalizedTelegramUsername,
     },
   });
