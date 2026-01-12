@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { validateEmail } from "@/lib/emailValidator";
+import { validatePasswordStrength } from "@/lib/password";
+import { useLocalUser } from "./UserGate";
 
 type RegisterFormProps = {
   onSuccess: (user: {
@@ -14,10 +16,15 @@ type RegisterFormProps = {
 };
 
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const { setUser } = useLocalUser();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [telegramUsername, setTelegramUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,6 +49,21 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       return;
     }
 
+    // Валидация пароля
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || "Неверный пароль");
+      setLoading(false);
+      return;
+    }
+
+    // Проверка совпадения паролей
+    if (password !== confirmPassword) {
+      setError("Пароли не совпадают");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -51,6 +73,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           telegramUsername: telegramUsername.trim() || undefined,
+          password: password,
         }),
       });
 
@@ -62,6 +85,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       }
 
       if (result.user) {
+        setUser(result.user);
         onSuccess(result.user);
       } else {
         setError("Ошибка регистрации");
@@ -194,6 +218,58 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         <p className="mt-1 text-xs text-zinc-500">
           Укажите ваш ник в Telegram для связи (без @)
         </p>
+      </div>
+
+      <div>
+        <label htmlFor="password" className="block text-sm font-medium mb-1">
+          Пароль <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            placeholder="Минимум 8 символов"
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-600 hover:text-zinc-900"
+          >
+            {showPassword ? "Скрыть" : "Показать"}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-zinc-500">
+          Минимум 8 символов, заглавная и строчная буква, цифра
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
+          Подтвердите пароль <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <input
+            id="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            placeholder="Повторите пароль"
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-600 hover:text-zinc-900"
+          >
+            {showConfirmPassword ? "Скрыть" : "Показать"}
+          </button>
+        </div>
       </div>
 
       {error && (

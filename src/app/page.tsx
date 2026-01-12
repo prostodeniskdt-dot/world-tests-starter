@@ -1,65 +1,26 @@
 "use client";
 
 import { useLocalUser } from "@/components/UserGate";
-import { LoginModal } from "@/components/LoginModal";
+import { AuthPage } from "@/components/AuthPage";
 import { LiveLeaderboard } from "@/components/LiveLeaderboard";
 import { TEST_1_PUBLIC } from "@/tests/test-1.public";
 import Link from "next/link";
 
 export default function Page() {
-  const { user } = useLocalUser();
+  const { user, isLoading } = useLocalUser();
 
-  if (!user) {
+  // Показываем загрузку
+  if (isLoading) {
     return (
-      <>
-        <LoginModal />
-        <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100">
-          <div className="max-w-7xl mx-auto px-4 py-20">
-            {/* Hero Section */}
-            <div className="text-center mb-16">
-              <h1 className="text-5xl font-bold mb-4 text-zinc-900">
-                World Tests
-              </h1>
-              <p className="text-xl text-zinc-600 mb-8 max-w-2xl mx-auto">
-                Проверьте свои знания, пройдите тесты и соревнуйтесь с другими участниками в мировом рейтинге
-              </p>
-            </div>
-
-            {/* Features */}
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="text-3xl mb-4">📝</div>
-                <h3 className="font-semibold mb-2">Проходите тесты</h3>
-                <p className="text-sm text-zinc-600">
-                  Проверьте свои знания в различных областях
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="text-3xl mb-4">🏆</div>
-                <h3 className="font-semibold mb-2">Зарабатывайте очки</h3>
-                <p className="text-sm text-zinc-600">
-                  Ваши результаты влияют на ваш рейтинг
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="text-3xl mb-4">🌍</div>
-                <h3 className="font-semibold mb-2">Соревнуйтесь</h3>
-                <p className="text-sm text-zinc-600">
-                  Сравните свои результаты с другими участниками
-                </p>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="text-center">
-              <p className="text-zinc-600 mb-4">
-                Зарегистрируйтесь или войдите, чтобы начать
-              </p>
-            </div>
-          </div>
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-zinc-600">Загрузка...</div>
+      </div>
     );
+  }
+
+  // Если пользователь не авторизован, показываем страницу входа
+  if (!user) {
+    return <AuthPage />;
   }
 
   return (

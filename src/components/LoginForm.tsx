@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { validateEmail } from "@/lib/emailValidator";
+import { useLocalUser } from "./UserGate";
 
 type LoginFormProps = {
   onSuccess: (user: {
@@ -15,7 +16,10 @@ type LoginFormProps = {
 };
 
 export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
+  const { setUser } = useLocalUser();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,12 +36,19 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       return;
     }
 
+    if (!password) {
+      setError("Введите пароль");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
+          password: password,
         }),
       });
 
@@ -49,6 +60,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       }
 
       if (result.user) {
+        setUser(result.user);
         onSuccess(result.user);
       } else {
         setError("Ошибка входа");
@@ -65,7 +77,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="login-email" className="block text-sm font-medium mb-1">
-          Email <span className="text-red-500">*</span>
+          Электронная почта <span className="text-red-500">*</span>
         </label>
         <input
           id="login-email"
@@ -76,6 +88,38 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           placeholder="example@email.com"
           className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
         />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label htmlFor="login-password" className="block text-sm font-medium">
+            Пароль <span className="text-red-500">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-xs text-zinc-600 hover:text-zinc-900"
+          >
+            {showPassword ? "Скрыть" : "Показать"}
+          </button>
+        </div>
+        <input
+          id="login-password"
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          placeholder="Введите пароль"
+          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+        />
+        <div className="flex justify-end mt-1">
+          <button
+            type="button"
+            className="text-xs text-zinc-600 hover:text-zinc-900"
+          >
+            Забыли пароль?
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -93,13 +137,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       </button>
 
       <div className="text-center text-sm text-zinc-600">
-        Нет аккаунта?{" "}
+        У вас нет аккаунта?{" "}
         <button
           type="button"
           onClick={onSwitchToRegister}
           className="text-zinc-900 font-medium hover:underline"
         >
-          Зарегистрироваться
+          Создать
         </button>
       </div>
     </form>
