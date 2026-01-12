@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { TestClient } from "@/components/TestClient";
 import { LoginModal } from "@/components/LoginModal";
 import { useLocalUser } from "@/components/UserGate";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 type PublicTest = {
   id: string;
@@ -17,7 +17,7 @@ type PublicTest = {
   }>;
 };
 
-export default function TestPage() {
+function TestPageContent() {
   const { user } = useLocalUser();
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId");
@@ -83,4 +83,18 @@ export default function TestPage() {
   }
 
   return <TestClient test={test} />;
+}
+
+export default function TestPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center py-20">
+          <div className="text-zinc-600">Загрузка...</div>
+        </div>
+      </div>
+    }>
+      <TestPageContent />
+    </Suspense>
+  );
 }
