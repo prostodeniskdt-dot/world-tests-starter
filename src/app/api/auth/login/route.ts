@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { verifyPassword } from "@/lib/password";
 
 const loginSchema = z.object({
   email: z.string().email("Невалидный email адрес"),
+  password: z.string().min(1, "Пароль обязателен"),
 });
 
 export async function POST(req: Request) {
@@ -28,26 +30,26 @@ export async function POST(req: Request) {
     );
   }
 
-  const { email } = parsed.data;
+  const { email, password } = parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
 
-  // Ищем пользователя по email
+  // Получаем пользователя с паролем
   const { data: user, error } = await supabaseAdmin
     .from("users")
-    .select("id, email, first_name, last_name, telegram_username")
+    .select("id, email, first_name, last_name, telegram_username, password_hash")
     .eq("email", normalizedEmail)
     .single();
 
   // Обработка ошибок
-  if (error) {
+  if (error || !user) {
     // PGRST116 - это код ошибки "not found" в Supabase
-    if (error.code === "PGRST116") {
+    if (error?.code === "PGRST116" || !user) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Пользователь с таким email не найден. Пожалуйста, зарегистрируйтесь.",
+          error: "Неверный email или пароль",
         },
-        { status: 404 }
+        { status: 401 }
       );
     }
 
@@ -63,14 +65,27 @@ export async function POST(req: Request) {
     );
   }
 
-  // Если пользователь не найден (нет ошибки, но и нет данных)
-  if (!user) {
+  // Проверяем наличие пароля
+  if (!user.password_hash) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Пользователь с таким email не найден. Пожалуйста, зарегистрируйтесь.",
+        error: "У этого аккаунта нет пароля. Пожалуйста, зарегистрируйтесь заново.",
       },
-      { status: 404 }
+      { status: 401 }
+    );
+  }
+
+  // Проверяем пароль
+  const isPasswordValid = await verifyPassword(password, user.password_hash);
+  
+  if (!isPasswordValid) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Неверный email или пароль",
+      },
+      { status: 401 }
     );
   }
 

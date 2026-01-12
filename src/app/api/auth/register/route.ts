@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { hashPassword, validatePasswordStrength } from "@/lib/password";
 
 const registerSchema = z.object({
   email: z.string().email("Невалидный email адрес"),
   firstName: z.string().trim().min(1, "Имя обязательно").max(50, "Имя слишком длинное"),
   lastName: z.string().trim().min(1, "Фамилия обязательна").max(50, "Фамилия слишком длинная"),
   telegramUsername: z.string().trim().optional(),
+  password: z.string().min(8, "Пароль должен содержать минимум 8 символов"),
 });
 
 export async function POST(req: Request) {
@@ -32,7 +34,19 @@ export async function POST(req: Request) {
     );
   }
 
-  const { email, firstName, lastName, telegramUsername } = parsed.data;
+  const { email, firstName, lastName, telegramUsername, password } = parsed.data;
+
+  // Проверка силы пароля
+  const passwordValidation = validatePasswordStrength(password);
+  if (!passwordValidation.valid) {
+    return NextResponse.json(
+      { ok: false, error: passwordValidation.error },
+      { status: 400 }
+    );
+  }
+
+  // Хешируем пароль
+  const passwordHash = await hashPassword(password);
 
   // Нормализуем telegram username - убираем @ если есть
   const normalizedTelegramUsername = telegramUsername
@@ -51,6 +65,7 @@ export async function POST(req: Request) {
       p_first_name: firstName.trim(),
       p_last_name: lastName.trim(),
       p_telegram_username: normalizedTelegramUsername,
+      p_password_hash: passwordHash,
     }
   );
 
