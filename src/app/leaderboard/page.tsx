@@ -21,6 +21,7 @@ export default async function LeaderboardPage({
 
   const rows = (data ?? []) as unknown as LeaderboardRow[];
   const totalPages = count ? Math.ceil(count / limit) : 1;
+  const hintText = 'Подсказка: чтобы быстро тестировать, открой сайт в инкогнито — получится второй "пользователь" 🙂';
 
   return (
     <div className="space-y-6">
@@ -44,8 +45,7 @@ export default async function LeaderboardPage({
       />
 
       <div className="text-sm text-zinc-600">
-        Подсказка: чтобы быстро тестировать, открой сайт в инкогнито — получится
-        второй &quot;пользователь&quot; 🙂
+        {hintText}
       </div>
     </div>
   );
