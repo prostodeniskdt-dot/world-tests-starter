@@ -254,6 +254,73 @@ select
 from public.user_stats us
 join public.users u on u.id = us.user_id;
 
+-- 11) Таблица токенов сброса пароля
+create table if not exists public.password_reset_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  token text not null unique,
+  expires_at timestamptz not null,
+  used boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists password_reset_tokens_token_idx 
+  on public.password_reset_tokens(token) 
+  where used = false;
+
+create index if not exists password_reset_tokens_user_id_idx 
+  on public.password_reset_tokens(user_id);
+
+-- 12) Таблицы для системы управления тестами
+create table if not exists public.tests (
+  id text primary key,
+  title text not null,
+  description text,
+  base_points int not null default 100,
+  difficulty decimal(3,2) not null default 1.0,
+  max_attempts int, -- null = без ограничений
+  time_limit_minutes int, -- null = без ограничений
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Таблица вопросов
+create table if not exists public.test_questions (
+  id text primary key,
+  test_id text not null references public.tests(id) on delete cascade,
+  question_text text not null,
+  question_order int not null,
+  created_at timestamptz not null default now()
+);
+
+-- Таблица вариантов ответов
+create table if not exists public.test_options (
+  id text primary key,
+  question_id text not null references public.test_questions(id) on delete cascade,
+  option_text text not null,
+  option_order int not null,
+  is_correct boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+-- Индексы для тестов
+create index if not exists test_questions_test_id_idx on public.test_questions(test_id);
+create index if not exists test_options_question_id_idx on public.test_options(question_id);
+create index if not exists tests_is_active_idx on public.tests(is_active);
+
+-- RLS для тестов
+alter table public.tests enable row level security;
+alter table public.test_questions enable row level security;
+alter table public.test_options enable row level security;
+
+-- Триггер для обновления updated_at в tests
+drop trigger if exists tests_set_updated_at on public.tests;
+create trigger tests_set_updated_at
+before update on public.tests
+for each row
+execute function public.set_updated_at();
+
 -- ============================================
 -- ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА
 -- ============================================

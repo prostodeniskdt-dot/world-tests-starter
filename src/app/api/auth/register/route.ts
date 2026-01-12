@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import crypto from "crypto";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { hashPassword, validatePasswordStrength } from "@/lib/password";
+import { signToken } from "@/lib/jwt";
+import { checkRateLimit, registerRateLimiter } from "@/lib/rateLimit";
 
 const registerSchema = z.object({
   email: z.string().email("Невалидный email адрес"),
@@ -13,6 +16,24 @@ const registerSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Получаем IP адрес
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0] : "unknown";
+
+  // Проверяем rate limit
+  const rateLimit = await checkRateLimit(registerRateLimiter, ip);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `Слишком много попыток регистрации. Попробуйте через ${Math.ceil(
+          (rateLimit.resetTime?.getTime() || Date.now() - Date.now()) / 1000
+        )} секунд.`,
+      },
+      { status: 429 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -107,14 +128,47 @@ export async function POST(req: Request) {
   const normalizedFirstName = firstName.trim();
   const normalizedLastName = lastName.trim();
 
-  return NextResponse.json({
-    ok: true,
-    user: {
-      userId: finalUserId,
-      email: normalizedEmail,
-      firstName: normalizedFirstName,
-      lastName: normalizedLastName,
-      telegramUsername: normalizedTelegramUsername,
-    },
+  const userData = {
+    userId: finalUserId,
+    email: normalizedEmail,
+    firstName: normalizedFirstName,
+    lastName: normalizedLastName,
+    telegramUsername: normalizedTelegramUsername,
+  };
+
+  // Создаем JWT токен
+  const token = signToken({
+    userId: finalUserId,
+    email: normalizedEmail,
+    firstName: normalizedFirstName,
+    lastName: normalizedLastName,
+    telegramUsername: normalizedTelegramUsername,
   });
+
+  // Создаем ответ
+  const response = NextResponse.json({
+    ok: true,
+    user: userData,
+  });
+
+  // Устанавливаем httpOnly cookie
+  const cookieStore = await cookies();
+  cookieStore.set("auth_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7, // 7 дней
+    path: "/",
+  });
+
+  // Также устанавливаем через response для совместимости
+  response.cookies.set("auth_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  });
+
+  return response;
 }

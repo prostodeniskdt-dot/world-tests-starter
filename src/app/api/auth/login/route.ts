@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { verifyPassword } from "@/lib/password";
+import { signToken } from "@/lib/jwt";
+import { checkRateLimit, loginRateLimiter } from "@/lib/rateLimit";
 
 const loginSchema = z.object({
   email: z.string().email("Невалидный email адрес"),
@@ -9,6 +12,24 @@ const loginSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Получаем IP адрес
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0] : "unknown";
+
+  // Проверяем rate limit
+  const rateLimit = await checkRateLimit(loginRateLimiter, ip);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `Слишком много попыток входа. Попробуйте через ${Math.ceil(
+          (rateLimit.resetTime?.getTime() || Date.now() - Date.now()) / 1000
+        )} секунд.`,
+      },
+      { status: 429 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -100,14 +121,47 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({
-    ok: true,
-    user: {
-      userId: user.id,
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      telegramUsername: user.telegram_username,
-    },
+  // Создаем JWT токен
+  const token = signToken({
+    userId: user.id,
+    email: user.email,
+    firstName: user.first_name,
+    lastName: user.last_name,
+    telegramUsername: user.telegram_username,
   });
+
+  const userData = {
+    userId: user.id,
+    email: user.email,
+    firstName: user.first_name,
+    lastName: user.last_name,
+    telegramUsername: user.telegram_username,
+  };
+
+  // Создаем ответ
+  const response = NextResponse.json({
+    ok: true,
+    user: userData,
+  });
+
+  // Устанавливаем httpOnly cookie
+  const cookieStore = await cookies();
+  cookieStore.set("auth_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7, // 7 дней
+    path: "/",
+  });
+
+  // Также устанавливаем через response для совместимости
+  response.cookies.set("auth_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  });
+
+  return response;
 }

@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import { submitSchema } from "@/lib/validators";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { TEST_1_PUBLIC } from "@/tests/test-1.public";
-import { TEST_1_SECRET } from "@/tests/test-1.answer";
+import { checkRateLimit, submitRateLimiter } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  // Получаем IP адрес
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0] : "unknown";
+
+  // Проверяем rate limit
+  const rateLimit = await checkRateLimit(submitRateLimiter, ip);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `Слишком много запросов. Попробуйте через ${Math.ceil(
+          (rateLimit.resetTime?.getTime() || Date.now() - Date.now()) / 1000
+        )} секунд.`,
+      },
+      { status: 429 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -23,47 +40,125 @@ export async function POST(req: Request) {
     );
   }
 
-  const { userId, testId, answers } = parsed.data;
+  const { userId, testId, answers, startTime, endTime } = parsed.data;
 
-  // Для стартера есть только один тест
-  if (TEST_1_PUBLIC.id !== TEST_1_SECRET.id) {
+  // Получаем тест для проверки времени
+  const { data: test, error: testError } = await supabaseAdmin
+    .from("tests")
+    .select("*")
+    .eq("id", testId)
+    .single();
+
+  if (testError || !test) {
     return NextResponse.json(
-      { ok: false, error: "Конфиг теста сломан: id public/secret не совпадают" },
+      { ok: false, error: "Тест не найден" },
+      { status: 404 }
+    );
+  }
+
+  // Проверка времени прохождения
+  if (startTime && endTime) {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const durationSeconds = (end.getTime() - start.getTime()) / 1000;
+    
+    // Получаем количество вопросов
+    const { data: questions } = await supabaseAdmin
+      .from("test_questions")
+      .select("id")
+      .eq("test_id", testId);
+    
+    // Минимальное время прохождения (30 секунд на вопрос)
+    const minDuration = ((questions || []).length || 1) * 30;
+    if (durationSeconds < minDuration) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Подозрительно быстрое прохождение теста. Попробуйте еще раз.",
+        },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Проверка на слишком частые попытки
+  const { data: recentAttempts } = await supabaseAdmin
+    .from("attempts")
+    .select("created_at")
+    .eq("user_id", userId)
+    .eq("test_id", testId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (recentAttempts && recentAttempts.length > 0) {
+    const lastAttempt = new Date(recentAttempts[0].created_at);
+    const timeSinceLastAttempt = Date.now() - lastAttempt.getTime();
+    
+    // Минимум 10 секунд между попытками
+    if (timeSinceLastAttempt < 10000) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Слишком частые попытки. Подождите немного.",
+        },
+        { status: 429 }
+      );
+    }
+  }
+
+
+  // Получаем вопросы
+  const { data: questions, error: questionsError } = await supabaseAdmin
+    .from("test_questions")
+    .select("id")
+    .eq("test_id", testId);
+
+  if (questionsError) {
+    return NextResponse.json(
+      { ok: false, error: "Ошибка получения вопросов" },
       { status: 500 }
     );
   }
 
-  if (testId !== TEST_1_PUBLIC.id) {
-    return NextResponse.json(
-      { ok: false, error: "Неизвестный testId" },
-      { status: 400 }
-    );
-  }
+  const questionIds = (questions || []).map((q) => q.id);
 
-// Проверка что ответы на все вопросы есть
-  for (const q of TEST_1_PUBLIC.questions) {
-    const v = answers[q.id];
+  // Проверка что ответы на все вопросы есть
+  for (const qId of questionIds) {
+    const v = answers[qId];
     if (typeof v !== "number") {
       return NextResponse.json(
         { ok: false, error: "Ответь на все вопросы" },
         { status: 400 }
       );
     }
-    if (v < 0 || v >= q.options.length) {
-      return NextResponse.json(
-        { ok: false, error: "Невалидный вариант ответа" },
-        { status: 400 }
-      );
-    }
   }
 
-  const totalQuestions = TEST_1_PUBLIC.questions.length;
-  let correctCount = 0;
+  // Получаем правильные ответы
+  const { data: options } = await supabaseAdmin
+    .from("test_options")
+    .select("id, question_id, option_order, is_correct")
+    .in("question_id", questionIds);
 
-  for (const q of TEST_1_PUBLIC.questions) {
-    const correctIdx = TEST_1_SECRET.answerKey[q.id];
-    const userIdx = answers[q.id] as number;
-    if (userIdx === correctIdx) correctCount += 1;
+  // Создаем мапу правильных ответов
+  const correctAnswers: Record<string, number> = {};
+  (questions || []).forEach((q) => {
+    const correctOption = (options || []).find(
+      (opt) => opt.question_id === q.id && opt.is_correct
+    );
+    if (correctOption) {
+      correctAnswers[q.id] = correctOption.option_order;
+    }
+  });
+
+  // Проверяем ответы
+  const totalQuestions = questionIds.length;
+  let correctCount = 0;
+  for (const qId of questionIds) {
+    const userAnswer = answers[qId];
+    const correctAnswer = correctAnswers[qId];
+    if (userAnswer === correctAnswer) {
+      correctCount += 1;
+    }
   }
 
   const scorePercent =
@@ -74,11 +169,38 @@ export async function POST(req: Request) {
   // Формула очков (MVP):
   // basePoints * difficulty * (correct/total)
   const rawPoints =
-    TEST_1_SECRET.basePoints *
-    TEST_1_SECRET.difficulty *
+    test.base_points *
+    test.difficulty *
     (totalQuestions === 0 ? 0 : correctCount / totalQuestions);
 
   const pointsAwarded = Math.max(0, Math.round(rawPoints));
+
+  // Проверяем лимит попыток
+  if (test.max_attempts !== null) {
+    const { data: userAttempts, error: attemptsError } = await supabaseAdmin
+      .from("attempts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("test_id", testId);
+
+    if (attemptsError) {
+      return NextResponse.json(
+        { ok: false, error: "Ошибка проверки попыток" },
+        { status: 500 }
+      );
+    }
+
+    const attemptsCount = (userAttempts || []).length;
+    if (attemptsCount >= test.max_attempts) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Достигнут лимит попыток (${test.max_attempts}). Вы уже проходили этот тест максимальное количество раз.`,
+        },
+        { status: 403 }
+      );
+    }
+  }
 
   // Проверяем, что пользователь существует
   const { data: userExists } = await supabaseAdmin

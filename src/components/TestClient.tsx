@@ -1,8 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { PublicTest } from "@/tests/test-1.public";
-import { UserGate } from "@/components/UserGate";
+import { useMemo, useState, useEffect } from "react";
+import { UserGate, useLocalUser } from "@/components/UserGate";
+
+type PublicTest = {
+  id: string;
+  title: string;
+  description: string | null;
+  questions: Array<{
+    id: string;
+    text: string;
+    options: string[];
+  }>;
+};
 
 type SubmitResponse =
   | {
@@ -33,6 +43,26 @@ export function TestClient({ test }: { test: PublicTest }) {
 
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubmitResponse | null>(null);
+  const [startTime] = useState(new Date().toISOString());
+  const [attemptsInfo, setAttemptsInfo] = useState<{
+    used: number;
+    max: number | null;
+  } | null>(null);
+  const { user: currentUser } = useLocalUser();
+
+  // Загружаем информацию о попытках
+  useEffect(() => {
+    if (currentUser?.userId) {
+      fetch(`/api/tests/${test.id}/attempts?userId=${currentUser.userId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.ok) {
+            setAttemptsInfo(data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [test.id, currentUser?.userId]);
 
   return (
     <div className="space-y-6">
@@ -47,6 +77,12 @@ export function TestClient({ test }: { test: PublicTest }) {
             <div className="text-sm text-zinc-600">
               Вы: <span className="font-medium text-zinc-900">{user.firstName} {user.lastName}</span>
             </div>
+
+            {attemptsInfo && attemptsInfo.max !== null && (
+              <div className="mt-4 text-sm text-zinc-600">
+                Попыток использовано: {attemptsInfo.used} / {attemptsInfo.max}
+              </div>
+            )}
 
             <div className="mt-6 space-y-6">
               {test.questions.map((q, idx) => (
@@ -85,6 +121,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                 onClick={async () => {
                   setSubmitting(true);
                   setResult(null);
+                  const endTime = new Date().toISOString();
                   try {
                     const res = await fetch("/api/submit", {
                       method: "POST",
@@ -93,6 +130,8 @@ export function TestClient({ test }: { test: PublicTest }) {
                         userId: user.userId,
                         testId: test.id,
                         answers,
+                        startTime,
+                        endTime,
                       }),
                     });
                     const json = (await res.json()) as SubmitResponse;

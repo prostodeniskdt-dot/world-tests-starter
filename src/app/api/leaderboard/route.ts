@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export async function GET() {
-  const { data, error } = await supabaseAdmin
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = parseInt(searchParams.get("limit") || "50", 10);
+  const offset = (page - 1) * limit;
+
+  const { data, error, count } = await supabaseAdmin
     .from("leaderboard")
-    .select(
-      "rank,user_id,email,first_name,last_name,telegram_username,total_points,tests_completed"
-    )
+    .select("*", { count: "exact" })
     .order("rank", { ascending: true })
-    .limit(50);
+    .range(offset, offset + limit - 1);
 
   if (error) {
     return NextResponse.json(
@@ -17,5 +20,16 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({ ok: true, rows: data ?? [] });
+  const totalPages = count ? Math.ceil(count / limit) : 1;
+
+  return NextResponse.json({
+    ok: true,
+    rows: data ?? [],
+    pagination: {
+      page,
+      limit,
+      total: count || 0,
+      totalPages,
+    },
+  });
 }

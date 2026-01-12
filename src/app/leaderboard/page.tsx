@@ -1,18 +1,26 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { LeaderboardTable, type LeaderboardRow } from "@/components/LeaderboardTable";
+import { LeaderboardPagination } from "@/components/LeaderboardPagination";
 
 export const revalidate = 10;
 
-export default async function LeaderboardPage() {
-  const { data, error } = await supabaseAdmin
+export default async function LeaderboardPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
+  const page = parseInt(searchParams.page || "1", 10);
+  const limit = 50;
+  const offset = (page - 1) * limit;
+
+  const { data, error, count } = await supabaseAdmin
     .from("leaderboard")
-    .select(
-      "rank,user_id,email,first_name,last_name,telegram_username,total_points,tests_completed"
-    )
+    .select("*", { count: "exact" })
     .order("rank", { ascending: true })
-    .limit(50);
+    .range(offset, offset + limit - 1);
 
   const rows = (data ?? []) as unknown as LeaderboardRow[];
+  const totalPages = count ? Math.ceil(count / limit) : 1;
 
   return (
     <div className="space-y-6">
@@ -30,9 +38,14 @@ export default async function LeaderboardPage() {
 
       <LeaderboardTable rows={rows} />
 
+      <LeaderboardPagination
+        currentPage={page}
+        totalPages={totalPages}
+      />
+
       <div className="text-sm text-zinc-600">
         Подсказка: чтобы быстро тестировать, открой сайт в инкогнито — получится
-        второй “пользователь” 🙂
+        второй "пользователь" 🙂
       </div>
     </div>
   );

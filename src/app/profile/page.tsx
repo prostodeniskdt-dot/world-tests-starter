@@ -1,6 +1,8 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/jwt";
 
 export const revalidate = 10;
 
@@ -17,7 +19,11 @@ export default async function ProfilePage({
 }: {
   searchParams: { userId?: string };
 }) {
-  const userId = searchParams.userId;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  const currentUser = token ? verifyToken(token) : null;
+  
+  const userId = searchParams.userId || currentUser?.userId;
 
   if (!userId) {
     return (
@@ -25,7 +31,7 @@ export default async function ProfilePage({
         <div className="rounded-md border bg-white p-4">
           <h1 className="text-2xl font-bold">Личный кабинет</h1>
           <p className="mt-2 text-zinc-600">
-            Укажите userId в параметрах запроса для просмотра профиля.
+            Пожалуйста, войдите в систему для просмотра профиля.
           </p>
         </div>
       </div>
