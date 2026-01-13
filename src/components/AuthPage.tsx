@@ -26,8 +26,14 @@ export function AuthPage() {
     firstName: string;
     lastName: string;
     telegramUsername?: string | null;
+    isAdmin?: boolean;
+    isBanned?: boolean;
   }) => {
-    setUser(authUser);
+    setUser({
+      ...authUser,
+      isAdmin: authUser.isAdmin ?? false,
+      isBanned: authUser.isBanned ?? false,
+    });
     router.push("/");
   };
 

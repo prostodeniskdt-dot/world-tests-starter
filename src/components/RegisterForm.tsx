@@ -12,6 +12,8 @@ type RegisterFormProps = {
     firstName: string;
     lastName: string;
     telegramUsername?: string | null;
+    isAdmin?: boolean;
+    isBanned?: boolean;
   }) => void;
 };
 
