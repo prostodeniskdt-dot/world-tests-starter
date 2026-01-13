@@ -46,14 +46,14 @@ export default function Page() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Левая колонка: Рейтинг */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <LiveLeaderboard />
           </div>
 
           {/* Правая колонка: Тесты */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {user ? (
               <>
                 <div className="rounded-md border bg-white p-6">
@@ -67,20 +67,20 @@ export default function Page() {
                   ) : (
                     <div className="space-y-4">
                       {tests.map((test) => (
-                        <div key={test.id} className="border-2 border-amber-200 rounded-xl p-5 bg-gradient-to-br from-white to-amber-50/50 hover:shadow-xl hover:border-amber-300 transition-all duration-300">
+                        <div key={test.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
                           <div className="flex items-start justify-between mb-3">
                             <div>
-                              <h3 className="font-bold text-xl text-amber-900">{test.title}</h3>
+                              <h3 className="font-semibold text-lg">{test.title}</h3>
                               {test.description && (
-                                <p className="text-sm text-zinc-700 mt-2">{test.description}</p>
+                                <p className="text-sm text-zinc-600 mt-1">{test.description}</p>
                               )}
                             </div>
                           </div>
                           <Link
                             href={`/test?testId=${test.id}`}
-                            className="inline-block mt-4 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:from-amber-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg"
+                            className="inline-block mt-4 rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 transition-colors"
                           >
-                            Пройти тест →
+                            Пройти тест
                           </Link>
                         </div>
                       ))}
