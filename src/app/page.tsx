@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useLocalUser } from "@/components/UserGate";
-import { LoginModal } from "@/components/LoginModal";
 import { LiveLeaderboard } from "@/components/LiveLeaderboard";
 import Link from "next/link";
 
@@ -16,8 +15,6 @@ export default function Page() {
   const { user, isLoading } = useLocalUser();
   const [tests, setTests] = useState<Test[]>([]);
   const [testsLoading, setTestsLoading] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
   useEffect(() => {
     if (user) {
@@ -48,15 +45,7 @@ export default function Page() {
   }
 
   return (
-    <>
-      {!user && showAuthModal && (
-        <LoginModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          initialMode={authMode}
-        />
-      )}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Левая колонка: Рейтинг */}
           <div className="lg:col-span-1">
@@ -126,35 +115,35 @@ export default function Page() {
               </>
             ) : (
               <div className="rounded-md border bg-white p-6">
-                <h1 className="text-2xl font-bold mb-2">Добро пожаловать в King of the Bar!</h1>
-                <p className="text-zinc-600 mb-6">
-                  Пройдите тесты, зарабатывайте очки и соревнуйтесь с другими участниками в рейтинге.
-                </p>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => {
-                      setAuthMode("login");
-                      setShowAuthModal(true);
-                    }}
-                    className="rounded-md bg-zinc-900 px-6 py-3 text-white hover:bg-zinc-800 transition-colors font-medium"
-                  >
-                    Войти
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAuthMode("register");
-                      setShowAuthModal(true);
-                    }}
-                    className="rounded-md border border-zinc-300 px-6 py-3 text-zinc-900 hover:bg-zinc-50 transition-colors font-medium"
-                  >
-                    Зарегистрироваться
-                  </button>
+                <h1 className="text-2xl font-bold mb-4">King of the Bar</h1>
+                <div className="space-y-4 text-zinc-700">
+                  <p className="text-lg">
+                    Добро пожаловать на платформу для соревновательных тестов!
+                  </p>
+                  <div className="space-y-3">
+                    <h2 className="font-semibold text-lg">О проекте</h2>
+                    <p>
+                      King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
+                      пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.
+                    </p>
+                    <h2 className="font-semibold text-lg mt-4">Как это работает?</h2>
+                    <ul className="space-y-2 list-disc list-inside">
+                      <li>Регистрируйтесь и создайте свой аккаунт</li>
+                      <li>Проходите тесты по различным темам</li>
+                      <li>Зарабатывайте очки за правильные ответы</li>
+                      <li>Соревнуйтесь с другими участниками и поднимайтесь в рейтинге</li>
+                      <li>Следите за своим прогрессом и улучшайте результаты</li>
+                    </ul>
+                    <p className="mt-4 text-zinc-600">
+                      Начните свой путь к вершине рейтинга уже сегодня! Войдите или зарегистрируйтесь, 
+                      чтобы получить доступ к тестам и начать зарабатывать очки.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-    </>
   );
 }

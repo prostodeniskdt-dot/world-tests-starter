@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { UserMenu } from "./UserMenu";
 import { LoginModal } from "./LoginModal";
@@ -10,6 +10,13 @@ export function Nav() {
   const { user } = useLocalUser();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+
+  // Закрываем модальное окно, когда пользователь авторизован
+  useEffect(() => {
+    if (user && showAuthModal) {
+      setShowAuthModal(false);
+    }
+  }, [user, showAuthModal]);
 
   return (
     <>

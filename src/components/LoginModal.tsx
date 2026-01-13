@@ -51,9 +51,10 @@ export function LoginModal({
     lastName: string;
     telegramUsername?: string | null;
   }) => {
-    setUser(authUser);
+    // setUser уже вызывается в LoginForm/RegisterForm
+    // Просто закрываем модальное окно
     handleClose();
-  }, [setUser, handleClose]);
+  }, [handleClose]);
 
   if (user || !isOpen) {
     return null;
