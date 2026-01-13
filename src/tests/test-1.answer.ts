@@ -10,6 +10,7 @@ export const TEST_1_SECRET = {
   id: "demo-logic-1",
   basePoints: 100,
   difficulty: 1.0,
+  maxAttempts: null as number | null, // null = без ограничений, число = лимит попыток
   // correct option index (0-based)
   answerKey: {
     q1: 2, // 144

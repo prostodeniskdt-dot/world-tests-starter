@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { submitSchema } from "@/lib/validators";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { checkRateLimit, submitRateLimiter } from "@/lib/rateLimit";
+import { PUBLIC_TESTS_MAP, SECRET_TESTS_MAP } from "@/lib/tests-registry";
 
 export async function POST(req: Request) {
   // Получаем IP адрес
@@ -42,14 +43,11 @@ export async function POST(req: Request) {
 
   const { userId, testId, answers, startTime, endTime } = parsed.data;
 
-  // Получаем тест для проверки времени
-  const { data: test, error: testError } = await supabaseAdmin
-    .from("tests")
-    .select("*")
-    .eq("id", testId)
-    .single();
+  // Получаем тест из файлов
+  const testSecret = SECRET_TESTS_MAP[testId];
+  const testPublic = PUBLIC_TESTS_MAP[testId];
 
-  if (testError || !test) {
+  if (!testSecret || !testPublic) {
     return NextResponse.json(
       { ok: false, error: "Тест не найден" },
       { status: 404 }
@@ -62,14 +60,8 @@ export async function POST(req: Request) {
     const end = new Date(endTime);
     const durationSeconds = (end.getTime() - start.getTime()) / 1000;
     
-    // Получаем количество вопросов
-    const { data: questions } = await supabaseAdmin
-      .from("test_questions")
-      .select("id")
-      .eq("test_id", testId);
-    
     // Минимальное время прохождения (30 секунд на вопрос)
-    const minDuration = ((questions || []).length || 1) * 30;
+    const minDuration = testPublic.questions.length * 30;
     if (durationSeconds < minDuration) {
       return NextResponse.json(
         {
@@ -107,20 +99,8 @@ export async function POST(req: Request) {
   }
 
 
-  // Получаем вопросы
-  const { data: questions, error: questionsError } = await supabaseAdmin
-    .from("test_questions")
-    .select("id")
-    .eq("test_id", testId);
-
-  if (questionsError) {
-    return NextResponse.json(
-      { ok: false, error: "Ошибка получения вопросов" },
-      { status: 500 }
-    );
-  }
-
-  const questionIds = (questions || []).map((q) => q.id);
+  // Получаем ID всех вопросов из теста
+  const questionIds = testPublic.questions.map((q) => q.id);
 
   // Проверка что ответы на все вопросы есть
   for (const qId of questionIds) {
@@ -133,29 +113,12 @@ export async function POST(req: Request) {
     }
   }
 
-  // Получаем правильные ответы
-  const { data: options } = await supabaseAdmin
-    .from("test_options")
-    .select("id, question_id, option_order, is_correct")
-    .in("question_id", questionIds);
-
-  // Создаем мапу правильных ответов
-  const correctAnswers: Record<string, number> = {};
-  (questions || []).forEach((q) => {
-    const correctOption = (options || []).find(
-      (opt) => opt.question_id === q.id && opt.is_correct
-    );
-    if (correctOption) {
-      correctAnswers[q.id] = correctOption.option_order;
-    }
-  });
-
-  // Проверяем ответы
+  // Проверяем ответы используя answerKey из файла
   const totalQuestions = questionIds.length;
   let correctCount = 0;
   for (const qId of questionIds) {
     const userAnswer = answers[qId];
-    const correctAnswer = correctAnswers[qId];
+    const correctAnswer = testSecret.answerKey[qId];
     if (userAnswer === correctAnswer) {
       correctCount += 1;
     }
@@ -166,17 +129,16 @@ export async function POST(req: Request) {
       ? 0
       : Math.round((correctCount / totalQuestions) * 100);
 
-  // Формула очков (MVP):
-  // basePoints * difficulty * (correct/total)
+  // Формула очков
   const rawPoints =
-    test.base_points *
-    test.difficulty *
+    testSecret.basePoints *
+    testSecret.difficulty *
     (totalQuestions === 0 ? 0 : correctCount / totalQuestions);
 
   const pointsAwarded = Math.max(0, Math.round(rawPoints));
 
-  // Проверяем лимит попыток
-  if (test.max_attempts !== null) {
+  // Проверяем лимит попыток (если указан в тесте)
+  if (testSecret.maxAttempts !== null && testSecret.maxAttempts !== undefined) {
     const { data: userAttempts, error: attemptsError } = await supabaseAdmin
       .from("attempts")
       .select("id")
@@ -191,11 +153,11 @@ export async function POST(req: Request) {
     }
 
     const attemptsCount = (userAttempts || []).length;
-    if (attemptsCount >= test.max_attempts) {
+    if (attemptsCount >= testSecret.maxAttempts) {
       return NextResponse.json(
         {
           ok: false,
-          error: `Достигнут лимит попыток (${test.max_attempts}). Вы уже проходили этот тест максимальное количество раз.`,
+          error: `Достигнут лимит попыток (${testSecret.maxAttempts}). Вы уже проходили этот тест максимальное количество раз.`,
         },
         { status: 403 }
       );
@@ -231,9 +193,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          "Ошибка базы данных. Убедись, что выполнил supabase/schema.sql. " +
-          error.message,
+        error: "Ошибка базы данных. " + error.message,
       },
       { status: 500 }
     );

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { SECRET_TESTS_MAP } from "@/lib/tests-registry";
 
 export async function GET(
   req: Request,
@@ -17,14 +18,16 @@ export async function GET(
 
   const { testId } = params;
 
-  // Получаем тест
-  const { data: test } = await supabaseAdmin
-    .from("tests")
-    .select("max_attempts")
-    .eq("id", testId)
-    .single();
+  // Получаем тест из файлов
+  const testSecret = SECRET_TESTS_MAP[testId];
+  if (!testSecret) {
+    return NextResponse.json(
+      { ok: false, error: "Тест не найден" },
+      { status: 404 }
+    );
+  }
 
-  // Получаем попытки пользователя
+  // Получаем попытки пользователя из БД
   const { data: attempts } = await supabaseAdmin
     .from("attempts")
     .select("id")
@@ -34,6 +37,6 @@ export async function GET(
   return NextResponse.json({
     ok: true,
     used: (attempts || []).length,
-    max: test?.max_attempts || null,
+    max: testSecret.maxAttempts ?? null,
   });
 }

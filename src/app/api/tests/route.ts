@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { PUBLIC_TESTS } from "@/lib/tests-registry";
 
 export async function GET() {
-  const { data: tests, error } = await supabaseAdmin
-    .from("tests")
-    .select("*")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  // Возвращаем только метаданные тестов (без вопросов)
+  const tests = PUBLIC_TESTS.map((test) => ({
+    id: test.id,
+    title: test.title,
+    description: test.description,
+  }));
 
-  if (error) {
-    return NextResponse.json(
-      { ok: false, error: error.message },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({ ok: true, tests: tests || [] });
+  return NextResponse.json({ ok: true, tests });
 }
