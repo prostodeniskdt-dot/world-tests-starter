@@ -26,9 +26,16 @@ export default async function LeaderboardPage({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-md border bg-white p-4">
-        <h1 className="text-2xl font-bold">Мировой рейтинг</h1>
-        <p className="mt-1 text-zinc-600">
+      <div className="rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-lg">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-md">
+            <span className="text-white text-lg font-bold">🏆</span>
+          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+            Мировой рейтинг
+          </h1>
+        </div>
+        <p className="mt-1 text-amber-800 ml-[52px]">
           Сортировка по сумме очков (чем больше — тем выше).
         </p>
         {error ? (

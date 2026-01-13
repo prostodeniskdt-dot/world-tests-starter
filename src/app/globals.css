@@ -7,5 +7,6 @@
 }
 
 body {
-  @apply bg-zinc-50 text-zinc-900;
+  @apply bg-gradient-to-br from-slate-50 via-amber-50/30 to-orange-50/20 text-zinc-900;
+  background-attachment: fixed;
 }
