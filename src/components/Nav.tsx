@@ -5,13 +5,13 @@ import Link from "next/link";
 import { UserMenu } from "./UserMenu";
 import { LoginModal } from "./LoginModal";
 import { useLocalUser } from "./UserGate";
+import { Trophy } from "lucide-react";
 
 export function Nav() {
   const { user } = useLocalUser();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
-  // Закрываем модальное окно, когда пользователь авторизован
   useEffect(() => {
     if (user && showAuthModal) {
       setShowAuthModal(false);
@@ -27,10 +27,14 @@ export function Nav() {
           initialMode={authMode}
         />
       )}
-      <header className="border-b bg-white sticky top-0 z-40">
+      <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <Link href="/" className="font-semibold text-lg">
-            King of the Bar
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 font-bold text-xl text-gradient hover:opacity-80 transition-opacity"
+          >
+            <Trophy className="h-6 w-6 text-primary-600" />
+            <span>King of the Bar</span>
           </Link>
           <div className="flex items-center gap-4">
             {user ? (
@@ -42,7 +46,7 @@ export function Nav() {
                     setAuthMode("login");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 transition-all"
                 >
                   Войти
                 </button>
@@ -51,7 +55,7 @@ export function Nav() {
                     setAuthMode("register");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
+                  className="rounded-lg bg-gradient-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all"
                 >
                   Зарегистрироваться
                 </button>

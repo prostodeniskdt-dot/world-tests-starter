@@ -4,8 +4,36 @@
 
 :root {
   color-scheme: light;
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  --gradient-gold: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  --gradient-silver: linear-gradient(135deg, #c0c0c0 0%, #e5e7eb 100%);
+  --gradient-bronze: linear-gradient(135deg, #cd7f32 0%, #d97706 100%);
 }
 
 body {
   @apply bg-zinc-50 text-zinc-900;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+  .gradient-gold {
+    background: var(--gradient-gold);
+  }
+  .gradient-silver {
+    background: var(--gradient-silver);
+  }
+  .gradient-bronze {
+    background: var(--gradient-bronze);
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
 }

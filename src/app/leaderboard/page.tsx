@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { LeaderboardTable, type LeaderboardRow } from "@/components/LeaderboardTable";
 import { LeaderboardPagination } from "@/components/LeaderboardPagination";
+import { Trophy } from "lucide-react";
+import { TableSkeleton } from "@/components/LoadingSkeleton";
 
 export const revalidate = 10;
 
@@ -25,20 +27,25 @@ export default async function LeaderboardPage({
   const hintText = 'Подсказка: чтобы быстро тестировать, открой сайт в инкогнито — получится второй "пользователь" 🙂';
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-md border bg-white p-4">
-        <h1 className="text-2xl font-bold">Мировой рейтинг</h1>
-        <p className="mt-1 text-zinc-600">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Trophy className="h-8 w-8 text-primary-600" />
+          <h1 className="text-3xl font-bold text-zinc-900">Мировой рейтинг</h1>
+        </div>
+        <p className="mt-2 text-zinc-600">
           Сортировка по сумме очков (чем больше — тем выше).
         </p>
         {error ? (
-          <p className="mt-3 text-sm text-red-700">
+          <p className="mt-3 text-sm text-error bg-red-50 border border-red-200 rounded-lg p-3">
             Ошибка чтения рейтинга: {error.message}
           </p>
         ) : null}
       </div>
 
-      <LeaderboardTable rows={rows} />
+      <Suspense fallback={<TableSkeleton />}>
+        <LeaderboardTable rows={rows} />
+      </Suspense>
 
       <Suspense fallback={<div className="text-center py-4 text-zinc-600">Загрузка пагинации...</div>}>
         <LeaderboardPagination
@@ -47,7 +54,7 @@ export default async function LeaderboardPage({
         />
       </Suspense>
 
-      <div className="text-sm text-zinc-600">
+      <div className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg p-4">
         {hintText}
       </div>
     </div>

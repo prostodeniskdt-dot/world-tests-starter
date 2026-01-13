@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useLocalUser } from "@/components/UserGate";
 import { LiveLeaderboard } from "@/components/LiveLeaderboard";
 import Link from "next/link";
+import { ArrowRight, CheckCircle2, BookOpen, Trophy, TrendingUp } from "lucide-react";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
 type Test = {
   id: string;
@@ -35,115 +37,145 @@ export default function Page() {
     }
   }, [user]);
 
-  // Показываем загрузку только при первой проверке авторизации
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-zinc-600">Загрузка...</div>
+        <div className="text-zinc-600 animate-pulse">Загрузка...</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Левая колонка: Рейтинг */}
-          <div className="lg:col-span-2">
-            <LiveLeaderboard />
-          </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        {/* Левая колонка: Рейтинг */}
+        <div className="lg:col-span-2">
+          <LiveLeaderboard />
+        </div>
 
-          {/* Правая колонка: Тесты */}
-          <div className="lg:col-span-3 space-y-6">
-            {user ? (
-              <>
-                <div className="rounded-md border bg-white p-6">
-                  <h1 className="text-2xl font-bold mb-2">Доступные тесты</h1>
-                  <p className="text-zinc-600 mb-6">
-                    Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
-                  </p>
+        {/* Правая колонка: Тесты */}
+        <div className="lg:col-span-3 space-y-6">
+          {user ? (
+            <>
+              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-8">
+                <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+                  Доступные тесты
+                </h1>
+                <p className="text-zinc-600 mb-8 text-lg leading-relaxed">
+                  Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
+                </p>
 
-                  {testsLoading ? (
-                    <div className="text-zinc-500">Загрузка тестов...</div>
-                  ) : (
-                    <div className="space-y-4">
-                      {tests.map((test) => (
-                        <div key={test.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="font-semibold text-lg">{test.title}</h3>
-                              {test.description && (
-                                <p className="text-sm text-zinc-600 mt-1">{test.description}</p>
-                              )}
+                {testsLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <div className="space-y-4">
+                    {tests.map((test) => (
+                      <div 
+                        key={test.id} 
+                        className="group border-2 border-zinc-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all bg-white"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <BookOpen className="h-5 w-5 text-primary-600" />
+                              <h3 className="font-bold text-xl text-zinc-900">{test.title}</h3>
                             </div>
+                            {test.description && (
+                              <p className="text-zinc-600 mt-2 leading-relaxed">{test.description}</p>
+                            )}
                           </div>
-                          <Link
-                            href={`/test?testId=${test.id}`}
-                            className="inline-block mt-4 rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 transition-colors"
-                          >
-                            Пройти тест
-                          </Link>
                         </div>
-                      ))}
-                      {tests.length === 0 && (
-                        <div className="text-zinc-500">Пока нет доступных тестов</div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        <Link
+                          href={`/test?testId=${test.id}`}
+                          className="inline-flex items-center gap-2 mt-4 rounded-lg bg-gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all group-hover:scale-105"
+                        >
+                          Пройти тест
+                          <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      </div>
+                    ))}
+                    {tests.length === 0 && (
+                      <div className="text-center py-12 text-zinc-500">
+                        Пока нет доступных тестов
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-                <div className="rounded-md border bg-white p-4">
-                  <h2 className="font-semibold mb-3">Как это работает?</h2>
-                  <ul className="space-y-2 text-sm text-zinc-700">
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600">✓</span>
-                      <span>Проходите тесты и зарабатывайте очки</span>
+              <div className="rounded-xl border border-zinc-200 bg-gradient-to-br from-primary-50 to-accent-50 p-6">
+                <h2 className="font-bold text-xl mb-4 flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-primary-600" />
+                  Как это работает?
+                </h2>
+                <ul className="space-y-3 text-zinc-700">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                    <span>Проходите тесты и зарабатывайте очки</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                    <span>Ваш результат автоматически попадает в рейтинг</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                    <span>Рейтинг обновляется в реальном времени</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                    <span>Соревнуйтесь с другими участниками</span>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-8">
+              <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+                King of the Bar
+              </h1>
+              <div className="space-y-6 text-zinc-700 leading-relaxed">
+                <p className="text-xl text-zinc-900">
+                  Добро пожаловать на платформу для соревновательных тестов!
+                </p>
+                <div className="space-y-4">
+                  <h2 className="font-bold text-2xl text-zinc-900">О проекте</h2>
+                  <p>
+                    King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
+                    пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.
+                  </p>
+                  <h2 className="font-bold text-2xl text-zinc-900 mt-6">Как это работает?</h2>
+                  <ul className="space-y-3 list-none">
+                    <li className="flex items-start gap-3">
+                      <TrendingUp className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                      <span>Регистрируйтесь и создайте свой аккаунт</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600">✓</span>
-                      <span>Ваш результат автоматически попадает в рейтинг</span>
+                    <li className="flex items-start gap-3">
+                      <BookOpen className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                      <span>Проходите тесты по различным темам</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600">✓</span>
-                      <span>Рейтинг обновляется в реальном времени</span>
+                    <li className="flex items-start gap-3">
+                      <Trophy className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                      <span>Зарабатывайте очки за правильные ответы</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600">✓</span>
-                      <span>Соревнуйтесь с другими участниками</span>
+                    <li className="flex items-start gap-3">
+                      <TrendingUp className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                      <span>Соревнуйтесь с другими участниками и поднимайтесь в рейтинге</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                      <span>Следите за своим прогрессом и улучшайте результаты</span>
                     </li>
                   </ul>
-                </div>
-              </>
-            ) : (
-              <div className="rounded-md border bg-white p-6">
-                <h1 className="text-2xl font-bold mb-4">King of the Bar</h1>
-                <div className="space-y-4 text-zinc-700">
-                  <p className="text-lg">
-                    Добро пожаловать на платформу для соревновательных тестов!
+                  <p className="mt-6 text-zinc-600 bg-primary-50 p-4 rounded-lg border border-primary-200">
+                    Начните свой путь к вершине рейтинга уже сегодня! Войдите или зарегистрируйтесь, 
+                    чтобы получить доступ к тестам и начать зарабатывать очки.
                   </p>
-                  <div className="space-y-3">
-                    <h2 className="font-semibold text-lg">О проекте</h2>
-                    <p>
-                      King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
-                      пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.
-                    </p>
-                    <h2 className="font-semibold text-lg mt-4">Как это работает?</h2>
-                    <ul className="space-y-2 list-disc list-inside">
-                      <li>Регистрируйтесь и создайте свой аккаунт</li>
-                      <li>Проходите тесты по различным темам</li>
-                      <li>Зарабатывайте очки за правильные ответы</li>
-                      <li>Соревнуйтесь с другими участниками и поднимайтесь в рейтинге</li>
-                      <li>Следите за своим прогрессом и улучшайте результаты</li>
-                    </ul>
-                    <p className="mt-4 text-zinc-600">
-                      Начните свой путь к вершине рейтинга уже сегодня! Войдите или зарегистрируйтесь, 
-                      чтобы получить доступ к тестам и начать зарабатывать очки.
-                    </p>
-                  </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
+    </div>
   );
 }
