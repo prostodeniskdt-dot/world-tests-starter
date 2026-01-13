@@ -128,7 +128,17 @@ export async function POST(req: Request) {
   const normalizedFirstName = firstName.trim();
   const normalizedLastName = lastName.trim();
 
-  const userData = {
+  // Получаем данные пользователя с is_admin и is_banned
+  const { data: userData, error: userError } = await supabaseAdmin
+    .from("users")
+    .select("is_admin, is_banned")
+    .eq("id", finalUserId)
+    .single();
+
+  const isAdmin = userData?.is_admin || false;
+  const isBanned = userData?.is_banned || false;
+
+  const user = {
     userId: finalUserId,
     email: normalizedEmail,
     firstName: normalizedFirstName,
@@ -143,12 +153,14 @@ export async function POST(req: Request) {
     firstName: normalizedFirstName,
     lastName: normalizedLastName,
     telegramUsername: normalizedTelegramUsername,
+    isAdmin,
+    isBanned,
   });
 
   // Создаем ответ
   const response = NextResponse.json({
     ok: true,
-    user: userData,
+    user,
   });
 
   // Устанавливаем httpOnly cookie

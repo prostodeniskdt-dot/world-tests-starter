@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocalUser } from "./UserGate";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Shield } from "lucide-react";
 
 export function UserMenu() {
   const { user, reset } = useLocalUser();
@@ -74,6 +74,16 @@ export function UserMenu() {
             <User className="h-4 w-4" />
             Личный кабинет
           </Link>
+          {user.isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-primary-700 hover:bg-primary-50 transition-colors border-t border-zinc-200 mt-1"
+              onClick={() => setIsOpen(false)}
+            >
+              <Shield className="h-4 w-4" />
+              Админ-панель
+            </Link>
+          )}
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 text-left px-4 py-2 text-sm text-error hover:bg-red-50 transition-colors"

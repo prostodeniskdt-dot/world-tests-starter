@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   // Получаем пользователя с паролем
   const { data: user, error } = await supabaseAdmin
     .from("users")
-    .select("id, email, first_name, last_name, telegram_username, password_hash")
+    .select("id, email, first_name, last_name, telegram_username, password_hash, is_admin, is_banned")
     .eq("email", normalizedEmail)
     .single();
 
@@ -121,6 +121,17 @@ export async function POST(req: Request) {
     );
   }
 
+  // Проверяем, не забанен ли пользователь
+  if (user.is_banned) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Ваш аккаунт заблокирован. Обратитесь к администратору.",
+      },
+      { status: 403 }
+    );
+  }
+
   // Создаем JWT токен
   const token = signToken({
     userId: user.id,
@@ -128,6 +139,8 @@ export async function POST(req: Request) {
     firstName: user.first_name,
     lastName: user.last_name,
     telegramUsername: user.telegram_username,
+    isAdmin: user.is_admin || false,
+    isBanned: user.is_banned || false,
   });
 
   const userData = {

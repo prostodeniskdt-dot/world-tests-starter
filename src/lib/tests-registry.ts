@@ -1,9 +1,9 @@
 import "server-only";
-import { TEST_1_PUBLIC } from "@/tests/test-1.public";
-import { TEST_1_SECRET } from "@/tests/test-1.answer";
+import { TEST_1_PUBLIC } from "@/tests/test-1/public";
+import { TEST_1_SECRET } from "@/tests/test-1/answer";
 
 // Типы (экспортируем для использования в других файлах)
-export type { PublicTest, PublicTestQuestion } from "@/tests/test-1.public";
+export type { PublicTest, PublicTestQuestion } from "@/tests/test-1/public";
 
 // Реестр всех публичных тестов (без правильных ответов)
 export const PUBLIC_TESTS = [

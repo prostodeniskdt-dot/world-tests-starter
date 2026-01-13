@@ -3,6 +3,8 @@ import { submitSchema } from "@/lib/validators";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { checkRateLimit, submitRateLimiter } from "@/lib/rateLimit";
 import { PUBLIC_TESTS_MAP, SECRET_TESTS_MAP } from "@/lib/tests-registry";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/jwt";
 
 export async function POST(req: Request) {
   // Получаем IP адрес
@@ -42,6 +44,33 @@ export async function POST(req: Request) {
   }
 
   const { userId, testId, answers, startTime, endTime } = parsed.data;
+
+  // Проверяем, не забанен ли пользователь
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  if (token) {
+    const payload = verifyToken(token);
+    if (payload?.isBanned) {
+      return NextResponse.json(
+        { ok: false, error: "Ваш аккаунт заблокирован. Вы не можете проходить тесты." },
+        { status: 403 }
+      );
+    }
+  }
+
+  // Дополнительная проверка в БД (на случай если бан был установлен после создания токена)
+  const { data: user } = await supabaseAdmin
+    .from("users")
+    .select("is_banned")
+    .eq("id", userId)
+    .single();
+
+  if (user?.is_banned) {
+    return NextResponse.json(
+      { ok: false, error: "Ваш аккаунт заблокирован. Вы не можете проходить тесты." },
+      { status: 403 }
+    );
+  }
 
   // Получаем тест из файлов
   const testSecret = SECRET_TESTS_MAP[testId];

@@ -10,6 +10,8 @@ export type JWTPayload = {
   firstName: string;
   lastName: string;
   telegramUsername?: string | null;
+  isAdmin: boolean;
+  isBanned: boolean;
 };
 
 export function signToken(payload: JWTPayload): string {

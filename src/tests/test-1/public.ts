@@ -2,6 +2,8 @@ export type PublicTestQuestion = {
   id: string;
   text: string;
   options: string[];
+  imageUrl?: string; // Путь к изображению в папке media/
+  videoUrl?: string; // Путь к видео в папке media/
 };
 
 export type PublicTest = {

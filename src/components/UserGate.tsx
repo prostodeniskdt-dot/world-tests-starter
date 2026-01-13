@@ -91,5 +91,20 @@ export function UserGate(props: {
     );
   }
 
+  // Проверяем, не забанен ли пользователь
+  if (user.isBanned) {
+    return (
+      <div className="rounded-md border border-red-200 bg-red-50 p-6">
+        <div className="font-medium mb-2 text-red-900">Аккаунт заблокирован</div>
+        <p className="text-sm text-red-700 mb-4">
+          Ваш аккаунт был заблокирован администратором. Вы не можете проходить тесты или участвовать в рейтинге.
+        </p>
+        <p className="text-xs text-red-600">
+          Если вы считаете, что это ошибка, обратитесь к администратору.
+        </p>
+      </div>
+    );
+  }
+
   return <>{props.children(user)}</>;
 }
