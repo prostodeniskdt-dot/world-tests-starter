@@ -47,21 +47,21 @@ export default function Page() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Левая колонка: Рейтинг */}
-        <div className="lg:col-span-2">
+        <div className="flex flex-col">
           <LiveLeaderboard />
         </div>
 
         {/* Правая колонка: Тесты */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="space-y-6 flex flex-col">
           {user ? (
             <>
               <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-8">
-                <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
                   Доступные тесты
                 </h1>
-                <p className="text-zinc-600 mb-8 text-lg leading-relaxed">
+                <p className="text-zinc-600 mb-8 text-base leading-relaxed">
                   Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
                 </p>
 
@@ -129,21 +129,21 @@ export default function Page() {
               </div>
             </>
           ) : (
-            <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-8">
-              <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+            <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-8 h-full">
+              <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
                 King of the Bar
               </h1>
               <div className="space-y-6 text-zinc-700 leading-relaxed">
-                <p className="text-xl text-zinc-900">
+                <p className="text-lg font-medium text-zinc-900">
                   Добро пожаловать на платформу для соревновательных тестов!
                 </p>
                 <div className="space-y-4">
-                  <h2 className="font-bold text-2xl text-zinc-900">О проекте</h2>
-                  <p>
+                  <h2 className="font-bold text-xl text-zinc-900">О проекте</h2>
+                  <p className="text-base leading-relaxed">
                     King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
                     пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.
                   </p>
-                  <h2 className="font-bold text-2xl text-zinc-900 mt-6">Как это работает?</h2>
+                  <h2 className="font-bold text-xl text-zinc-900 mt-6">Как это работает?</h2>
                   <ul className="space-y-3 list-none">
                     <li className="flex items-start gap-3">
                       <TrendingUp className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />

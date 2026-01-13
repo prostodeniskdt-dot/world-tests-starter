@@ -28,15 +28,15 @@ export function Nav() {
         />
       )}
       <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link 
             href="/" 
-            className="flex items-center gap-2 font-bold text-xl text-gradient hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 font-bold text-xl text-gradient hover:opacity-80 transition-opacity whitespace-nowrap"
           >
-            <Trophy className="h-6 w-6 text-primary-600" />
-            <span>King of the Bar</span>
+            <Trophy className="h-6 w-6 text-primary-600 flex-shrink-0" />
+            <span className="whitespace-nowrap">King of the Bar</span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-shrink-0">
             {user ? (
               <UserMenu />
             ) : (
@@ -46,7 +46,7 @@ export function Nav() {
                     setAuthMode("login");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 transition-all"
+                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 transition-all whitespace-nowrap"
                 >
                   Войти
                 </button>
@@ -55,7 +55,7 @@ export function Nav() {
                     setAuthMode("register");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-lg bg-gradient-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all"
+                  className="rounded-lg bg-gradient-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all whitespace-nowrap"
                 >
                   Зарегистрироваться
                 </button>

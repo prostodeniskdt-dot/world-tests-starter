@@ -60,9 +60,9 @@ export function LiveLeaderboard() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 h-full flex flex-col">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold text-zinc-900">Мировой рейтинг</h2>
+          <h2 className="text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
           <span className="text-xs text-success flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full">
             <span className="h-2 w-2 bg-success rounded-full animate-pulse"></span>
             В реальном времени
@@ -74,15 +74,15 @@ export function LiveLeaderboard() {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
+    <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-zinc-900">Мировой рейтинг</h2>
+        <h2 className="text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
         <span className="text-xs text-success flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full font-medium">
           <span className="h-2 w-2 bg-success rounded-full animate-pulse"></span>
           В реальном времени
         </span>
       </div>
-      <div className="overflow-y-auto max-h-[700px]">
+      <div className="overflow-y-auto flex-1">
         <table className="w-full text-left">
           <thead className="sticky top-0 bg-zinc-50 border-b border-zinc-200 z-10">
             <tr>
