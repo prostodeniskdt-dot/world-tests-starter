@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLocalUser } from "./UserGate";
 
 export function UserMenu() {
   const { user, reset } = useLocalUser();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -27,6 +29,13 @@ export function UserMenu() {
   }
 
   const fullName = `${user.firstName} ${user.lastName}`.trim();
+
+  const handleLogout = async () => {
+    setIsOpen(false);
+    await reset();
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <div className="relative" ref={menuRef}>
@@ -64,11 +73,7 @@ export function UserMenu() {
             Личный кабинет
           </Link>
           <button
-            onClick={() => {
-              reset();
-              setIsOpen(false);
-              window.location.reload();
-            }}
+            onClick={handleLogout}
             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-zinc-50 transition-colors"
           >
             Выйти

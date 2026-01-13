@@ -1,14 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import type { JWTPayload } from "@/lib/jwt";
 
 export type LocalUser = JWTPayload & {
   userId: string;
 };
 
-export function useLocalUser() {
-  const [user, setUser] = useState<LocalUser | null>(null);
+type UserContextType = {
+  user: LocalUser | null;
+  isLoading: boolean;
+  setUser: (newUser: LocalUser | null) => void;
+  reset: () => Promise<void>;
+};
+
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+export function UserProvider({ children }: { children: ReactNode }) {
+  const [user, setUserState] = useState<LocalUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,12 +28,12 @@ export function useLocalUser() {
         const result = await response.json();
         
         if (result.ok && result.authenticated && result.user) {
-          setUser(result.user);
+          setUserState(result.user);
         } else {
-          setUser(null);
+          setUserState(null);
         }
       } catch {
-        setUser(null);
+        setUserState(null);
       } finally {
         setIsLoading(false);
       }
@@ -33,27 +42,36 @@ export function useLocalUser() {
     checkAuth();
   }, []);
 
-  const api = useMemo(() => {
-    return {
-      user,
-      isLoading,
-      setUser: (newUser: LocalUser) => {
-        // Токен уже установлен через cookie, просто обновляем состояние
-        setUser(newUser);
-      },
-      reset: async () => {
-        // Удаляем токен через API
-        try {
-          await fetch("/api/auth/logout", { method: "POST" });
-        } catch {
-          // Игнорируем ошибки при выходе
-        }
-        setUser(null);
-      },
-    };
-  }, [user, isLoading]);
+  const setUser = (newUser: LocalUser | null) => {
+    setUserState(newUser);
+  };
 
-  return api;
+  const reset = async () => {
+    // Удаляем токен через API
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Игнорируем ошибки при выходе
+    }
+    setUserState(null);
+  };
+
+  const value = useMemo(() => ({
+    user,
+    isLoading,
+    setUser,
+    reset,
+  }), [user, isLoading]);
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+}
+
+export function useLocalUser() {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error("useLocalUser must be used within a UserProvider");
+  }
+  return context;
 }
 
 export function UserGate(props: {
