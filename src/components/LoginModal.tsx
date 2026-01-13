@@ -7,16 +7,42 @@ import { LoginForm } from "./LoginForm";
 
 type AuthMode = "login" | "register";
 
-export function LoginModal() {
+interface LoginModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  initialMode?: AuthMode;
+}
+
+export function LoginModal({ 
+  isOpen: externalIsOpen, 
+  onClose, 
+  initialMode = "login" 
+}: LoginModalProps = {}) {
   const { user, setUser } = useLocalUser();
-  const [showModal, setShowModal] = useState(true);
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [internalIsOpen, setInternalIsOpen] = useState(true);
+  const [mode, setMode] = useState<AuthMode>(initialMode);
+
+  // Определяем, используется ли внешнее управление
+  const isExternalControl = externalIsOpen !== undefined;
+  const isOpen = isExternalControl ? externalIsOpen : internalIsOpen;
 
   useEffect(() => {
     if (user) {
-      setShowModal(false);
+      if (onClose) {
+        onClose();
+      } else {
+        setInternalIsOpen(false);
+      }
     }
-  }, [user]);
+  }, [user, onClose]);
+
+  const handleClose = useCallback(() => {
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
+  }, [onClose]);
 
   const handleAuthSuccess = useCallback((authUser: {
     userId: string;
@@ -26,10 +52,10 @@ export function LoginModal() {
     telegramUsername?: string | null;
   }) => {
     setUser(authUser);
-    setShowModal(false);
-  }, [setUser]);
+    handleClose();
+  }, [setUser, handleClose]);
 
-  if (user || !showModal) {
+  if (user || !isOpen) {
     return null;
   }
 
@@ -37,7 +63,7 @@ export function LoginModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
         <h2 className="text-2xl font-bold mb-2 text-center">
-          Добро пожаловать в World Tests!
+          Добро пожаловать в King of the Bar!
         </h2>
         <p className="text-zinc-600 mb-6 text-center text-sm">
           {mode === "login" 

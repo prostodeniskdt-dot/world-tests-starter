@@ -1,4 +1,4 @@
--- World Tests starter schema
+-- King of the Bar starter schema
 -- Run in Supabase SQL Editor.
 
 -- 1) Extensions

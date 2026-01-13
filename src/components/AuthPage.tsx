@@ -42,7 +42,7 @@ export function AuthPage() {
         <div className="hidden md:block md:col-span-2">
           <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
             <h1 className="text-5xl font-bold mb-4 text-zinc-900">
-              World Tests
+              King of the Bar
             </h1>
             <p className="text-xl text-zinc-600 mb-8">
               Проверьте свои знания, пройдите тесты и соревнуйтесь с другими участниками

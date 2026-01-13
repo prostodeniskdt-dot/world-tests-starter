@@ -1,4 +1,4 @@
-# World Tests
+# King of the Bar
 
 Проект: **интерактивный сайт с тестами** + **мировой рейтинг** (leaderboard) на **Next.js (Vercel)** + **Supabase (Postgres)**.
 
