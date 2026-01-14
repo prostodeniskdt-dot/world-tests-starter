@@ -18,11 +18,11 @@ type LeaderboardRow = {
 
 function getRankStyle(rank: number) {
   if (rank === 1) {
-    return "bg-gradient-gold text-white border-yellow-400";
+    return "gradient-gold text-white border-yellow-400";
   } else if (rank === 2) {
-    return "bg-gradient-silver text-zinc-900 border-zinc-300";
+    return "gradient-silver text-zinc-900 border-zinc-300";
   } else if (rank === 3) {
-    return "bg-gradient-bronze text-white border-amber-600";
+    return "gradient-bronze text-white border-amber-600";
   }
   return "bg-white text-zinc-900 border-zinc-200";
 }

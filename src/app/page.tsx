@@ -87,7 +87,7 @@ export default function Page() {
                         </div>
                         <Link
                           href={`/test?testId=${test.id}`}
-                          className="inline-flex items-center gap-2 mt-4 rounded-lg bg-gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all group-hover:scale-105"
+                          className="inline-flex items-center gap-2 mt-4 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all group-hover:scale-105"
                         >
                           Пройти тест
                           <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />

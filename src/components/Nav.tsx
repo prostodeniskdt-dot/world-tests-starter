@@ -55,7 +55,7 @@ export function Nav() {
                     setAuthMode("register");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-lg bg-gradient-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all whitespace-nowrap"
+                  className="rounded-lg gradient-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all whitespace-nowrap"
                 >
                   Зарегистрироваться
                 </button>

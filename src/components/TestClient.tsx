@@ -91,7 +91,7 @@ export function TestClient({ test }: { test: PublicTest }) {
         </div>
         <div className="w-full bg-zinc-200 rounded-full h-3 overflow-hidden">
           <div 
-            className="bg-gradient-primary h-full rounded-full transition-all duration-300"
+            className="gradient-primary h-full rounded-full transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
           ></div>
         </div>
@@ -192,7 +192,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                     setSubmitting(false);
                   }
                 }}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
+                className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
               >
                 {submitting ? "Отправляем..." : "Завершить тест"}
                 {!submitting && <ArrowRight className="h-4 w-4" />}

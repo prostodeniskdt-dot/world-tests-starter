@@ -68,7 +68,7 @@ export default async function ProfilePage({
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
         <div className="flex items-center gap-6 mb-6">
-          <div className="h-24 w-24 rounded-full bg-gradient-primary flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+          <div className="h-24 w-24 rounded-full gradient-primary flex items-center justify-center text-white text-3xl font-bold shadow-lg">
             {user.first_name?.charAt(0).toUpperCase() || "?"}
           </div>
           <div className="flex-1">
@@ -168,7 +168,7 @@ export default async function ProfilePage({
           <div className="text-zinc-600 mb-4">Пока нет попыток.</div>
           <Link 
             href="/test" 
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all"
           >
             Пройдите тест
           </Link>
