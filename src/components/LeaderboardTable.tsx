@@ -31,9 +31,71 @@ function getRankIcon(rank: number) {
 }
 
 export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-12 text-center">
+        <p className="text-zinc-500">Пока нет результатов. Пройди тест первым 🙂</p>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-xl border border-zinc-200 bg-white shadow-soft">
-      <div className="inline-block min-w-full align-middle">
+      {/* Мобильный вид - карточки */}
+      <div className="block sm:hidden space-y-3 p-4">
+        {rows.map((r) => {
+          const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
+          const rankStyle = getRankStyle(r.rank);
+          const rankIcon = getRankIcon(r.rank);
+          return (
+            <div 
+              key={r.user_id} 
+              className={`rounded-lg border-2 p-4 ${rankStyle}`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 font-bold">
+                  {rankIcon}
+                  <span>#{r.rank}</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold">{r.total_points.toLocaleString()}</div>
+                  <div className="text-xs opacity-80">{r.tests_completed} тестов</div>
+                </div>
+              </div>
+              <Link
+                href={`/profile?userId=${r.user_id}`}
+                className="flex items-center gap-3"
+              >
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                  r.rank <= 3 
+                    ? "bg-white/30 text-primary-600 border-2 border-white/50" 
+                    : "bg-zinc-800 text-zinc-700"
+                }`}>
+                  {r.first_name?.charAt(0).toUpperCase() || "?"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate">{fullName || "Без имени"}</div>
+                  <div className="text-xs opacity-80 truncate">{r.email}</div>
+                  {r.telegram_username && (
+                    <a
+                      href={`https://t.me/${r.telegram_username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary-600 hover:underline truncate block"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      @{r.telegram_username}
+                    </a>
+                  )}
+                </div>
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Десктопный вид - таблица */}
+      <div className="hidden sm:block inline-block min-w-full align-middle">
         <table className="w-full text-left text-sm">
         <thead className="border-b border-zinc-200 bg-zinc-50">
           <tr>
@@ -95,13 +157,6 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
               </tr>
             );
           })}
-          {rows.length === 0 ? (
-            <tr>
-              <td className="px-4 py-12 text-zinc-500 text-center" colSpan={5}>
-                Пока нет результатов. Пройди тест первым 🙂
-              </td>
-            </tr>
-          ) : null}
         </tbody>
       </table>
       </div>

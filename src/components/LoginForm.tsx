@@ -94,7 +94,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="example@email.com"
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          className="w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0"
         />
       </div>
 
@@ -118,7 +118,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="Введите пароль"
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          className="w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0"
         />
         <div className="flex justify-end mt-1">
           <button

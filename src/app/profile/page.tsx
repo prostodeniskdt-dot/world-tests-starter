@@ -28,9 +28,9 @@ export default async function ProfilePage({
 
   if (!userId) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
-          <h1 className="text-3xl font-bold mb-4">Личный кабинет</h1>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">Личный кабинет</h1>
           <p className="mt-2 text-zinc-600">
             Пожалуйста, войдите в систему для просмотра профиля.
           </p>
@@ -65,14 +65,14 @@ export default async function ProfilePage({
   const attemptsList = (attempts || []) as Attempt[];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
-        <div className="flex items-center gap-6 mb-6">
-          <div className="h-24 w-24 rounded-full gradient-primary flex items-center justify-center text-primary-600 text-3xl font-bold shadow-lg">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
+        <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full gradient-primary flex items-center justify-center text-primary-600 text-xl sm:text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">
             {user.first_name?.charAt(0).toUpperCase() || "?"}
           </div>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-zinc-900 mb-1">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-zinc-900 mb-1">
               {user.first_name} {user.last_name}
             </h1>
             <div className="text-zinc-600 mb-2">{user.email}</div>
@@ -91,7 +91,7 @@ export default async function ProfilePage({
         </div>
 
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
             <div className="rounded-lg border-2 border-primary-200 bg-gradient-to-br from-zinc-900 to-zinc-800 p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Trophy className="h-6 w-6 text-primary-600" />
@@ -112,25 +112,30 @@ export default async function ProfilePage({
       </div>
 
       {attemptsList.length > 0 && (
-        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Calendar className="h-6 w-6" />
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+            <Calendar className="h-5 w-5 sm:h-6 sm:w-6" />
             История попыток
           </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50">
-                <tr>
-                  <th className="px-4 py-3 font-semibold text-zinc-700">Дата</th>
-                  <th className="px-4 py-3 font-semibold text-zinc-700">Тест</th>
-                  <th className="px-4 py-3 font-semibold text-zinc-700">Результат</th>
-                  <th className="px-4 py-3 font-semibold text-zinc-700 text-right">Очки</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attemptsList.map((attempt) => (
-                  <tr key={attempt.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
-                    <td className="px-4 py-3 text-zinc-700">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            {/* Мобильный вид - карточки */}
+            <div className="block sm:hidden space-y-3 px-4">
+              {attemptsList.map((attempt) => (
+                <div key={attempt.id} className="border border-zinc-200 rounded-lg p-4 bg-white">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-medium text-zinc-900 text-sm truncate flex-1 min-w-0 pr-2">{attempt.test_id}</div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+                      attempt.score_percent >= 80 
+                        ? "bg-green-100 text-success"
+                        : attempt.score_percent >= 60
+                        ? "bg-yellow-100 text-warning"
+                        : "bg-red-100 text-error"
+                    }`}>
+                      {attempt.score_percent}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-zinc-600">
+                    <span>
                       {new Date(attempt.created_at).toLocaleDateString("ru-RU", {
                         day: "2-digit",
                         month: "2-digit",
@@ -138,26 +143,56 @@ export default async function ProfilePage({
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-zinc-900">{attempt.test_id}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        attempt.score_percent >= 80 
-                          ? "bg-green-100 text-success"
-                          : attempt.score_percent >= 60
-                          ? "bg-yellow-100 text-warning"
-                          : "bg-red-100 text-error"
-                      }`}>
-                        {attempt.score_percent}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-bold text-primary-600 text-right">
-                      +{attempt.points_awarded}
-                    </td>
+                    </span>
+                    <span className="font-bold text-primary-600">+{attempt.points_awarded}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Десктопный вид - таблица */}
+            <div className="hidden sm:block inline-block min-w-full align-middle">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-zinc-200 bg-zinc-50">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold text-zinc-700">Дата</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-700">Тест</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-700">Результат</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-700 text-right">Очки</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {attemptsList.map((attempt) => (
+                    <tr key={attempt.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                      <td className="px-4 py-3 text-zinc-700">
+                        {new Date(attempt.created_at).toLocaleDateString("ru-RU", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-zinc-900">{attempt.test_id}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          attempt.score_percent >= 80 
+                            ? "bg-green-100 text-success"
+                            : attempt.score_percent >= 60
+                            ? "bg-yellow-100 text-warning"
+                            : "bg-red-100 text-error"
+                        }`}>
+                          {attempt.score_percent}%
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-bold text-primary-600 text-right">
+                        +{attempt.points_awarded}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

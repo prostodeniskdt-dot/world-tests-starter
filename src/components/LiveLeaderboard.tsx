@@ -73,9 +73,9 @@ export function LiveLeaderboard() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6 h-full flex flex-col">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
           <span className="text-xs text-success flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full">
             <span className="h-2 w-2 bg-success rounded-full animate-pulse"></span>
             В реальном времени
@@ -87,10 +87,10 @@ export function LiveLeaderboard() {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
-        <div className="flex items-center gap-2">
+    <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={fetchLeaderboard}
             disabled={isRefreshing}
@@ -110,7 +110,57 @@ export function LiveLeaderboard() {
         </div>
       </div>
       <div className="overflow-y-auto flex-1 -mx-4 sm:mx-0">
-        <div className="inline-block min-w-full align-middle">
+        {/* Мобильный вид - карточки */}
+        <div className="block sm:hidden space-y-3 px-4">
+          {displayedRows.map((r) => {
+            const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
+            const rankStyle = getRankStyle(r.rank);
+            const rankIcon = getRankIcon(r.rank);
+            return (
+              <div 
+                key={r.user_id} 
+                className={`rounded-lg border-2 p-4 ${rankStyle}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 font-bold">
+                    {rankIcon}
+                    <span>#{r.rank}</span>
+                  </div>
+                  <div className="text-lg font-bold">{r.total_points.toLocaleString()}</div>
+                </div>
+                <Link
+                  href={`/profile?userId=${r.user_id}`}
+                  className="flex items-center gap-3"
+                >
+                  <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                    r.rank <= 3 
+                      ? "bg-white/30 text-white border-2 border-white/50" 
+                      : "bg-primary-100 text-primary-700"
+                  }`}>
+                    {r.first_name?.charAt(0).toUpperCase() || "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold truncate">{fullName || "Без имени"}</div>
+                    {r.telegram_username && (
+                      <a
+                        href={`https://t.me/${r.telegram_username}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs opacity-80 hover:underline truncate block"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        @{r.telegram_username}
+                      </a>
+                    )}
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Десктопный вид - таблица */}
+        <div className="hidden sm:block inline-block min-w-full align-middle">
           <table className="w-full text-left">
           <thead className="sticky top-0 bg-zinc-50 border-b border-zinc-200 z-10">
             <tr>

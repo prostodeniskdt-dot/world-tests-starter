@@ -60,21 +60,22 @@ export function LoginModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4"
       onClick={handleClose}
     >
       <div 
-        className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative"
+        className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 transition-colors"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-zinc-400 hover:text-zinc-600 transition-colors p-1"
+          aria-label="Закрыть"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
         
-        <h2 className="text-3xl font-bold mb-2 text-center text-gradient">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-center text-gradient pr-8">
           Добро пожаловать!
         </h2>
         <p className="text-zinc-600 mb-6 text-center text-sm">

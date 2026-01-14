@@ -62,14 +62,14 @@ export default function Page() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Левая колонка: Тесты */}
         <div className="space-y-6 flex flex-col">
           {user ? (
             <>
-              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-8">
-                <h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8">
+                <h1 className="text-xl sm:text-2xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
                   Доступные тесты
                 </h1>
                 <p className="text-zinc-600 mb-8 text-base leading-relaxed">
@@ -97,7 +97,7 @@ export default function Page() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <BookOpen className="h-5 w-5 text-primary-600" aria-hidden="true" />
-                              <h3 className="font-bold text-xl text-zinc-900">{test.title}</h3>
+                              <h3 className="font-bold text-lg sm:text-xl text-zinc-900">{test.title}</h3>
                               <div className="flex items-center gap-1 ml-auto">
                                 {Array.from({ length: test.difficultyLevel }).map((_, i) => (
                                   <span key={i} className="text-amber-600 text-lg" aria-label={`Барная ложка ${i + 1}`}>
@@ -132,16 +132,16 @@ export default function Page() {
               </div>
             </>
           ) : (
-            <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-8 h-full">
-              <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+            <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8 h-full">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
                 King of the Bar
               </h1>
               <div className="space-y-6 text-zinc-700 leading-relaxed">
-                <p className="text-lg font-medium text-zinc-900">
+                <p className="text-base sm:text-lg font-medium text-zinc-900">
                   Добро пожаловать на платформу для соревновательных тестов!
                 </p>
                 <div className="space-y-4">
-                  <h2 className="font-bold text-xl text-zinc-900">О проекте</h2>
+                  <h2 className="font-bold text-lg sm:text-xl text-zinc-900">О проекте</h2>
                   <p className="text-base leading-relaxed">
                     King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
                     пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.

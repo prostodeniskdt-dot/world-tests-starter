@@ -162,7 +162,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="example@email.com"
-          className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+          className={`w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0 ${
             emailError ? "border-red-300" : ""
           }`}
         />
@@ -184,7 +184,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           minLength={1}
           maxLength={50}
           placeholder="Ваше имя"
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          className="w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0"
         />
       </div>
 
@@ -201,7 +201,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           minLength={1}
           maxLength={50}
           placeholder="Ваша фамилия"
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          className="w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0"
         />
       </div>
 
@@ -218,7 +218,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={(e) => handleTelegramChange(e.target.value)}
             maxLength={32}
             placeholder="username"
-            className="flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="flex-1 rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0"
           />
         </div>
         <p className="mt-1 text-xs text-zinc-500">
@@ -239,12 +239,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             required
             minLength={8}
             placeholder="Минимум 8 символов"
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-600 hover:text-zinc-900"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-600 hover:text-zinc-900 p-2 -mr-2"
+            aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
           >
             {showPassword ? "Скрыть" : "Показать"}
           </button>
@@ -266,12 +267,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             placeholder="Повторите пароль"
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0"
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-600 hover:text-zinc-900"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-600 hover:text-zinc-900 p-2 -mr-2"
+            aria-label={showConfirmPassword ? "Скрыть пароль" : "Показать пароль"}
           >
             {showConfirmPassword ? "Скрыть" : "Показать"}
           </button>

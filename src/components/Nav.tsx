@@ -29,12 +29,12 @@ export function Nav() {
         />
       )}
       <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
           <Link 
             href="/" 
-            className="flex items-center gap-2 font-bold text-xl text-gradient hover:opacity-80 transition-opacity whitespace-nowrap"
+            className="flex items-center gap-1.5 sm:gap-2 font-bold text-lg sm:text-xl text-gradient hover:opacity-80 transition-opacity whitespace-nowrap"
           >
-            <Trophy className="h-6 w-6 text-primary-600 flex-shrink-0" aria-label="Трофей" />
+            <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 flex-shrink-0" aria-label="Трофей" />
             <span className="whitespace-nowrap">King of the Bar</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

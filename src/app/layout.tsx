@@ -9,6 +9,11 @@ import { Trophy } from "lucide-react";
 export const metadata: Metadata = {
   title: "King of the Bar",
   description: "Один тест + мировой рейтинг на Next.js + Supabase",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
 };
 
 export default function RootLayout({
@@ -29,8 +34,8 @@ export default function RootLayout({
           <UserProvider>
             <Nav />
             <main id="main-content" className="min-h-screen bg-zinc-50">{children}</main>
-            <footer className="border-t border-zinc-200 bg-white/95 backdrop-blur-sm py-8 mt-12">
-              <div className="max-w-7xl mx-auto px-4 text-sm text-zinc-600 text-center">
+            <footer className="border-t border-zinc-200 bg-white/95 backdrop-blur-sm py-6 sm:py-8 mt-8 sm:mt-12">
+              <div className="max-w-7xl mx-auto px-4 text-xs sm:text-sm text-zinc-600 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Trophy className="h-4 w-4 text-primary-600" />
                   <span className="font-semibold text-zinc-900">King of the Bar</span>

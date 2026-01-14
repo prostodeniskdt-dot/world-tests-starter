@@ -116,22 +116,22 @@ export function TestClient({ test }: { test: PublicTest }) {
   }, [test.id, currentUser?.userId]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-4 sm:space-y-6">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
             {test.title}
           </h1>
           <div className="flex items-center gap-1" title={`Сложность: ${test.difficultyLevel} из 3`}>
             {Array.from({ length: test.difficultyLevel }).map((_, i) => (
-              <span key={i} className="text-amber-600 text-xl" aria-label={`Барная ложка ${i + 1}`}>
+              <span key={i} className="text-amber-600 text-lg sm:text-xl" aria-label={`Барная ложка ${i + 1}`}>
                 🥄
               </span>
             ))}
           </div>
         </div>
         {test.description && (
-          <p className="mt-2 text-zinc-600 text-lg leading-relaxed">{test.description}</p>
+          <p className="mt-2 text-zinc-600 text-sm sm:text-base md:text-lg leading-relaxed">{test.description}</p>
         )}
       </div>
 
@@ -171,7 +171,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                 <button
                   key={q.id}
                   onClick={() => goToQuestion(idx)}
-                  className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
+                  className={`w-12 h-12 sm:w-10 sm:h-10 rounded-lg text-sm font-semibold transition-all ${
                     isCurrent
                       ? 'bg-primary-600 text-white ring-2 ring-primary-300'
                       : isAnswered
@@ -190,8 +190,8 @@ export function TestClient({ test }: { test: PublicTest }) {
 
       <UserGate title="Для прохождения теста необходима регистрация">
         {(user) => (
-          <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-200">
+          <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 pb-4 border-b border-zinc-200">
               <div className="text-sm text-zinc-600">
                 Вы: <span className="font-semibold text-zinc-900">{user.firstName} {user.lastName}</span>
               </div>
@@ -214,17 +214,17 @@ export function TestClient({ test }: { test: PublicTest }) {
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm">
                         {idx + 1}
                       </div>
-                      <div className="font-semibold text-lg text-zinc-900 leading-relaxed flex-1">
+                      <div className="font-semibold text-base sm:text-lg text-zinc-900 leading-relaxed flex-1">
                         {q.text}
                       </div>
                     </div>
-                    <div className="ml-11 space-y-2">
+                    <div className="ml-0 sm:ml-11 space-y-2">
                       {q.options?.map((opt, optIdx) => {
                         const checked = answers[q.id] === optIdx;
                         return (
                           <label
                             key={optIdx}
-                            className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
+                            className={`flex items-center gap-3 rounded-lg border-2 px-3 py-3 sm:px-4 sm:py-3 transition-all ${
                               submitted
                                 ? checked
                                   ? "border-primary-500 bg-primary-50 shadow-md cursor-default"
@@ -270,11 +270,11 @@ export function TestClient({ test }: { test: PublicTest }) {
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-between mt-4 pt-4 border-t border-zinc-200">
+                    <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 mt-4 pt-4 border-t border-zinc-200">
                       <button
                         onClick={prevQuestion}
                         disabled={idx === 0}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium min-h-[44px] sm:min-h-0"
                         aria-label="Предыдущий вопрос"
                       >
                         ← Предыдущий
@@ -282,7 +282,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                       <button
                         onClick={nextQuestion}
                         disabled={idx === test.questions.length - 1}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium min-h-[44px] sm:min-h-0"
                         aria-label="Следующий вопрос"
                       >
                         Следующий →
@@ -293,11 +293,11 @@ export function TestClient({ test }: { test: PublicTest }) {
               })}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-zinc-200 flex items-center gap-4">
+            <div className="mt-6 sm:mt-8 pt-6 border-t border-zinc-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <button
                 disabled={!allAnswered || submitting || submitted}
                 onClick={() => setShowConfirmModal(true)}
-                className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all min-h-[44px] sm:min-h-0"
               >
                 {submitting ? "Отправляем..." : submitted ? "Тест отправлен" : "Завершить тест"}
                 {!submitting && !submitted && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
@@ -312,9 +312,9 @@ export function TestClient({ test }: { test: PublicTest }) {
 
             {/* Модальное окно подтверждения */}
             {showConfirmModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-                <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in">
-                  <h3 className="text-xl font-bold mb-4">Подтверждение отправки</h3>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative max-h-[90vh] overflow-y-auto">
+                  <h3 className="text-lg sm:text-xl font-bold mb-4">Подтверждение отправки</h3>
                   <p className="text-zinc-600 mb-4">
                     Вы ответили на {answeredCount} из {test.questions.length} вопросов. 
                     Вы уверены, что хотите завершить тест?
@@ -419,10 +419,10 @@ export function TestClient({ test }: { test: PublicTest }) {
                 {result.ok ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <Award className="h-6 w-6 text-success" aria-hidden="true" />
-                      <div className="font-bold text-lg text-zinc-900">Результат отправлен ✅</div>
+                      <Award className="h-5 w-5 sm:h-6 sm:w-6 text-success" aria-hidden="true" />
+                      <div className="font-bold text-base sm:text-lg text-zinc-900">Результат отправлен ✅</div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div className="bg-white rounded-lg p-3 border border-green-200">
                         <div className="text-zinc-600 mb-1">Правильных ответов</div>
                         <div className="font-bold text-lg text-zinc-900">
