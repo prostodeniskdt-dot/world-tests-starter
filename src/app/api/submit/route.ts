@@ -83,25 +83,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Проверка времени прохождения
-  if (startTime && endTime) {
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    const durationSeconds = (end.getTime() - start.getTime()) / 1000;
-    
-    // Минимальное время прохождения (30 секунд на вопрос)
-    const minDuration = testPublic.questions.length * 30;
-    if (durationSeconds < minDuration) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Подозрительно быстрое прохождение теста. Попробуйте еще раз.",
-        },
-        { status: 400 }
-      );
-    }
-  }
-
   // Проверка на слишком частые попытки
   const { data: recentAttempts } = await supabaseAdmin
     .from("attempts")
