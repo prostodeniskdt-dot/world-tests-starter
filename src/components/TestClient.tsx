@@ -224,10 +224,14 @@ export function TestClient({ test }: { test: PublicTest }) {
                         return (
                           <label
                             key={optIdx}
-                            className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
-                              checked
-                                ? "border-primary-500 bg-primary-50 shadow-md"
-                                : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50"
+                            className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
+                              submitted || submitting
+                                ? checked
+                                  ? "border-primary-500 bg-primary-50 shadow-md cursor-default"
+                                  : "border-zinc-200 bg-zinc-50 cursor-not-allowed opacity-60"
+                                : checked
+                                ? "border-primary-500 bg-primary-50 shadow-md cursor-pointer"
+                                : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50 cursor-pointer"
                             }`}
                             aria-label={`Вариант ответа ${optIdx + 1}: ${opt}`}
                           >
@@ -244,7 +248,9 @@ export function TestClient({ test }: { test: PublicTest }) {
                               type="radio"
                               name={q.id}
                               checked={checked}
+                              disabled={submitted || submitting}
                               onChange={async () => {
+                                if (submitted || submitting) return;
                                 setAnswers((prev) => ({ ...prev, [q.id]: optIdx }));
                                 const correct = await checkAnswerLocally(q.id, optIdx);
                                 setAnsweredHints(prev => ({ ...prev, [q.id]: true }));

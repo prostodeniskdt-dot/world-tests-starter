@@ -105,7 +105,7 @@ begin
   -- Обновляем статистику пользователя
   insert into public.user_stats as us (user_id, total_points, tests_completed)
   values (p_user_id, p_points_awarded, 1)
-  on conflict (user_id) do update
+  on conflict on constraint user_stats_pkey do update
     set total_points = us.total_points + excluded.total_points,
         tests_completed = us.tests_completed + 1,
         updated_at = now();
