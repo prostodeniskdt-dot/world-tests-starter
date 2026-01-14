@@ -5,6 +5,8 @@ import { BALANCE_PRACTICE_1_PUBLIC } from "@/tests/balance-practice-1/public";
 import { BALANCE_PRACTICE_1_SECRET } from "@/tests/balance-practice-1/answer";
 import { ENGINEERING_1_PUBLIC } from "@/tests/engineering-1/public";
 import { ENGINEERING_1_SECRET } from "@/tests/engineering-1/answer";
+import { CARBONIZATION_5_PILLARS_PUBLIC } from "@/tests/carbonization-5-pillars/public";
+import { CARBONIZATION_5_PILLARS_SECRET } from "@/tests/carbonization-5-pillars/answer";
 
 // Типы (экспортируем для использования в других файлах)
 export type { PublicTest, PublicTestQuestion } from "@/tests/types";
@@ -14,6 +16,7 @@ export const PUBLIC_TESTS = [
   COCKTAIL_SYSTEM_1_PUBLIC,
   BALANCE_PRACTICE_1_PUBLIC,
   ENGINEERING_1_PUBLIC,
+  CARBONIZATION_5_PILLARS_PUBLIC,
 ] as const;
 
 // Реестр всех секретных тестов (с правильными ответами)
@@ -21,6 +24,7 @@ export const SECRET_TESTS = [
   COCKTAIL_SYSTEM_1_SECRET,
   BALANCE_PRACTICE_1_SECRET,
   ENGINEERING_1_SECRET,
+  CARBONIZATION_5_PILLARS_SECRET,
 ] as const;
 
 // Мапы для быстрого доступа по ID

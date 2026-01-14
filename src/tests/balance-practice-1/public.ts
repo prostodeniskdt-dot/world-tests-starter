@@ -3,7 +3,7 @@ import type { PublicTest } from "../types";
 export const BALANCE_PRACTICE_1_PUBLIC: PublicTest = {
   id: "balance-practice-1",
   title: "Повторяемость и баланс: практика расчётов",
-  description: "Уровень: средний • 30 вопросов • 1 правильный ответ (Больше математики \"по делу\": короткие расчёты + выбор решения.)",
+  description: "Уровень: средний • 30 вопросов • 1 правильный ответ (Больше математики \"по делу\": короткие расчёты + выбор решения.) • Основано на книге: Liquid Intelligence the art and science of the perfect cocktail",
   category: "коктейли",
   difficultyLevel: 2,
   questions: [

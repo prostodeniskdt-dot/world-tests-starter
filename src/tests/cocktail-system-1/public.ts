@@ -3,7 +3,7 @@ import type { PublicTest } from "../types";
 export const COCKTAIL_SYSTEM_1_PUBLIC: PublicTest = {
   id: "cocktail-system-basics-1",
   title: "Коктейль как система: базовые принципы",
-  description: "Уровень: простой → уверенный базовый • 20 вопросов • 1 правильный ответ",
+  description: "Уровень: простой → уверенный базовый • 20 вопросов • 1 правильный ответ • Основано на книге: Liquid Intelligence the art and science of the perfect cocktail",
   category: "коктейли",
   difficultyLevel: 1,
   questions: [

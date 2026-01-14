@@ -3,7 +3,7 @@ import type { PublicTest } from "../types";
 export const ENGINEERING_1_PUBLIC: PublicTest = {
   id: "engineering-cocktail-1",
   title: "Инженерия коктейля: расчёт, газ, прозрачность",
-  description: "Уровень: сложный • 35 вопросов • 1 правильный ответ (Продвинутые кейсы, точные расчёты, технология газировки/осветления/стандартизации.)",
+  description: "Уровень: сложный • 35 вопросов • 1 правильный ответ (Продвинутые кейсы, точные расчёты, технология газировки/осветления/стандартизации.) • Основано на книге: Liquid Intelligence the art and science of the perfect cocktail",
   category: "коктейли",
   difficultyLevel: 3,
   questions: [
