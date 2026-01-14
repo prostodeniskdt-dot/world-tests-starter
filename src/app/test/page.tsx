@@ -6,17 +6,7 @@ import { LoginModal } from "@/components/LoginModal";
 import { useLocalUser } from "@/components/UserGate";
 import { useEffect, useState, Suspense } from "react";
 import { Spinner } from "@/components/Spinner";
-
-type PublicTest = {
-  id: string;
-  title: string;
-  description: string | null;
-  questions: Array<{
-    id: string;
-    text: string;
-    options: string[];
-  }>;
-};
+import type { PublicTest } from "@/lib/tests-registry";
 
 function TestPageContent() {
   const { user } = useLocalUser();
