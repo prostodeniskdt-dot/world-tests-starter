@@ -1,27 +1,11 @@
-export type PublicTestQuestion = {
-  id: string;
-  text: string;
-  type: "multiple-choice" | "text";
-  options?: string[]; // Только для multiple-choice
-  hint?: string; // Справка для показа после ответа
-  imageUrl?: string; // Путь к изображению в папке media/
-  videoUrl?: string; // Путь к видео в папке media/
-};
-
-export type PublicTest = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  difficultyLevel: 1 | 2 | 3; // Уровень сложности (барные ложки)
-  questions: PublicTestQuestion[];
-};
+import type { PublicTest } from "../types";
 
 export const TECHNIQUES_1_PUBLIC: PublicTest = {
   id: "techniques-basics-1",
   title: "Основы барного дела",
   description: "5 вопросов о базовых техниках и инструментах бармена.",
   category: "техники",
+  difficultyLevel: 1,
   questions: [
     {
       id: "q1",
