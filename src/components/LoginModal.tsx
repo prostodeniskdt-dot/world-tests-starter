@@ -71,7 +71,7 @@ export function LoginModal({
           onClick={handleClose}
           className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 transition-colors"
         >
-          <X className="h-5 w-5" />
+          <X className="h-5 w-5" aria-hidden="true" />
         </button>
         
         <h2 className="text-3xl font-bold mb-2 text-center text-gradient">

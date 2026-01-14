@@ -5,6 +5,7 @@ import { TestClient } from "@/components/TestClient";
 import { LoginModal } from "@/components/LoginModal";
 import { useLocalUser } from "@/components/UserGate";
 import { useEffect, useState, Suspense } from "react";
+import { Spinner } from "@/components/Spinner";
 
 type PublicTest = {
   id: string;
@@ -65,7 +66,10 @@ function TestPageContent() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center py-20">
-          <div className="text-zinc-600">Загрузка теста...</div>
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size="lg" />
+            <div className="text-zinc-600">Загрузка теста...</div>
+          </div>
         </div>
       </div>
     );
@@ -90,7 +94,10 @@ export default function TestPage() {
     <Suspense fallback={
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center py-20">
-          <div className="text-zinc-600">Загрузка...</div>
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size="lg" />
+            <div className="text-zinc-600">Загрузка...</div>
+          </div>
         </div>
       </div>
     }>

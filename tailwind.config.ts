@@ -40,6 +40,20 @@ const config: Config = {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
         'glow': '0 0 20px rgba(59, 130, 246, 0.3)',
       },
+      ringOffsetWidth: {
+        DEFAULT: '2px',
+      },
+      fontSize: {
+        'display': ['3.5rem', { lineHeight: '1.1', fontWeight: '700' }],
+        'h1': ['2.5rem', { lineHeight: '1.2', fontWeight: '700' }],
+        'h2': ['2rem', { lineHeight: '1.3', fontWeight: '600' }],
+        'h3': ['1.5rem', { lineHeight: '1.4', fontWeight: '600' }],
+        'h4': ['1.25rem', { lineHeight: '1.5', fontWeight: '600' }],
+        'body-lg': ['1.125rem', { lineHeight: '1.6' }],
+        'body': ['1rem', { lineHeight: '1.6' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.5' }],
+        'caption': ['0.75rem', { lineHeight: '1.4' }],
+      },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { validateEmail } from "@/lib/emailValidator";
 import { useLocalUser } from "./UserGate";
+import { ForgotPasswordModal } from "./ForgotPasswordModal";
+import { addToast } from "./Toast";
 
 type LoginFormProps = {
   onSuccess: (user: {
@@ -25,9 +27,6 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
-  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
-  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +67,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       if (result.user) {
         setUser(result.user);
         onSuccess(result.user);
+        addToast("Успешный вход!", "success");
       } else {
         setError("Ошибка входа");
       }
@@ -92,7 +92,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="example@email.com"
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         />
       </div>
 
@@ -116,7 +116,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="Введите пароль"
-          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         />
         <div className="flex justify-end mt-1">
           <button
@@ -155,79 +155,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       </div>
 
       {/* Модальное окно восстановления пароля */}
-      {showForgotPassword && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Восстановление пароля</h3>
-            {forgotPasswordSuccess ? (
-              <div className="text-green-600 mb-4">
-                Инструкции по восстановлению пароля отправлены на ваш email.
-              </div>
-            ) : (
-              <>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1">
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={forgotPasswordEmail}
-                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                    placeholder="Ваш email"
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={async () => {
-                      if (!forgotPasswordEmail || !validateEmail(forgotPasswordEmail).valid) {
-                        setError("Введите корректный email");
-                        return;
-                      }
-
-                      setForgotPasswordLoading(true);
-                      setError(null);
-                      try {
-                        const response = await fetch("/api/auth/forgot-password", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ email: forgotPasswordEmail }),
-                        });
-
-                        const result = await response.json();
-                        if (result.ok) {
-                          setForgotPasswordSuccess(true);
-                        } else {
-                          setError("Ошибка при отправке запроса");
-                        }
-                      } catch {
-                        setError("Ошибка при отправке запроса");
-                      } finally {
-                        setForgotPasswordLoading(false);
-                      }
-                    }}
-                    disabled={forgotPasswordLoading}
-                    className="flex-1 bg-zinc-900 text-white py-2 rounded-md disabled:opacity-50"
-                  >
-                    {forgotPasswordLoading ? "Отправка..." : "Отправить"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowForgotPassword(false);
-                      setForgotPasswordEmail("");
-                      setForgotPasswordSuccess(false);
-                      setError(null);
-                    }}
-                    className="px-4 py-2 border rounded-md"
-                  >
-                    Отмена
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => {
+          setShowForgotPassword(false);
+          setError(null);
+        }}
+      />
     </form>
   );
 }

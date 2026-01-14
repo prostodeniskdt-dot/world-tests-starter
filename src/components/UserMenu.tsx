@@ -51,7 +51,7 @@ export function UserMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-zinc-200 py-2 z-50 animate-scale-in">
+        <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-zinc-200 py-2 z-50 animate-scale-in">
           <div className="px-4 py-3 border-b border-zinc-200">
             <div className="font-semibold text-sm text-zinc-900">{fullName}</div>
             <div className="text-xs text-zinc-500 mt-1">{user.email}</div>
@@ -71,7 +71,7 @@ export function UserMenu() {
             className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            <User className="h-4 w-4" />
+            <User className="h-4 w-4" aria-hidden="true" />
             Личный кабинет
           </Link>
           {user.isAdmin && (
@@ -80,7 +80,7 @@ export function UserMenu() {
               className="flex items-center gap-3 px-4 py-2 text-sm text-primary-700 hover:bg-primary-50 transition-colors border-t border-zinc-200 mt-1"
               onClick={() => setIsOpen(false)}
             >
-              <Shield className="h-4 w-4" />
+              <Shield className="h-4 w-4" aria-hidden="true" />
               Админ-панель
             </Link>
           )}
@@ -88,7 +88,7 @@ export function UserMenu() {
             onClick={handleLogout}
             className="w-full flex items-center gap-3 text-left px-4 py-2 text-sm text-error hover:bg-red-50 transition-colors"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4" aria-hidden="true" />
             Выйти
           </button>
         </div>

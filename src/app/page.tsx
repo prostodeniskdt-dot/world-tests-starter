@@ -6,6 +6,7 @@ import { LiveLeaderboard } from "@/components/LiveLeaderboard";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, BookOpen, Trophy, TrendingUp } from "lucide-react";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { Spinner } from "@/components/Spinner";
 
 type Test = {
   id: string;
@@ -40,7 +41,10 @@ export default function Page() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-zinc-600 animate-pulse">Загрузка...</div>
+        <div className="flex flex-col items-center gap-3">
+          <Spinner size="lg" />
+          <div className="text-zinc-600">Загрузка...</div>
+        </div>
       </div>
     );
   }

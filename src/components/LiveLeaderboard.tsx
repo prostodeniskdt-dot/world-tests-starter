@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Trophy, Medal, Award } from "lucide-react";
 import { TableSkeleton } from "./LoadingSkeleton";
@@ -28,17 +28,20 @@ function getRankStyle(rank: number) {
 }
 
 function getRankIcon(rank: number) {
-  if (rank === 1) return <Trophy className="h-5 w-5" />;
-  if (rank === 2) return <Medal className="h-5 w-5" />;
-  if (rank === 3) return <Award className="h-5 w-5" />;
+  if (rank === 1) return <Trophy className="h-5 w-5" aria-label="Первое место" />;
+  if (rank === 2) return <Medal className="h-5 w-5" aria-label="Второе место" />;
+  if (rank === 3) return <Award className="h-5 w-5" aria-label="Третье место" />;
   return null;
 }
 
 export function LiveLeaderboard() {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [displayLimit, setDisplayLimit] = useState(25);
 
   const fetchLeaderboard = async () => {
+    setIsRefreshing(true);
     try {
       const response = await fetch("/api/leaderboard");
       const result = await response.json();
@@ -48,15 +51,25 @@ export function LiveLeaderboard() {
     } catch (error) {
       console.error("Ошибка загрузки рейтинга:", error);
     } finally {
+      setIsRefreshing(false);
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchLeaderboard();
-    const interval = setInterval(fetchLeaderboard, 10000);
+    const interval = setInterval(() => {
+      // Обновляем только если страница видима
+      if (!document.hidden) {
+        fetchLeaderboard();
+      }
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const displayedRows = useMemo(() => {
+    return rows.slice(0, displayLimit);
+  }, [rows, displayLimit]);
 
   if (loading) {
     return (
@@ -77,13 +90,18 @@ export function LiveLeaderboard() {
     <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
-        <span className="text-xs text-success flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full font-medium">
-          <span className="h-2 w-2 bg-success rounded-full animate-pulse"></span>
-          В реальном времени
+        <span className={`text-xs flex items-center gap-1.5 px-3 py-1 rounded-full font-medium ${
+          isRefreshing ? 'bg-primary-50 text-primary-600' : 'bg-green-50 text-success'
+        }`}>
+          <span className={`h-2 w-2 rounded-full ${
+            isRefreshing ? 'bg-primary-600 animate-spin' : 'bg-success animate-pulse'
+          }`}></span>
+          {isRefreshing ? 'Обновление...' : 'В реальном времени'}
         </span>
       </div>
-      <div className="overflow-y-auto flex-1">
-        <table className="w-full text-left">
+      <div className="overflow-y-auto flex-1 -mx-4 sm:mx-0">
+        <div className="inline-block min-w-full align-middle">
+          <table className="w-full text-left">
           <thead className="sticky top-0 bg-zinc-50 border-b border-zinc-200 z-10">
             <tr>
               <th className="px-4 py-3 text-xs font-semibold text-zinc-600 uppercase tracking-wider">#</th>
@@ -92,7 +110,7 @@ export function LiveLeaderboard() {
             </tr>
           </thead>
           <tbody>
-            {rows.slice(0, 25).map((r) => {
+            {displayedRows.map((r) => {
               const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
               const rankStyle = getRankStyle(r.rank);
               const rankIcon = getRankIcon(r.rank);
@@ -143,10 +161,21 @@ export function LiveLeaderboard() {
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
         {rows.length === 0 && (
           <div className="text-center text-zinc-500 py-12 text-sm">
             Пока нет результатов. Пройди тест первым 🙂
+          </div>
+        )}
+        {rows.length > displayLimit && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setDisplayLimit(prev => prev + 25)}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+            >
+              Показать еще ({rows.length - displayLimit} участников)
+            </button>
           </div>
         )}
       </div>

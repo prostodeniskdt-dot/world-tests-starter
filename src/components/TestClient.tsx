@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { CheckCircle2, Circle, ArrowRight, Award } from "lucide-react";
+import { addToast } from "./Toast";
 
 type PublicTest = {
   id: string;
@@ -50,12 +51,33 @@ export function TestClient({ test }: { test: PublicTest }) {
     max: number | null;
   } | null>(null);
   const { user: currentUser } = useLocalUser();
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showNavigation, setShowNavigation] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const answeredCount = useMemo(() => {
     return Object.values(answers).filter(v => v !== null).length;
   }, [answers]);
 
   const progressPercent = (answeredCount / test.questions.length) * 100;
+
+  const goToQuestion = (index: number) => {
+    setCurrentQuestionIndex(index);
+    const element = document.getElementById(`question-${index}`);
+    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < test.questions.length - 1) {
+      goToQuestion(currentQuestionIndex + 1);
+    }
+  };
+
+  const prevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      goToQuestion(currentQuestionIndex - 1);
+    }
+  };
 
   useEffect(() => {
     if (currentUser?.userId) {
@@ -91,10 +113,47 @@ export function TestClient({ test }: { test: PublicTest }) {
         </div>
         <div className="w-full bg-zinc-200 rounded-full h-3 overflow-hidden">
           <div 
-            className="gradient-primary h-full rounded-full transition-all duration-300"
+            className="gradient-primary h-full rounded-full transition-[width] duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           ></div>
         </div>
+      </div>
+
+      {/* Навигация по вопросам */}
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-zinc-700">Навигация по вопросам</span>
+          <button
+            onClick={() => setShowNavigation(!showNavigation)}
+            className="text-xs text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            {showNavigation ? 'Скрыть' : 'Показать'}
+          </button>
+        </div>
+        {showNavigation && (
+          <div className="flex flex-wrap gap-2">
+            {test.questions.map((q, idx) => {
+              const isAnswered = answers[q.id] !== null;
+              const isCurrent = idx === currentQuestionIndex;
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => goToQuestion(idx)}
+                  className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
+                    isCurrent
+                      ? 'bg-primary-600 text-white ring-2 ring-primary-300'
+                      : isAnswered
+                      ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  }`}
+                  aria-label={`Вопрос ${idx + 1}${isAnswered ? ', отвечен' : ', не отвечен'}`}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <UserGate title="Для прохождения теста необходима регистрация">
@@ -114,7 +173,7 @@ export function TestClient({ test }: { test: PublicTest }) {
 
             <div className="space-y-8">
               {test.questions.map((q, idx) => (
-                <div key={q.id} className="border-t border-zinc-100 pt-6 first:border-t-0 first:pt-0">
+                <div key={q.id} id={`question-${idx}`} className="border-t border-zinc-100 pt-6 first:border-t-0 first:pt-0">
                   <div className="flex items-start gap-3 mb-4">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm">
                       {idx + 1}
@@ -134,14 +193,15 @@ export function TestClient({ test }: { test: PublicTest }) {
                               ? "border-primary-500 bg-primary-50 shadow-md"
                               : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50"
                           }`}
+                          aria-label={`Вариант ответа ${optIdx + 1}: ${opt}`}
                         >
                           <div className="flex-shrink-0">
                             {checked ? (
                               <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center">
-                                <CheckCircle2 className="h-4 w-4 text-white" />
+                                <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
                               </div>
                             ) : (
-                              <Circle className="h-5 w-5 text-zinc-400" />
+                              <Circle className="h-5 w-5 text-zinc-400" aria-hidden="true" />
                             )}
                           </div>
                           <input
@@ -152,11 +212,30 @@ export function TestClient({ test }: { test: PublicTest }) {
                               setAnswers((prev) => ({ ...prev, [q.id]: optIdx }))
                             }
                             className="hidden"
+                            aria-label={`Выбрать вариант ${optIdx + 1}`}
                           />
-                          <span className="text-zinc-700 flex-1">{opt}</span>
+                          <span className="text-zinc-700 flex-1" aria-hidden="true">{opt}</span>
                         </label>
                       );
                     })}
+                  </div>
+                  <div className="flex justify-between mt-4 pt-4 border-t border-zinc-100">
+                    <button
+                      onClick={prevQuestion}
+                      disabled={idx === 0}
+                      className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Предыдущий вопрос"
+                    >
+                      ← Предыдущий
+                    </button>
+                    <button
+                      onClick={nextQuestion}
+                      disabled={idx === test.questions.length - 1}
+                      className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Следующий вопрос"
+                    >
+                      Следующий →
+                    </button>
                   </div>
                 </div>
               ))}
@@ -165,37 +244,11 @@ export function TestClient({ test }: { test: PublicTest }) {
             <div className="mt-8 pt-6 border-t border-zinc-200 flex items-center gap-4">
               <button
                 disabled={!allAnswered || submitting}
-                onClick={async () => {
-                  setSubmitting(true);
-                  setResult(null);
-                  const endTime = new Date().toISOString();
-                  try {
-                    const res = await fetch("/api/submit", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        userId: user.userId,
-                        testId: test.id,
-                        answers,
-                        startTime,
-                        endTime,
-                      }),
-                    });
-                    const json = (await res.json()) as SubmitResponse;
-                    setResult(json);
-                  } catch (e) {
-                    setResult({
-                      ok: false,
-                      error: "Сеть/сервер недоступны. Попробуй ещё раз.",
-                    });
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
+                onClick={() => setShowConfirmModal(true)}
                 className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
               >
                 {submitting ? "Отправляем..." : "Завершить тест"}
-                {!submitting && <ArrowRight className="h-4 w-4" />}
+                {!submitting && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
               </button>
 
               {!allAnswered && (
@@ -204,6 +257,67 @@ export function TestClient({ test }: { test: PublicTest }) {
                 </div>
               )}
             </div>
+
+            {/* Модальное окно подтверждения */}
+            {showConfirmModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+                <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in">
+                  <h3 className="text-xl font-bold mb-4">Подтверждение отправки</h3>
+                  <p className="text-zinc-600 mb-6">
+                    Вы ответили на {answeredCount} из {test.questions.length} вопросов. 
+                    Вы уверены, что хотите завершить тест?
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={async () => {
+                        setShowConfirmModal(false);
+                        setSubmitting(true);
+                        setResult(null);
+                        const endTime = new Date().toISOString();
+                        try {
+                          const res = await fetch("/api/submit", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              userId: user.userId,
+                              testId: test.id,
+                              answers,
+                              startTime,
+                              endTime,
+                            }),
+                          });
+                          const json = (await res.json()) as SubmitResponse;
+                          setResult(json);
+                          if (json.ok) {
+                            addToast("Тест успешно отправлен!", "success");
+                          } else {
+                            addToast(json.error || "Ошибка отправки теста", "error");
+                          }
+                        } catch (e) {
+                          const errorMsg = "Сеть/сервер недоступны. Попробуй ещё раз.";
+                          setResult({
+                            ok: false,
+                            error: errorMsg,
+                          });
+                          addToast(errorMsg, "error");
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }}
+                      className="flex-1 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-all"
+                    >
+                      Да, завершить
+                    </button>
+                    <button
+                      onClick={() => setShowConfirmModal(false)}
+                      className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                      Отмена
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {result ? (
               <div className={`mt-6 rounded-xl border-2 p-6 ${
@@ -214,7 +328,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                 {result.ok ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <Award className="h-6 w-6 text-success" />
+                      <Award className="h-6 w-6 text-success" aria-hidden="true" />
                       <div className="font-bold text-lg text-zinc-900">Результат отправлен ✅</div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
@@ -250,7 +364,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                         className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-700 underline"
                       >
                         Перейти в рейтинг
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
                       </a>
                     </div>
                   </div>

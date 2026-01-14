@@ -33,10 +33,10 @@ export function Nav() {
             href="/" 
             className="flex items-center gap-2 font-bold text-xl text-gradient hover:opacity-80 transition-opacity whitespace-nowrap"
           >
-            <Trophy className="h-6 w-6 text-primary-600 flex-shrink-0" />
+            <Trophy className="h-6 w-6 text-primary-600 flex-shrink-0" aria-label="Трофей" />
             <span className="whitespace-nowrap">King of the Bar</span>
           </Link>
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {user ? (
               <UserMenu />
             ) : (
@@ -46,7 +46,7 @@ export function Nav() {
                     setAuthMode("login");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 transition-all whitespace-nowrap"
+                  className="rounded-lg border border-zinc-300 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 transition-all whitespace-nowrap"
                 >
                   Войти
                 </button>
@@ -55,9 +55,10 @@ export function Nav() {
                     setAuthMode("register");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-lg gradient-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all whitespace-nowrap"
+                  className="rounded-lg gradient-primary px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all whitespace-nowrap"
                 >
-                  Зарегистрироваться
+                  <span className="hidden sm:inline">Зарегистрироваться</span>
+                  <span className="sm:hidden">Регистрация</span>
                 </button>
               </>
             )}

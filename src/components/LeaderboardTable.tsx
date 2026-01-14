@@ -24,16 +24,17 @@ function getRankStyle(rank: number) {
 }
 
 function getRankIcon(rank: number) {
-  if (rank === 1) return <Trophy className="h-5 w-5" />;
-  if (rank === 2) return <Medal className="h-5 w-5" />;
-  if (rank === 3) return <Award className="h-5 w-5" />;
+  if (rank === 1) return <Trophy className="h-5 w-5" aria-label="Первое место" />;
+  if (rank === 2) return <Medal className="h-5 w-5" aria-label="Второе место" />;
+  if (rank === 3) return <Award className="h-5 w-5" aria-label="Третье место" />;
   return null;
 }
 
 export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-soft">
-      <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-xl border border-zinc-200 bg-white shadow-soft">
+      <div className="inline-block min-w-full align-middle">
+        <table className="w-full text-left text-sm">
         <thead className="border-b border-zinc-200 bg-zinc-50">
           <tr>
             <th className="px-4 py-3 font-semibold text-zinc-700">#</th>
@@ -103,6 +104,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
           ) : null}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
