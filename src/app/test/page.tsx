@@ -53,7 +53,7 @@ function TestPageContent() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center py-20">
             <h1 className="text-2xl font-bold mb-4">Доступ к тесту ограничен</h1>
-            <p className="text-zinc-600">
+            <p className="text-zinc-400">
               Пожалуйста, зарегистрируйтесь для прохождения теста
             </p>
           </div>
@@ -68,7 +68,7 @@ function TestPageContent() {
         <div className="text-center py-20">
           <div className="flex flex-col items-center gap-3">
             <Spinner size="lg" />
-            <div className="text-zinc-600">Загрузка теста...</div>
+            <div className="text-zinc-400">Загрузка теста...</div>
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ function TestPageContent() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center py-20">
           <h1 className="text-2xl font-bold mb-4">Ошибка</h1>
-          <p className="text-zinc-600">{error || "Тест не найден"}</p>
+          <p className="text-zinc-400">{error || "Тест не найден"}</p>
         </div>
       </div>
     );
@@ -96,7 +96,7 @@ export default function TestPage() {
         <div className="text-center py-20">
           <div className="flex flex-col items-center gap-3">
             <Spinner size="lg" />
-            <div className="text-zinc-600">Загрузка...</div>
+            <div className="text-zinc-400">Загрузка...</div>
           </div>
         </div>
       </div>

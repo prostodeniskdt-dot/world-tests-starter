@@ -64,12 +64,12 @@ export function LoginModal({
       onClick={handleClose}
     >
       <div 
-        className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative"
+        className="bg-zinc-900 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 transition-colors"
+          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-200 transition-colors"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -77,26 +77,26 @@ export function LoginModal({
         <h2 className="text-3xl font-bold mb-2 text-center text-gradient">
           Добро пожаловать!
         </h2>
-        <p className="text-zinc-600 mb-6 text-center text-sm">
+        <p className="text-zinc-400 mb-6 text-center text-sm">
           {mode === "login" 
             ? "Войдите в свой аккаунт для доступа к тестам и рейтингу"
             : "Зарегистрируйтесь для участия в тестах и рейтинге"}
         </p>
 
         {/* Табы переключения */}
-        <div className="flex gap-2 mb-6 border-b border-zinc-200">
+        <div className="flex gap-2 mb-6 border-b border-zinc-800">
           <button
             type="button"
             onClick={() => setMode("login")}
             className={`flex-1 py-3 text-sm font-semibold transition-all relative ${
               mode === "login"
-                ? "text-primary-600"
-                : "text-zinc-500 hover:text-zinc-700"
+                ? "text-red-500"
+                : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
             Вход
             {mode === "login" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-t"></span>
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-t"></span>
             )}
           </button>
           <button
@@ -104,13 +104,13 @@ export function LoginModal({
             onClick={() => setMode("register")}
             className={`flex-1 py-3 text-sm font-semibold transition-all relative ${
               mode === "register"
-                ? "text-primary-600"
-                : "text-zinc-500 hover:text-zinc-700"
+                ? "text-red-500"
+                : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
             Регистрация
             {mode === "register" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-t"></span>
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-t"></span>
             )}
           </button>
         </div>

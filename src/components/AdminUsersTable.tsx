@@ -105,7 +105,7 @@ export function AdminUsersTable({ initialUsers = [], initialPagination }: AdminU
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-10 pr-4 py-2 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -118,26 +118,26 @@ export function AdminUsersTable({ initialUsers = [], initialPagination }: AdminU
             }}
             className="w-4 h-4"
           />
-          <span className="text-sm text-zinc-700">Только забаненные</span>
+          <span className="text-sm text-zinc-200">Только забаненные</span>
         </label>
       </div>
 
       {/* Таблица */}
-      <div className="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+      <div className="bg-zinc-950 rounded-lg border border-zinc-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-zinc-50 border-b border-zinc-200">
+            <thead className="bg-zinc-900 border-b border-zinc-800">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-700 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-200 uppercase">
                   Пользователь
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-700 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-200 uppercase">
                   Статистика
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-700 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-200 uppercase">
                   Статус
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-700 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-200 uppercase">
                   Действия
                 </th>
               </tr>
@@ -145,30 +145,30 @@ export function AdminUsersTable({ initialUsers = [], initialPagination }: AdminU
             <tbody className="divide-y divide-zinc-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
+                  <td colSpan={4} className="px-4 py-8 text-center text-zinc-400">
                     Загрузка...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
+                  <td colSpan={4} className="px-4 py-8 text-center text-zinc-400">
                     Пользователи не найдены
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id} className="hover:bg-zinc-50">
+                  <tr key={user.id} className="hover:bg-zinc-900">
                     <td className="px-4 py-3">
                       <div>
-                        <div className="font-medium text-zinc-900">
+                        <div className="font-medium text-zinc-100">
                           {user.firstName} {user.lastName}
                           {user.isAdmin && (
-                            <Shield className="inline-block ml-2 h-4 w-4 text-primary-600" />
+                            <Shield className="inline-block ml-2 h-4 w-4 text-red-500" />
                           )}
                         </div>
-                        <div className="text-sm text-zinc-600">{user.email}</div>
+                        <div className="text-sm text-zinc-400">{user.email}</div>
                         {user.telegramUsername && (
-                          <div className="text-xs text-zinc-500">
+                          <div className="text-xs text-zinc-400">
                             @{user.telegramUsername}
                           </div>
                         )}
@@ -176,10 +176,10 @@ export function AdminUsersTable({ initialUsers = [], initialPagination }: AdminU
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-sm">
-                        <div className="text-zinc-900 font-medium">
+                        <div className="text-zinc-100 font-medium">
                           {user.stats.totalPoints.toLocaleString()} очков
                         </div>
-                        <div className="text-zinc-600">
+                        <div className="text-zinc-400">
                           {user.stats.testsCompleted} тестов
                         </div>
                       </div>
@@ -231,21 +231,21 @@ export function AdminUsersTable({ initialUsers = [], initialPagination }: AdminU
       {/* Пагинация */}
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <div className="text-sm text-zinc-600">
+          <div className="text-sm text-zinc-400">
             Показано {((page - 1) * pagination.limit) + 1} - {Math.min(page * pagination.limit, pagination.total)} из {pagination.total}
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 border border-zinc-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-50"
+              className="px-4 py-2 border border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-900"
             >
               Назад
             </button>
             <button
               onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
               disabled={page === pagination.totalPages}
-              className="px-4 py-2 border border-zinc-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-50"
+              className="px-4 py-2 border border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-900"
             >
               Вперед
             </button>

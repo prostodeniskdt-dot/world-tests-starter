@@ -149,6 +149,8 @@ export async function POST(req: Request) {
     firstName: user.first_name,
     lastName: user.last_name,
     telegramUsername: user.telegram_username,
+    isAdmin: user.is_admin || false,
+    isBanned: user.is_banned || false,
   };
 
   // Создаем ответ

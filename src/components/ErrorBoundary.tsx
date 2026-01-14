@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="min-h-screen flex items-center justify-center">
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-4">Что-то пошло не так</h1>
-              <p className="text-zinc-600 mb-4">
+              <p className="text-zinc-400 mb-4">
                 {this.state.error?.message || "Произошла ошибка"}
               </p>
               <button
