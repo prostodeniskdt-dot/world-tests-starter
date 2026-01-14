@@ -58,7 +58,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
       onClick={onClose}
     >
       <div 
-        className="bg-zinc-900 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative"
+        className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -111,7 +111,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-zinc-900 text-white py-2 rounded-md disabled:opacity-50 transition-colors"
+                className="flex-1 gradient-primary text-white py-2 rounded-md disabled:opacity-50 transition-colors"
               >
                 {loading ? "Отправка..." : "Отправить"}
               </button>
