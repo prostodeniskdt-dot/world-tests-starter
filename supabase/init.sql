@@ -97,17 +97,38 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  v_previous_points int := 0;
+  v_is_new_test boolean := false;
+  v_points_delta int;
 begin
-  -- Записываем попытку
+  -- Находим предыдущую попытку по этому тесту для этого пользователя
+  select points_awarded into v_previous_points
+  from public.attempts
+  where user_id = p_user_id
+    and test_id = p_test_id
+  order by created_at desc
+  limit 1;
+
+  -- Если предыдущей попытки нет, это новый тест
+  if v_previous_points is null then
+    v_is_new_test := true;
+    v_previous_points := 0;
+  end if;
+
+  -- Вычисляем разницу очков
+  v_points_delta := p_points_awarded - v_previous_points;
+
+  -- Записываем новую попытку
   insert into public.attempts (user_id, test_id, score_percent, points_awarded)
   values (p_user_id, p_test_id, p_score_percent, p_points_awarded);
 
   -- Обновляем статистику пользователя
   insert into public.user_stats as us (user_id, total_points, tests_completed)
-  values (p_user_id, p_points_awarded, 1)
+  values (p_user_id, v_points_delta, case when v_is_new_test then 1 else 0 end)
   on conflict on constraint user_stats_pkey do update
-    set total_points = us.total_points + excluded.total_points,
-        tests_completed = us.tests_completed + 1,
+    set total_points = us.total_points + v_points_delta,
+        tests_completed = us.tests_completed + case when v_is_new_test then 1 else 0 end,
         updated_at = now();
 
   -- Возвращаем обновленную статистику

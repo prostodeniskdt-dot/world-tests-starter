@@ -145,13 +145,8 @@ export async function POST(req: Request) {
       ? 0
       : Math.round((correctCount / totalQuestions) * 100);
 
-  // Формула очков
-  const rawPoints =
-    testSecret.basePoints *
-    testSecret.difficulty *
-    (totalQuestions === 0 ? 0 : correctCount / totalQuestions);
-
-  const pointsAwarded = Math.max(0, Math.round(rawPoints));
+  // Формула очков: каждый правильный ответ = 10 очков
+  const pointsAwarded = correctCount * 10;
 
   // Проверяем лимит попыток (если указан в тесте)
   if (testSecret.maxAttempts !== null && testSecret.maxAttempts !== undefined) {
