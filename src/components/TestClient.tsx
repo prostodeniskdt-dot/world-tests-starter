@@ -4,17 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { CheckCircle2, Circle, ArrowRight, Award } from "lucide-react";
 import { addToast } from "./Toast";
-
-type PublicTest = {
-  id: string;
-  title: string;
-  description: string | null;
-  questions: Array<{
-    id: string;
-    text: string;
-    options: string[];
-  }>;
-};
+import type { PublicTest } from "@/lib/tests-registry";
 
 type SubmitResponse =
   | {
