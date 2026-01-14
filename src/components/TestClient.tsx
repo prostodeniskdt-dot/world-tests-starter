@@ -175,7 +175,7 @@ export function TestClient({ test }: { test: PublicTest }) {
               {test.questions.map((q, idx) => (
                 <div key={q.id} id={`question-${idx}`} className="border-t border-zinc-200 pt-6 first:border-t-0 first:pt-0">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-zinc-600 flex items-center justify-center font-bold text-sm">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm">
                       {idx + 1}
                     </div>
                     <div className="font-semibold text-lg text-zinc-900 leading-relaxed flex-1">
