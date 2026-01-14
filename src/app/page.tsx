@@ -14,6 +14,7 @@ type Test = {
   title: string;
   description: string | null;
   category: string;
+  difficultyLevel: 1 | 2 | 3;
 };
 
 export default function Page() {
@@ -97,6 +98,13 @@ export default function Page() {
                             <div className="flex items-center gap-3 mb-2">
                               <BookOpen className="h-5 w-5 text-primary-600" aria-hidden="true" />
                               <h3 className="font-bold text-xl text-zinc-900">{test.title}</h3>
+                              <div className="flex items-center gap-1 ml-auto">
+                                {Array.from({ length: test.difficultyLevel }).map((_, i) => (
+                                  <span key={i} className="text-amber-600 text-lg" aria-label={`Барная ложка ${i + 1}`}>
+                                    🥄
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                             {test.description && (
                               <p className="text-zinc-600 mt-2 leading-relaxed">{test.description}</p>

@@ -8,6 +8,7 @@ export async function GET() {
     title: test.title,
     description: test.description,
     category: test.category,
+    difficultyLevel: test.difficultyLevel,
   }));
 
   const categories = getCategories();

@@ -22,13 +22,12 @@ type SubmitResponse =
   | { ok: false; error: string };
 
 export function TestClient({ test }: { test: PublicTest }) {
-  const [answers, setAnswers] = useState<Record<string, number | string | null>>(() => {
-    const init: Record<string, number | string | null> = {};
+  const [answers, setAnswers] = useState<Record<string, number | null>>(() => {
+    const init: Record<string, number | null> = {};
     for (const q of test.questions) init[q.id] = null;
     return init;
   });
 
-  const [textAnswers, setTextAnswers] = useState<Record<string, string>>({});
   const [answeredHints, setAnsweredHints] = useState<Record<string, boolean>>({});
   const [hintResults, setHintResults] = useState<Record<string, boolean>>({});
 
@@ -75,7 +74,7 @@ export function TestClient({ test }: { test: PublicTest }) {
   };
 
   // Функция для проверки ответа на клиенте (для показа справки)
-  const checkAnswerLocally = async (questionId: string, answer: number | string) => {
+  const checkAnswerLocally = async (questionId: string, answer: number) => {
     try {
       const res = await fetch(`/api/tests/${test.id}/check-answer`, {
         method: "POST",
@@ -119,9 +118,18 @@ export function TestClient({ test }: { test: PublicTest }) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-          {test.title}
-        </h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+            {test.title}
+          </h1>
+          <div className="flex items-center gap-1" title={`Сложность: ${test.difficultyLevel} из 3`}>
+            {Array.from({ length: test.difficultyLevel }).map((_, i) => (
+              <span key={i} className="text-amber-600 text-xl" aria-label={`Барная ложка ${i + 1}`}>
+                🥄
+              </span>
+            ))}
+          </div>
+        </div>
         {test.description && (
           <p className="mt-2 text-zinc-600 text-lg leading-relaxed">{test.description}</p>
         )}
@@ -211,76 +219,45 @@ export function TestClient({ test }: { test: PublicTest }) {
                       </div>
                     </div>
                     <div className="ml-11 space-y-2">
-                      {q.type === "text" ? (
-                        <div className="space-y-3">
-                          <textarea
-                            value={textAnswers[q.id] || ""}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              setTextAnswers(prev => ({ ...prev, [q.id]: value }));
-                              setAnswers(prev => ({ ...prev, [q.id]: value }));
-                            }}
-                            onBlur={async () => {
-                              if (textAnswers[q.id] && textAnswers[q.id].trim()) {
-                                const correct = await checkAnswerLocally(q.id, textAnswers[q.id]);
+                      {q.options?.map((opt, optIdx) => {
+                        const checked = answers[q.id] === optIdx;
+                        return (
+                          <label
+                            key={optIdx}
+                            className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
+                              checked
+                                ? "border-primary-500 bg-primary-50 shadow-md"
+                                : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50"
+                            }`}
+                            aria-label={`Вариант ответа ${optIdx + 1}: ${opt}`}
+                          >
+                            <div className="flex-shrink-0">
+                              {checked ? (
+                                <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center">
+                                  <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
+                                </div>
+                              ) : (
+                                <Circle className="h-5 w-5 text-zinc-600" aria-hidden="true" />
+                              )}
+                            </div>
+                            <input
+                              type="radio"
+                              name={q.id}
+                              checked={checked}
+                              onChange={async () => {
+                                setAnswers((prev) => ({ ...prev, [q.id]: optIdx }));
+                                const correct = await checkAnswerLocally(q.id, optIdx);
                                 setAnsweredHints(prev => ({ ...prev, [q.id]: true }));
                                 setHintResults(prev => ({ ...prev, [q.id]: correct }));
-                              }
-                            }}
-                            className="w-full p-3 border-2 border-zinc-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all resize-y min-h-[100px]"
-                            placeholder="Введите ваш ответ..."
-                          />
-                          {showHint && (
-                            <div className={`p-3 rounded-lg border-2 ${
-                              isCorrect 
-                                ? "bg-green-50 border-green-300 text-green-800" 
-                                : "bg-red-50 border-red-300 text-red-800"
-                            }`}>
-                              <strong>Справка:</strong> {q.hint}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        q.options?.map((opt, optIdx) => {
-                          const checked = answers[q.id] === optIdx;
-                          return (
-                            <label
-                              key={optIdx}
-                              className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
-                                checked
-                                  ? "border-primary-500 bg-primary-50 shadow-md"
-                                  : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50"
-                              }`}
-                              aria-label={`Вариант ответа ${optIdx + 1}: ${opt}`}
-                            >
-                              <div className="flex-shrink-0">
-                                {checked ? (
-                                  <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center">
-                                    <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
-                                  </div>
-                                ) : (
-                                  <Circle className="h-5 w-5 text-zinc-600" aria-hidden="true" />
-                                )}
-                              </div>
-                              <input
-                                type="radio"
-                                name={q.id}
-                                checked={checked}
-                                onChange={async () => {
-                                  setAnswers((prev) => ({ ...prev, [q.id]: optIdx }));
-                                  const correct = await checkAnswerLocally(q.id, optIdx);
-                                  setAnsweredHints(prev => ({ ...prev, [q.id]: true }));
-                                  setHintResults(prev => ({ ...prev, [q.id]: correct }));
-                                }}
-                                className="hidden"
-                                aria-label={`Выбрать вариант ${optIdx + 1}`}
-                              />
-                              <span className="text-zinc-700 flex-1" aria-hidden="true">{opt}</span>
-                            </label>
-                          );
-                        })
-                      )}
-                      {showHint && q.type === "multiple-choice" && (
+                              }}
+                              className="hidden"
+                              aria-label={`Выбрать вариант ${optIdx + 1}`}
+                            />
+                            <span className="text-zinc-700 flex-1" aria-hidden="true">{opt}</span>
+                          </label>
+                        );
+                      })}
+                      {showHint && (
                         <div className={`mt-2 p-3 rounded-lg border-2 ${
                           isCorrect 
                             ? "bg-green-50 border-green-300 text-green-800" 
