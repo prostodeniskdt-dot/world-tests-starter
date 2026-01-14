@@ -51,7 +51,13 @@ export async function GET(req: Request) {
     .in("user_id", userIds);
 
   const statsMap = new Map(
-    (stats || []).map((s) => [s.user_id, s])
+    (stats || []).map((s) => [
+      s.user_id,
+      {
+        totalPoints: s.total_points,
+        testsCompleted: s.tests_completed,
+      },
+    ])
   );
 
   // Формируем ответ
