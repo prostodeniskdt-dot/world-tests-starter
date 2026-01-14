@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PUBLIC_TESTS } from "@/lib/tests-registry";
+import { PUBLIC_TESTS, getCategories } from "@/lib/tests-registry";
 
 export async function GET() {
   // Возвращаем только метаданные тестов (без вопросов)
@@ -7,7 +7,10 @@ export async function GET() {
     id: test.id,
     title: test.title,
     description: test.description,
+    category: test.category,
   }));
 
-  return NextResponse.json({ ok: true, tests });
+  const categories = getCategories();
+
+  return NextResponse.json({ ok: true, tests, categories });
 }

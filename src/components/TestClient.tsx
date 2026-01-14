@@ -223,7 +223,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                     <button
                       onClick={prevQuestion}
                       disabled={idx === 0}
-                      className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
                       aria-label="Предыдущий вопрос"
                     >
                       ← Предыдущий
@@ -231,7 +231,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                     <button
                       onClick={nextQuestion}
                       disabled={idx === test.questions.length - 1}
-                      className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
                       aria-label="Следующий вопрос"
                     >
                       Следующий →
@@ -263,10 +263,24 @@ export function TestClient({ test }: { test: PublicTest }) {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
                 <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in">
                   <h3 className="text-xl font-bold mb-4">Подтверждение отправки</h3>
-                  <p className="text-zinc-600 mb-6">
+                  <p className="text-zinc-600 mb-4">
                     Вы ответили на {answeredCount} из {test.questions.length} вопросов. 
                     Вы уверены, что хотите завершить тест?
                   </p>
+                  {!allAnswered && (
+                    <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm font-medium text-amber-800 mb-2">
+                        Внимание: есть неотвеченные вопросы!
+                      </p>
+                      <p className="text-xs text-amber-700">
+                        Неотвеченные вопросы: {test.questions
+                          .map((q, qIdx) => ({ q, qIdx }))
+                          .filter(({ q }) => answers[q.id] === null)
+                          .map(({ qIdx }) => qIdx + 1)
+                          .join(", ")}
+                      </p>
+                    </div>
+                  )}
                   <div className="flex gap-3">
                     <button
                       onClick={async () => {

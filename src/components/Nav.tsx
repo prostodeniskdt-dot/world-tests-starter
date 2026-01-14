@@ -6,6 +6,7 @@ import { UserMenu } from "./UserMenu";
 import { LoginModal } from "./LoginModal";
 import { useLocalUser } from "./UserGate";
 import { Trophy } from "lucide-react";
+import { buttonStyles } from "@/lib/button-styles";
 
 export function Nav() {
   const { user } = useLocalUser();
@@ -46,7 +47,8 @@ export function Nav() {
                     setAuthMode("login");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-lg border border-zinc-300 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 transition-all whitespace-nowrap"
+                  className={`${buttonStyles.secondary} whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm`}
+                  aria-label="Войти в систему"
                 >
                   Войти
                 </button>
@@ -55,7 +57,8 @@ export function Nav() {
                     setAuthMode("register");
                     setShowAuthModal(true);
                   }}
-                  className="rounded-lg gradient-primary px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all whitespace-nowrap"
+                  className={`${buttonStyles.primary} whitespace-nowrap px-3 sm:px-5 text-xs sm:text-sm`}
+                  aria-label="Зарегистрироваться"
                 >
                   <span className="hidden sm:inline">Зарегистрироваться</span>
                   <span className="sm:hidden">Регистрация</span>

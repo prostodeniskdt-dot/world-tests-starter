@@ -5,6 +5,8 @@ import { validateEmail } from "@/lib/emailValidator";
 import { validatePasswordStrength } from "@/lib/password";
 import { useLocalUser } from "./UserGate";
 import { addToast } from "./Toast";
+import { buttonStyles } from "@/lib/button-styles";
+import { Spinner } from "./Spinner";
 
 type RegisterFormProps = {
   onSuccess: (user: {
@@ -285,9 +287,16 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className={`w-full ${buttonStyles.primary}`}
       >
-        {loading ? "Регистрация..." : "Зарегистрироваться"}
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <Spinner size="sm" />
+            <span>Регистрация...</span>
+          </span>
+        ) : (
+          "Зарегистрироваться"
+        )}
       </button>
     </form>
   );

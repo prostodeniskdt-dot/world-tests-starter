@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLocalUser } from "@/components/UserGate";
 import { LiveLeaderboard } from "@/components/LiveLeaderboard";
+import { TestCategories } from "@/components/TestCategories";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, BookOpen, Trophy, TrendingUp } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Spinner } from "@/components/Spinner";
 
@@ -12,11 +13,14 @@ type Test = {
   id: string;
   title: string;
   description: string | null;
+  category: string;
 };
 
 export default function Page() {
   const { user, isLoading } = useLocalUser();
   const [tests, setTests] = useState<Test[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [testsLoading, setTestsLoading] = useState(false);
 
   useEffect(() => {
@@ -27,6 +31,7 @@ export default function Page() {
         .then((data) => {
           if (data.ok) {
             setTests(data.tests || []);
+            setCategories(data.categories || []);
           }
         })
         .catch((err) => {
@@ -37,6 +42,12 @@ export default function Page() {
       setTestsLoading(false);
     }
   }, [user]);
+
+  const filteredTests = useMemo(() => {
+    return selectedCategory
+      ? tests.filter(t => t.category === selectedCategory)
+      : tests;
+  }, [tests, selectedCategory]);
 
   if (isLoading) {
     return (
@@ -52,12 +63,7 @@ export default function Page() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Левая колонка: Рейтинг */}
-        <div className="flex flex-col">
-          <LiveLeaderboard />
-        </div>
-
-        {/* Правая колонка: Тесты */}
+        {/* Левая колонка: Тесты */}
         <div className="space-y-6 flex flex-col">
           {user ? (
             <>
@@ -69,11 +75,19 @@ export default function Page() {
                   Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
                 </p>
 
+                {/* Компонент категорий */}
+                <TestCategories
+                  tests={tests}
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onCategorySelect={setSelectedCategory}
+                />
+
                 {testsLoading ? (
                   <LoadingSkeleton />
                 ) : (
                   <div className="space-y-4">
-                    {tests.map((test) => (
+                    {filteredTests.map((test) => (
                       <div 
                         key={test.id} 
                         className="group border-2 border-zinc-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all bg-white"
@@ -81,7 +95,7 @@ export default function Page() {
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <BookOpen className="h-5 w-5 text-primary-600" />
+                              <BookOpen className="h-5 w-5 text-primary-600" aria-hidden="true" />
                               <h3 className="font-bold text-xl text-zinc-900">{test.title}</h3>
                             </div>
                             {test.description && (
@@ -94,42 +108,19 @@ export default function Page() {
                           className="inline-flex items-center gap-2 mt-4 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all group-hover:scale-105"
                         >
                           Пройти тест
-                          <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                         </Link>
                       </div>
                     ))}
-                    {tests.length === 0 && (
+                    {filteredTests.length === 0 && (
                       <div className="text-center py-12 text-zinc-500">
-                        Пока нет доступных тестов
+                        {selectedCategory 
+                          ? `Пока нет тестов в категории "${selectedCategory}"`
+                          : "Пока нет доступных тестов"}
                       </div>
                     )}
                   </div>
                 )}
-              </div>
-
-              <div className="rounded-xl border border-zinc-200 bg-gradient-to-br from-primary-50 to-accent-50 p-6">
-                <h2 className="font-bold text-xl mb-4 flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-primary-600" />
-                  Как это работает?
-                </h2>
-                <ul className="space-y-3 text-zinc-700">
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Проходите тесты и зарабатывайте очки</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Ваш результат автоматически попадает в рейтинг</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Рейтинг обновляется в реальном времени</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Соревнуйтесь с другими участниками</span>
-                  </li>
-                </ul>
               </div>
             </>
           ) : (
@@ -147,29 +138,6 @@ export default function Page() {
                     King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
                     пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.
                   </p>
-                  <h2 className="font-bold text-xl text-zinc-900 mt-6">Как это работает?</h2>
-                  <ul className="space-y-3 list-none">
-                    <li className="flex items-start gap-3">
-                      <TrendingUp className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                      <span>Регистрируйтесь и создайте свой аккаунт</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <BookOpen className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                      <span>Проходите тесты по различным темам</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <Trophy className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                      <span>Зарабатывайте очки за правильные ответы</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <TrendingUp className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                      <span>Соревнуйтесь с другими участниками и поднимайтесь в рейтинге</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
-                      <span>Следите за своим прогрессом и улучшайте результаты</span>
-                    </li>
-                  </ul>
                   <p className="mt-6 text-zinc-600 bg-primary-50 p-4 rounded-lg border border-primary-200">
                     Начните свой путь к вершине рейтинга уже сегодня! Войдите или зарегистрируйтесь, 
                     чтобы получить доступ к тестам и начать зарабатывать очки.
@@ -178,6 +146,11 @@ export default function Page() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Правая колонка: Рейтинг */}
+        <div className="flex flex-col">
+          <LiveLeaderboard />
         </div>
       </div>
     </div>

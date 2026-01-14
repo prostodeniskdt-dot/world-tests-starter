@@ -90,14 +90,24 @@ export function LiveLeaderboard() {
     <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
-        <span className={`text-xs flex items-center gap-1.5 px-3 py-1 rounded-full font-medium ${
-          isRefreshing ? 'bg-primary-50 text-primary-600' : 'bg-green-50 text-success'
-        }`}>
-          <span className={`h-2 w-2 rounded-full ${
-            isRefreshing ? 'bg-primary-600 animate-spin' : 'bg-success animate-pulse'
-          }`}></span>
-          {isRefreshing ? 'Обновление...' : 'В реальном времени'}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchLeaderboard}
+            disabled={isRefreshing}
+            className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2 py-1 rounded hover:bg-primary-50"
+            aria-label="Обновить рейтинг"
+          >
+            {isRefreshing ? "Обновление..." : "Обновить"}
+          </button>
+          <span className={`text-xs flex items-center gap-1.5 px-3 py-1 rounded-full font-medium ${
+            isRefreshing ? 'bg-primary-50 text-primary-600' : 'bg-green-50 text-success'
+          }`}>
+            <span className={`h-2 w-2 rounded-full ${
+              isRefreshing ? 'bg-primary-600 animate-spin' : 'bg-success animate-pulse'
+            }`}></span>
+            {isRefreshing ? 'Обновление...' : 'В реальном времени'}
+          </span>
+        </div>
       </div>
       <div className="overflow-y-auto flex-1 -mx-4 sm:mx-0">
         <div className="inline-block min-w-full align-middle">

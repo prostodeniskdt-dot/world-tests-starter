@@ -5,6 +5,8 @@ import { validateEmail } from "@/lib/emailValidator";
 import { useLocalUser } from "./UserGate";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
 import { addToast } from "./Toast";
+import { buttonStyles } from "@/lib/button-styles";
+import { Spinner } from "./Spinner";
 
 type LoginFormProps = {
   onSuccess: (user: {
@@ -138,9 +140,16 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className={`w-full ${buttonStyles.primary}`}
       >
-        {loading ? "Вход..." : "Войти"}
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <Spinner size="sm" />
+            <span>Вход...</span>
+          </span>
+        ) : (
+          "Войти"
+        )}
       </button>
 
       <div className="text-center text-sm text-zinc-600">
