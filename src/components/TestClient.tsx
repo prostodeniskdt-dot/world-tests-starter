@@ -225,7 +225,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                           <label
                             key={optIdx}
                             className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
-                              submitted || submitting
+                              submitted
                                 ? checked
                                   ? "border-primary-500 bg-primary-50 shadow-md cursor-default"
                                   : "border-zinc-200 bg-zinc-50 cursor-not-allowed opacity-60"
@@ -248,13 +248,10 @@ export function TestClient({ test }: { test: PublicTest }) {
                               type="radio"
                               name={q.id}
                               checked={checked}
-                              disabled={submitted || submitting}
-                              onChange={async () => {
+                              disabled={submitted}
+                              onChange={() => {
                                 if (submitted || submitting) return;
                                 setAnswers((prev) => ({ ...prev, [q.id]: optIdx }));
-                                const correct = await checkAnswerLocally(q.id, optIdx);
-                                setAnsweredHints(prev => ({ ...prev, [q.id]: true }));
-                                setHintResults(prev => ({ ...prev, [q.id]: correct }));
                               }}
                               className="hidden"
                               aria-label={`Выбрать вариант ${optIdx + 1}`}
@@ -364,6 +361,25 @@ export function TestClient({ test }: { test: PublicTest }) {
                           setResult(json);
                           setSubmitted(true);
                           if (json.ok) {
+                            // Проверяем все ответы и показываем справки после отправки
+                            const checkAllAnswers = async () => {
+                              const hints: Record<string, boolean> = {};
+                              const results: Record<string, boolean> = {};
+                              
+                              for (const question of test.questions) {
+                                const userAnswer = answers[question.id];
+                                if (userAnswer !== null && userAnswer !== undefined) {
+                                  const correct = await checkAnswerLocally(question.id, userAnswer);
+                                  hints[question.id] = true;
+                                  results[question.id] = correct;
+                                }
+                              }
+                              
+                              setAnsweredHints(hints);
+                              setHintResults(results);
+                            };
+                            
+                            await checkAllAnswers();
                             addToast("Тест успешно отправлен!", "success");
                           } else {
                             addToast(json.error || "Ошибка отправки теста", "error");
