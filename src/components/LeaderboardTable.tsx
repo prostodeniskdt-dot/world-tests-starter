@@ -14,13 +14,13 @@ export type LeaderboardRow = {
 
 function getRankStyle(rank: number) {
   if (rank === 1) {
-    return "gradient-gold text-white border-yellow-400";
+    return "gradient-gold text-primary-600 border-yellow-400";
   } else if (rank === 2) {
     return "gradient-silver text-zinc-900 border-zinc-300";
   } else if (rank === 3) {
-    return "gradient-bronze text-white border-amber-600";
+    return "gradient-bronze text-primary-600 border-amber-600";
   }
-  return "bg-zinc-900 text-zinc-100 border-zinc-800";
+  return "bg-white text-zinc-900 border-zinc-200";
 }
 
 function getRankIcon(rank: number) {
@@ -32,16 +32,16 @@ function getRankIcon(rank: number) {
 
 export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
   return (
-    <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft">
+    <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-xl border border-zinc-200 bg-white shadow-soft">
       <div className="inline-block min-w-full align-middle">
         <table className="w-full text-left text-sm">
-        <thead className="border-b border-zinc-200 bg-zinc-900">
+        <thead className="border-b border-zinc-200 bg-zinc-50">
           <tr>
-            <th className="px-4 py-3 font-semibold text-zinc-200">#</th>
-            <th className="px-4 py-3 font-semibold text-zinc-200">Пользователь</th>
-            <th className="px-4 py-3 font-semibold text-zinc-200">Telegram</th>
-            <th className="px-4 py-3 font-semibold text-zinc-200 text-right">Очки</th>
-            <th className="px-4 py-3 font-semibold text-zinc-200 text-right">Тестов</th>
+            <th className="px-4 py-3 font-semibold text-zinc-700">#</th>
+            <th className="px-4 py-3 font-semibold text-zinc-700">Пользователь</th>
+            <th className="px-4 py-3 font-semibold text-zinc-700">Telegram</th>
+            <th className="px-4 py-3 font-semibold text-zinc-700 text-right">Очки</th>
+            <th className="px-4 py-3 font-semibold text-zinc-700 text-right">Тестов</th>
           </tr>
         </thead>
         <tbody>
@@ -51,7 +51,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
             const rankIcon = getRankIcon(r.rank);
 
             return (
-              <tr key={r.user_id} className={`border-b border-zinc-800 last:border-b-0 hover:bg-zinc-900 transition-colors ${rankStyle}`}>
+              <tr key={r.user_id} className={`border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50 transition-colors ${rankStyle}`}>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-2 font-bold">
                     {rankIcon}
@@ -65,8 +65,8 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                   >
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                       r.rank <= 3 
-                        ? "bg-white/30 text-white border-2 border-white/50" 
-                        : "bg-zinc-800 text-zinc-200"
+                        ? "bg-white/30 text-primary-600 border-2 border-white/50" 
+                        : "bg-zinc-800 text-zinc-700"
                     }`}>
                       {r.first_name?.charAt(0).toUpperCase() || "?"}
                     </div>
@@ -82,12 +82,12 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                       href={`https://t.me/${r.telegram_username}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-white hover:underline text-sm"
+                      className="text-primary-600 hover:underline text-sm"
                     >
                       @{r.telegram_username}
                     </a>
                   ) : (
-                    <span className="text-zinc-400">—</span>
+                    <span className="text-zinc-500">—</span>
                   )}
                 </td>
                 <td className="px-4 py-4 font-bold text-right">{r.total_points.toLocaleString()}</td>
@@ -97,7 +97,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
           })}
           {rows.length === 0 ? (
             <tr>
-              <td className="px-4 py-12 text-zinc-400 text-center" colSpan={5}>
+              <td className="px-4 py-12 text-zinc-500 text-center" colSpan={5}>
                 Пока нет результатов. Пройди тест первым 🙂
               </td>
             </tr>

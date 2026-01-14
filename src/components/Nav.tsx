@@ -28,13 +28,13 @@ export function Nav() {
           initialMode={authMode}
         />
       )}
-      <header className="border-b border-zinc-800 bg-zinc-900/95 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
+      <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link 
             href="/" 
             className="flex items-center gap-2 font-bold text-xl text-gradient hover:opacity-80 transition-opacity whitespace-nowrap"
           >
-            <Trophy className="h-6 w-6 text-white flex-shrink-0" aria-label="Трофей" />
+            <Trophy className="h-6 w-6 text-primary-600 flex-shrink-0" aria-label="Трофей" />
             <span className="whitespace-nowrap">King of the Bar</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

@@ -63,7 +63,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-200 transition-colors"
+          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 transition-colors"
           aria-label="Закрыть"
         >
           <X className="h-5 w-5" />
@@ -75,7 +75,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
         
         {success ? (
           <div className="text-center py-6">
-            <div className="text-green-400 mb-4 text-sm">
+            <div className="text-green-600 mb-4 text-sm">
               Инструкции по восстановлению пароля отправлены на ваш email.
             </div>
             <button
@@ -97,12 +97,12 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Ваш email"
                 required
-                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               />
             </div>
             
             {error && (
-              <div className="rounded-md bg-zinc-800 border border-zinc-700 p-3 text-sm text-zinc-200">
+              <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
                 {error}
               </div>
             )}
@@ -118,7 +118,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border rounded-md hover:bg-zinc-800 transition-colors"
+                className="px-4 py-2 border rounded-md hover:bg-zinc-50 transition-colors"
               >
                 Отмена
               </button>

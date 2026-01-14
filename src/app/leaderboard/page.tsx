@@ -28,16 +28,16 @@ export default async function LeaderboardPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
         <div className="flex items-center gap-3 mb-2">
-          <Trophy className="h-8 w-8 text-white" />
-          <h1 className="text-3xl font-bold text-zinc-100">Мировой рейтинг</h1>
+          <Trophy className="h-8 w-8 text-primary-600" />
+          <h1 className="text-3xl font-bold text-zinc-900">Мировой рейтинг</h1>
         </div>
-        <p className="mt-2 text-zinc-400">
+        <p className="mt-2 text-zinc-600">
           Сортировка по сумме очков (чем больше — тем выше).
         </p>
         {error ? (
-          <p className="mt-3 text-sm text-error bg-zinc-800 border border-zinc-700 rounded-lg p-3">
+          <p className="mt-3 text-sm text-error bg-red-50 border border-red-200 rounded-lg p-3">
             Ошибка чтения рейтинга: {error.message}
           </p>
         ) : null}
@@ -47,14 +47,14 @@ export default async function LeaderboardPage({
         <LeaderboardTable rows={rows} />
       </Suspense>
 
-      <Suspense fallback={<div className="text-center py-4 text-zinc-400">Загрузка пагинации...</div>}>
+      <Suspense fallback={<div className="text-center py-4 text-zinc-600">Загрузка пагинации...</div>}>
         <LeaderboardPagination
           currentPage={page}
           totalPages={totalPages}
         />
       </Suspense>
 
-      <div className="text-sm text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+      <div className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg p-4">
         {hintText}
       </div>
     </div>

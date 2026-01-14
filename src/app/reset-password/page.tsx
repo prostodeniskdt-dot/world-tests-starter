@@ -122,7 +122,7 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-zinc-900 text-white py-2 rounded-md disabled:opacity-50"
+            className="w-full gradient-primary text-white py-2 rounded-md disabled:opacity-50"
           >
             {loading ? "Сброс..." : "Сбросить пароль"}
           </button>

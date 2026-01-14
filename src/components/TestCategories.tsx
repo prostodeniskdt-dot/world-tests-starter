@@ -36,21 +36,21 @@ export function TestCategories({
         onClick={() => onCategorySelect(null)}
         className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
           selectedCategory === null
-            ? "border-white bg-zinc-800 shadow-md"
-            : "border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800"
+            ? "border-primary-500 bg-primary-50 shadow-md"
+            : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50"
         }`}
         aria-label="Показать все тесты"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-white" aria-hidden="true" />
+            <BookOpen className="h-5 w-5 text-primary-600" aria-hidden="true" />
             <div>
-              <div className="font-bold text-lg text-zinc-100">Все тесты</div>
-              <div className="text-sm text-zinc-400">{getTestsCount(null)} тестов</div>
+              <div className="font-bold text-lg text-zinc-900">Все тесты</div>
+              <div className="text-sm text-zinc-600">{getTestsCount(null)} тестов</div>
             </div>
           </div>
           {selectedCategory === null && (
-            <div className="h-2 w-2 rounded-full bg-white"></div>
+            <div className="h-2 w-2 rounded-full bg-primary-600"></div>
           )}
         </div>
       </button>
@@ -74,15 +74,15 @@ export function TestCategories({
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-bold text-lg text-zinc-100 capitalize">
+                  <div className="font-bold text-lg text-zinc-900 capitalize">
                     {category}
                   </div>
-                  <div className="text-sm text-zinc-400">
+                  <div className="text-sm text-zinc-600">
                     {count} {count === 1 ? "тест" : "тестов"}
                   </div>
                 </div>
                 {isSelected && (
-                  <div className="h-2 w-2 rounded-full bg-white"></div>
+                  <div className="h-2 w-2 rounded-full bg-primary-600"></div>
                 )}
               </div>
             </button>

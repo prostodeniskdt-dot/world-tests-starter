@@ -52,10 +52,10 @@ export function ToastContainer() {
           key={toast.id}
           className={`flex items-center gap-3 rounded-lg px-4 py-3 shadow-lg animate-slide-up min-w-[300px] ${
             toast.type === "success"
-              ? "bg-green-950 border border-green-800 text-green-300"
+              ? "bg-green-50 border border-green-200 text-green-800"
               : toast.type === "error"
-              ? "bg-zinc-800 border border-zinc-700 text-zinc-200"
-              : "bg-blue-950 border border-blue-800 text-blue-300"
+              ? "bg-red-50 border border-red-200 text-red-800"
+              : "bg-blue-50 border border-blue-200 text-blue-800"
           }`}
           role="alert"
           aria-live="polite"
@@ -68,7 +68,7 @@ export function ToastContainer() {
           <span className="flex-1 text-sm font-medium">{toast.message}</span>
           <button
             onClick={() => removeToast(toast.id)}
-            className="text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="text-zinc-400 hover:text-zinc-600 transition-colors"
             aria-label="Закрыть уведомление"
           >
             <X className="h-4 w-4" aria-hidden="true" />

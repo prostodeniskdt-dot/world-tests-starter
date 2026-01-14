@@ -71,22 +71,22 @@ export default async function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900">
+    <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Shield className="h-8 w-8 text-white" />
-            <h1 className="text-3xl font-bold text-zinc-100">Админ-панель</h1>
+            <Shield className="h-8 w-8 text-primary-600" />
+            <h1 className="text-3xl font-bold text-zinc-900">Админ-панель</h1>
           </div>
-          <p className="text-zinc-400">
+          <p className="text-zinc-600">
             Управление пользователями и модерация системы
           </p>
         </div>
 
-        <div className="bg-zinc-950 rounded-lg border border-zinc-800 shadow-sm p-6">
+        <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-6">
-            <Users className="h-5 w-5 text-zinc-400" />
-            <h2 className="text-xl font-semibold text-zinc-100">Пользователи</h2>
+            <Users className="h-5 w-5 text-zinc-600" />
+            <h2 className="text-xl font-semibold text-zinc-900">Пользователи</h2>
           </div>
           <AdminUsersTable
             initialUsers={usersWithStats}

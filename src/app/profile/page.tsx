@@ -29,9 +29,9 @@ export default async function ProfilePage({
   if (!userId) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6">
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
           <h1 className="text-3xl font-bold mb-4">Личный кабинет</h1>
-          <p className="mt-2 text-zinc-400">
+          <p className="mt-2 text-zinc-600">
             Пожалуйста, войдите в систему для просмотра профиля.
           </p>
         </div>
@@ -66,22 +66,22 @@ export default async function ProfilePage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
         <div className="flex items-center gap-6 mb-6">
-          <div className="h-24 w-24 rounded-full gradient-primary flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+          <div className="h-24 w-24 rounded-full gradient-primary flex items-center justify-center text-primary-600 text-3xl font-bold shadow-lg">
             {user.first_name?.charAt(0).toUpperCase() || "?"}
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-zinc-100 mb-1">
+            <h1 className="text-3xl font-bold text-zinc-900 mb-1">
               {user.first_name} {user.last_name}
             </h1>
-            <div className="text-zinc-400 mb-2">{user.email}</div>
+            <div className="text-zinc-600 mb-2">{user.email}</div>
             {user.telegram_username && (
               <a
                 href={`https://t.me/${user.telegram_username}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-white hover:text-zinc-400 hover:underline"
+                className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-zinc-600 hover:underline"
               >
                 @{user.telegram_username}
                 <ExternalLink className="h-3 w-3" />
@@ -92,18 +92,18 @@ export default async function ProfilePage({
 
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div className="rounded-lg border-2 border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-800 p-6">
+            <div className="rounded-lg border-2 border-primary-200 bg-gradient-to-br from-zinc-900 to-zinc-800 p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Trophy className="h-6 w-6 text-white" />
-                <div className="text-sm font-medium text-zinc-400">Всего очков</div>
+                <Trophy className="h-6 w-6 text-primary-600" />
+                <div className="text-sm font-medium text-zinc-600">Всего очков</div>
               </div>
-              <div className="text-4xl font-bold text-zinc-400">{stats.total_points.toLocaleString()}</div>
+              <div className="text-4xl font-bold text-zinc-600">{stats.total_points.toLocaleString()}</div>
             </div>
 
             <div className="rounded-lg border-2 border-success-200 bg-gradient-to-br from-green-50 to-green-100 p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Award className="h-6 w-6 text-success" />
-                <div className="text-sm font-medium text-zinc-400">Тестов пройдено</div>
+                <div className="text-sm font-medium text-zinc-600">Тестов пройдено</div>
               </div>
               <div className="text-4xl font-bold text-success">{stats.tests_completed}</div>
             </div>
@@ -112,7 +112,7 @@ export default async function ProfilePage({
       </div>
 
       {attemptsList.length > 0 && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6">
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Calendar className="h-6 w-6" />
             История попыток
@@ -139,7 +139,7 @@ export default async function ProfilePage({
                         minute: "2-digit",
                       })}
                     </td>
-                    <td className="px-4 py-3 font-medium text-zinc-100">{attempt.test_id}</td>
+                    <td className="px-4 py-3 font-medium text-zinc-900">{attempt.test_id}</td>
                     <td className="px-4 py-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         attempt.score_percent >= 80 
@@ -151,7 +151,7 @@ export default async function ProfilePage({
                         {attempt.score_percent}%
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-bold text-white text-right">
+                    <td className="px-4 py-3 font-bold text-primary-600 text-right">
                       +{attempt.points_awarded}
                     </td>
                   </tr>
@@ -163,12 +163,12 @@ export default async function ProfilePage({
       )}
 
       {attemptsList.length === 0 && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-12 text-center">
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-12 text-center">
           <Trophy className="h-16 w-16 text-zinc-300 mx-auto mb-4" />
-          <div className="text-zinc-400 mb-4">Пока нет попыток.</div>
+          <div className="text-zinc-600 mb-4">Пока нет попыток.</div>
           <Link 
             href="/test" 
-            className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-primary-600 hover:opacity-90 shadow-md hover:shadow-lg transition-all"
           >
             Пройдите тест
           </Link>

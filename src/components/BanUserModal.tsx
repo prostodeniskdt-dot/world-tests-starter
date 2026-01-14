@@ -53,31 +53,31 @@ export function BanUserModal({ user, onClose, onSuccess }: BanUserModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800">
-          <h2 className="text-xl font-bold text-zinc-100">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div className="flex items-center justify-between p-6 border-b border-zinc-200">
+          <h2 className="text-xl font-bold text-zinc-900">
             {user.isBanned ? "Разблокировать пользователя" : "Заблокировать пользователя"}
           </h2>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-400 transition-colors"
+            className="text-zinc-400 hover:text-zinc-600 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="bg-zinc-800 p-4 rounded-lg">
-            <div className="font-medium text-zinc-100">
+          <div className="bg-zinc-50 p-4 rounded-lg">
+            <div className="font-medium text-zinc-900">
               {user.firstName} {user.lastName}
             </div>
-            <div className="text-sm text-zinc-400">{user.email}</div>
+            <div className="text-sm text-zinc-600">{user.email}</div>
           </div>
 
           {!user.isBanned && (
             <>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-200">
+                <label className="block text-sm font-medium text-zinc-700">
                   Тип блокировки
                 </label>
                 <div className="space-y-2">
@@ -90,7 +90,7 @@ export function BanUserModal({ user, onClose, onSuccess }: BanUserModalProps) {
                       onChange={(e) => setBanType(e.target.value as "permanent" | "temporary")}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-zinc-200">Постоянная блокировка</span>
+                    <span className="text-sm text-zinc-700">Постоянная блокировка</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -101,14 +101,14 @@ export function BanUserModal({ user, onClose, onSuccess }: BanUserModalProps) {
                       onChange={(e) => setBanType(e.target.value as "permanent" | "temporary")}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-zinc-200">Временная блокировка</span>
+                    <span className="text-sm text-zinc-700">Временная блокировка</span>
                   </label>
                 </div>
               </div>
 
               {banType === "temporary" && (
                 <div>
-                  <label className="block text-sm font-medium text-zinc-200 mb-2">
+                  <label className="block text-sm font-medium text-zinc-700 mb-2">
                     Дата окончания блокировки
                   </label>
                   <input
@@ -145,7 +145,7 @@ export function BanUserModal({ user, onClose, onSuccess }: BanUserModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-zinc-300 rounded-lg text-zinc-200 hover:bg-zinc-800 transition-colors"
+              className="flex-1 px-4 py-2 border border-zinc-300 rounded-lg text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               Отмена
             </button>

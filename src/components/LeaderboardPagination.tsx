@@ -66,7 +66,7 @@ export function LeaderboardPagination({
           className={`px-4 py-2 border rounded-md transition-colors ${
             currentPage === 1
               ? "opacity-50 cursor-not-allowed pointer-events-none"
-              : "hover:bg-zinc-800"
+              : "hover:bg-zinc-50"
           }`}
           aria-label="Предыдущая страница"
         >
@@ -76,15 +76,15 @@ export function LeaderboardPagination({
         <div className="flex items-center gap-1">
           {getPageNumbers().map((page, idx) => (
             page === "..." ? (
-              <span key={`ellipsis-${idx}`} className="px-2 text-zinc-400" aria-hidden="true">...</span>
+              <span key={`ellipsis-${idx}`} className="px-2 text-zinc-500" aria-hidden="true">...</span>
             ) : (
               <Link
                 key={page}
                 href={createPageUrl(page as number)}
                 className={`px-3 py-2 border rounded-md transition-colors ${
                   currentPage === page
-                    ? "bg-white text-white border-white"
-                    : "hover:bg-zinc-800"
+                    ? "bg-primary-600 text-white border-primary-600"
+                    : "hover:bg-zinc-50"
                 }`}
                 aria-label={`Страница ${page}${currentPage === page ? ', текущая страница' : ''}`}
                 aria-current={currentPage === page ? "page" : undefined}
@@ -100,7 +100,7 @@ export function LeaderboardPagination({
           className={`px-4 py-2 border rounded-md transition-colors ${
             currentPage >= totalPages
               ? "opacity-50 cursor-not-allowed pointer-events-none"
-              : "hover:bg-zinc-800"
+              : "hover:bg-zinc-50"
           }`}
           aria-label="Следующая страница"
         >
@@ -109,7 +109,7 @@ export function LeaderboardPagination({
       </div>
       
       <form onSubmit={handlePageInput} className="flex items-center gap-2">
-        <span className="text-sm text-zinc-400">Перейти к:</span>
+        <span className="text-sm text-zinc-500">Перейти к:</span>
         <input
           type="number"
           min="1"
@@ -117,19 +117,19 @@ export function LeaderboardPagination({
           value={pageInput}
           onChange={(e) => setPageInput(e.target.value)}
           placeholder={currentPage.toString()}
-          className="w-20 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+          className="w-20 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           aria-label="Номер страницы"
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-white text-white rounded-md hover:bg-zinc-500 transition-colors text-sm"
+          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
           aria-label="Перейти на страницу"
         >
           Перейти
         </button>
       </form>
       
-      <span className="text-sm text-zinc-400">
+      <span className="text-sm text-zinc-500">
         Страница {currentPage} из {totalPages}
       </span>
     </div>

@@ -94,24 +94,24 @@ export function TestClient({ test }: { test: PublicTest }) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
           {test.title}
         </h1>
         {test.description && (
-          <p className="mt-2 text-zinc-400 text-lg leading-relaxed">{test.description}</p>
+          <p className="mt-2 text-zinc-600 text-lg leading-relaxed">{test.description}</p>
         )}
       </div>
 
       {/* Прогресс-бар */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-4">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-zinc-200">
+          <span className="text-sm font-medium text-zinc-700">
             Прогресс: {answeredCount} / {test.questions.length} вопросов
           </span>
-          <span className="text-sm font-semibold text-white">{Math.round(progressPercent)}%</span>
+          <span className="text-sm font-semibold text-primary-600">{Math.round(progressPercent)}%</span>
         </div>
-        <div className="w-full bg-zinc-700 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-zinc-200 rounded-full h-3 overflow-hidden">
           <div 
             className="gradient-primary h-full rounded-full transition-[width] duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
@@ -120,12 +120,12 @@ export function TestClient({ test }: { test: PublicTest }) {
       </div>
 
       {/* Навигация по вопросам */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-4">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-zinc-200">Навигация по вопросам</span>
+          <span className="text-sm font-medium text-zinc-700">Навигация по вопросам</span>
           <button
             onClick={() => setShowNavigation(!showNavigation)}
-            className="text-xs text-white hover:text-zinc-400 transition-colors"
+            className="text-xs text-primary-600 hover:text-zinc-600 transition-colors"
           >
             {showNavigation ? 'Скрыть' : 'Показать'}
           </button>
@@ -141,10 +141,10 @@ export function TestClient({ test }: { test: PublicTest }) {
                   onClick={() => goToQuestion(idx)}
                   className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
                     isCurrent
-                      ? 'bg-white text-white ring-2 ring-zinc-600'
+                      ? 'bg-primary-600 text-white ring-2 ring-primary-300'
                       : isAnswered
-                      ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                      ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                   }`}
                   aria-label={`Вопрос ${idx + 1}${isAnswered ? ', отвечен' : ', не отвечен'}`}
                 >
@@ -158,14 +158,14 @@ export function TestClient({ test }: { test: PublicTest }) {
 
       <UserGate title="Для прохождения теста необходима регистрация">
         {(user) => (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6">
+          <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-200">
-              <div className="text-sm text-zinc-400">
-                Вы: <span className="font-semibold text-zinc-100">{user.firstName} {user.lastName}</span>
+              <div className="text-sm text-zinc-600">
+                Вы: <span className="font-semibold text-zinc-900">{user.firstName} {user.lastName}</span>
               </div>
 
               {attemptsInfo && attemptsInfo.max !== null && (
-                <div className="text-sm text-zinc-400 px-3 py-1 bg-amber-950 border border-amber-800 rounded-lg">
+                <div className="text-sm text-zinc-600 px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg">
                   Попыток: {attemptsInfo.used} / {attemptsInfo.max}
                 </div>
               )}
@@ -173,12 +173,12 @@ export function TestClient({ test }: { test: PublicTest }) {
 
             <div className="space-y-8">
               {test.questions.map((q, idx) => (
-                <div key={q.id} id={`question-${idx}`} className="border-t border-zinc-800 pt-6 first:border-t-0 first:pt-0">
+                <div key={q.id} id={`question-${idx}`} className="border-t border-zinc-200 pt-6 first:border-t-0 first:pt-0">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center font-bold text-sm">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-zinc-600 flex items-center justify-center font-bold text-sm">
                       {idx + 1}
                     </div>
-                    <div className="font-semibold text-lg text-zinc-100 leading-relaxed flex-1">
+                    <div className="font-semibold text-lg text-zinc-900 leading-relaxed flex-1">
                       {q.text}
                     </div>
                   </div>
@@ -190,18 +190,18 @@ export function TestClient({ test }: { test: PublicTest }) {
                           key={optIdx}
                           className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
                             checked
-                              ? "border-zinc-9000 bg-zinc-900 shadow-md"
-                              : "border-zinc-200 hover:border-zinc-600 hover:bg-zinc-800"
+                              ? "border-primary-500 bg-primary-50 shadow-md"
+                              : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50"
                           }`}
                           aria-label={`Вариант ответа ${optIdx + 1}: ${opt}`}
                         >
                           <div className="flex-shrink-0">
                             {checked ? (
-                              <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                              <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center">
                                 <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
                               </div>
                             ) : (
-                              <Circle className="h-5 w-5 text-zinc-400" aria-hidden="true" />
+                              <Circle className="h-5 w-5 text-zinc-600" aria-hidden="true" />
                             )}
                           </div>
                           <input
@@ -214,16 +214,16 @@ export function TestClient({ test }: { test: PublicTest }) {
                             className="hidden"
                             aria-label={`Выбрать вариант ${optIdx + 1}`}
                           />
-                          <span className="text-zinc-200 flex-1" aria-hidden="true">{opt}</span>
+                          <span className="text-zinc-700 flex-1" aria-hidden="true">{opt}</span>
                         </label>
                       );
                     })}
                   </div>
-                  <div className="flex justify-between mt-4 pt-4 border-t border-zinc-800">
+                  <div className="flex justify-between mt-4 pt-4 border-t border-zinc-200">
                     <button
                       onClick={prevQuestion}
                       disabled={idx === 0}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-600 bg-zinc-900 text-white hover:bg-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
                       aria-label="Предыдущий вопрос"
                     >
                       ← Предыдущий
@@ -231,7 +231,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                     <button
                       onClick={nextQuestion}
                       disabled={idx === test.questions.length - 1}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-600 bg-zinc-900 text-white hover:bg-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
                       aria-label="Следующий вопрос"
                     >
                       Следующий →
@@ -261,14 +261,14 @@ export function TestClient({ test }: { test: PublicTest }) {
             {/* Модальное окно подтверждения */}
             {showConfirmModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-                <div className="bg-zinc-900 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in">
+                <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in">
                   <h3 className="text-xl font-bold mb-4">Подтверждение отправки</h3>
-                  <p className="text-zinc-400 mb-4">
+                  <p className="text-zinc-600 mb-4">
                     Вы ответили на {answeredCount} из {test.questions.length} вопросов. 
                     Вы уверены, что хотите завершить тест?
                   </p>
                   {!allAnswered && (
-                    <div className="mb-6 p-3 bg-amber-950 border border-amber-800 rounded-lg">
+                    <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                       <p className="text-sm font-medium text-amber-800 mb-2">
                         Внимание: есть неотвеченные вопросы!
                       </p>
@@ -318,13 +318,13 @@ export function TestClient({ test }: { test: PublicTest }) {
                           setSubmitting(false);
                         }
                       }}
-                      className="flex-1 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-all"
+                      className="flex-1 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-600 hover:opacity-90 transition-all"
                     >
                       Да, завершить
                     </button>
                     <button
                       onClick={() => setShowConfirmModal(false)}
-                      className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-800 transition-colors"
+                      className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-primary-100 transition-colors"
                     >
                       Отмена
                     </button>
@@ -343,39 +343,39 @@ export function TestClient({ test }: { test: PublicTest }) {
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <Award className="h-6 w-6 text-success" aria-hidden="true" />
-                      <div className="font-bold text-lg text-zinc-100">Результат отправлен ✅</div>
+                      <div className="font-bold text-lg text-zinc-900">Результат отправлен ✅</div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="bg-zinc-900 rounded-lg p-3 border border-green-200">
-                        <div className="text-zinc-400 mb-1">Правильных ответов</div>
-                        <div className="font-bold text-lg text-zinc-100">
+                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                        <div className="text-zinc-600 mb-1">Правильных ответов</div>
+                        <div className="font-bold text-lg text-zinc-900">
                           {result.result.correctCount} / {result.result.totalQuestions}
                         </div>
                         <div className="text-success font-semibold">{result.result.scorePercent}%</div>
                       </div>
-                      <div className="bg-zinc-900 rounded-lg p-3 border border-green-200">
-                        <div className="text-zinc-400 mb-1">Очки за попытку</div>
-                        <div className="font-bold text-2xl text-white">
+                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                        <div className="text-zinc-600 mb-1">Очки за попытку</div>
+                        <div className="font-bold text-2xl text-primary-600">
                           +{result.result.pointsAwarded}
                         </div>
                       </div>
                     </div>
-                    <div className="bg-zinc-900 rounded-lg p-4 border border-green-200">
+                    <div className="bg-white rounded-lg p-4 border border-green-200">
                       <div className="flex justify-between items-center">
                         <div>
-                          <div className="text-sm text-zinc-400">Всего очков</div>
-                          <div className="font-bold text-xl text-zinc-100">{result.result.totalPoints}</div>
+                          <div className="text-sm text-zinc-600">Всего очков</div>
+                          <div className="font-bold text-xl text-zinc-900">{result.result.totalPoints}</div>
                         </div>
                         <div>
-                          <div className="text-sm text-zinc-400">Тестов пройдено</div>
-                          <div className="font-bold text-xl text-zinc-100">{result.result.testsCompleted}</div>
+                          <div className="text-sm text-zinc-600">Тестов пройдено</div>
+                          <div className="font-bold text-xl text-zinc-900">{result.result.testsCompleted}</div>
                         </div>
                       </div>
                     </div>
                     <div className="pt-2">
                       <a
                         href="/leaderboard"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-zinc-400 underline"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-zinc-600 underline"
                       >
                         Перейти в рейтинг
                         <ArrowRight className="h-4 w-4" aria-hidden="true" />

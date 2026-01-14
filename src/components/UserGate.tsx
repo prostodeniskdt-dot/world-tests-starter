@@ -82,9 +82,9 @@ export function UserGate(props: {
 
   if (!user) {
     return (
-      <div className="rounded-md border border-zinc-800 bg-zinc-900 p-4">
-        <div className="font-medium mb-2 text-zinc-100">{props.title ?? "Требуется регистрация"}</div>
-        <p className="text-sm text-zinc-400 mb-4">
+      <div className="rounded-md border bg-white p-4">
+        <div className="font-medium mb-2">{props.title ?? "Требуется регистрация"}</div>
+        <p className="text-sm text-zinc-600 mb-4">
           Для участия в тестах и рейтинге необходимо зарегистрироваться.
         </p>
       </div>
@@ -94,12 +94,12 @@ export function UserGate(props: {
   // Проверяем, не забанен ли пользователь
   if (user.isBanned) {
     return (
-      <div className="rounded-md border border-zinc-700 bg-zinc-800 p-6">
-        <div className="font-medium mb-2 text-zinc-200">Аккаунт заблокирован</div>
-        <p className="text-sm text-zinc-200 mb-4">
+      <div className="rounded-md border border-red-200 bg-red-50 p-6">
+        <div className="font-medium mb-2 text-red-900">Аккаунт заблокирован</div>
+        <p className="text-sm text-red-700 mb-4">
           Ваш аккаунт был заблокирован администратором. Вы не можете проходить тесты или участвовать в рейтинге.
         </p>
-        <p className="text-xs text-zinc-300">
+        <p className="text-xs text-red-600">
           Если вы считаете, что это ошибка, обратитесь к администратору.
         </p>
       </div>

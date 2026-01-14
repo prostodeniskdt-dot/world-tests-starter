@@ -24,7 +24,7 @@ function getRankStyle(rank: number) {
   } else if (rank === 3) {
     return "gradient-bronze text-white border-amber-600";
   }
-  return "bg-zinc-900 text-zinc-100 border-zinc-800";
+  return "bg-white text-zinc-900 border-zinc-200";
 }
 
 function getRankIcon(rank: number) {
@@ -73,9 +73,9 @@ export function LiveLeaderboard() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6 h-full flex flex-col">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 h-full flex flex-col">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-zinc-100">Мировой рейтинг</h2>
+          <h2 className="text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
           <span className="text-xs text-success flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full">
             <span className="h-2 w-2 bg-success rounded-full animate-pulse"></span>
             В реальном времени
@@ -94,16 +94,16 @@ export function LiveLeaderboard() {
           <button
             onClick={fetchLeaderboard}
             disabled={isRefreshing}
-            className="text-xs text-white hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2 py-1 rounded hover:bg-zinc-800"
+            className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2 py-1 rounded hover:bg-primary-50"
             aria-label="Обновить рейтинг"
           >
             {isRefreshing ? "Обновление..." : "Обновить"}
           </button>
           <span className={`text-xs flex items-center gap-1.5 px-3 py-1 rounded-full font-medium ${
-            isRefreshing ? 'bg-zinc-800 text-white' : 'bg-green-950 text-success'
+            isRefreshing ? 'bg-primary-50 text-primary-600' : 'bg-green-50 text-success'
           }`}>
             <span className={`h-2 w-2 rounded-full ${
-              isRefreshing ? 'bg-white animate-spin' : 'bg-success animate-pulse'
+              isRefreshing ? 'bg-primary-600 animate-spin' : 'bg-success animate-pulse'
             }`}></span>
             {isRefreshing ? 'Обновление...' : 'В реальном времени'}
           </span>
@@ -112,11 +112,11 @@ export function LiveLeaderboard() {
       <div className="overflow-y-auto flex-1 -mx-4 sm:mx-0">
         <div className="inline-block min-w-full align-middle">
           <table className="w-full text-left">
-          <thead className="sticky top-0 bg-zinc-900 border-b border-zinc-800 z-10">
+          <thead className="sticky top-0 bg-zinc-50 border-b border-zinc-200 z-10">
             <tr>
-              <th className="px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider">#</th>
-              <th className="px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Участник</th>
-              <th className="px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">Очки</th>
+              <th className="px-4 py-3 text-xs font-semibold text-zinc-600 uppercase tracking-wider">#</th>
+              <th className="px-4 py-3 text-xs font-semibold text-zinc-600 uppercase tracking-wider">Участник</th>
+              <th className="px-4 py-3 text-xs font-semibold text-zinc-600 uppercase tracking-wider text-right">Очки</th>
             </tr>
           </thead>
           <tbody>
@@ -128,7 +128,7 @@ export function LiveLeaderboard() {
               return (
                 <tr 
                   key={r.user_id} 
-                  className={`border-b border-zinc-800 hover:bg-zinc-800 transition-colors ${rankStyle}`}
+                  className={`border-b border-zinc-100 hover:bg-zinc-50 transition-colors ${rankStyle}`}
                 >
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2 font-bold">
@@ -144,7 +144,7 @@ export function LiveLeaderboard() {
                       <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                         r.rank <= 3 
                           ? "bg-white/30 text-white border-2 border-white/50" 
-                          : "bg-zinc-800 text-zinc-200"
+                          : "bg-primary-100 text-primary-700"
                       }`}>
                         {r.first_name?.charAt(0).toUpperCase() || "?"}
                       </div>
@@ -174,7 +174,7 @@ export function LiveLeaderboard() {
           </table>
         </div>
         {rows.length === 0 && (
-          <div className="text-center text-zinc-400 py-12 text-sm">
+          <div className="text-center text-zinc-500 py-12 text-sm">
             Пока нет результатов. Пройди тест первым 🙂
           </div>
         )}
@@ -182,7 +182,7 @@ export function LiveLeaderboard() {
           <div className="mt-4 text-center">
             <button
               onClick={() => setDisplayLimit(prev => prev + 25)}
-              className="text-sm text-white hover:text-zinc-300 font-medium transition-colors"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
             >
               Показать еще ({rows.length - displayLimit} участников)
             </button>
