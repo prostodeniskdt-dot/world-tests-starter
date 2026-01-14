@@ -9,6 +9,12 @@ import { WHISKEY_2_PUBLIC } from "@/tests/whiskey-2/public";
 import { WHISKEY_2_SECRET } from "@/tests/whiskey-2/answer";
 import { VODKA_1_PUBLIC } from "@/tests/vodka-1/public";
 import { VODKA_1_SECRET } from "@/tests/vodka-1/answer";
+import { COCKTAIL_SYSTEM_1_PUBLIC } from "@/tests/cocktail-system-1/public";
+import { COCKTAIL_SYSTEM_1_SECRET } from "@/tests/cocktail-system-1/answer";
+import { BALANCE_PRACTICE_1_PUBLIC } from "@/tests/balance-practice-1/public";
+import { BALANCE_PRACTICE_1_SECRET } from "@/tests/balance-practice-1/answer";
+import { ENGINEERING_1_PUBLIC } from "@/tests/engineering-1/public";
+import { ENGINEERING_1_SECRET } from "@/tests/engineering-1/answer";
 
 // Типы (экспортируем для использования в других файлах)
 export type { PublicTest, PublicTestQuestion } from "@/tests/techniques-1/public";
@@ -20,6 +26,9 @@ export const PUBLIC_TESTS = [
   WHISKEY_1_PUBLIC,
   WHISKEY_2_PUBLIC,
   VODKA_1_PUBLIC,
+  COCKTAIL_SYSTEM_1_PUBLIC,
+  BALANCE_PRACTICE_1_PUBLIC,
+  ENGINEERING_1_PUBLIC,
 ] as const;
 
 // Реестр всех секретных тестов (с правильными ответами)
@@ -29,6 +38,9 @@ export const SECRET_TESTS = [
   WHISKEY_1_SECRET,
   WHISKEY_2_SECRET,
   VODKA_1_SECRET,
+  COCKTAIL_SYSTEM_1_SECRET,
+  BALANCE_PRACTICE_1_SECRET,
+  ENGINEERING_1_SECRET,
 ] as const;
 
 // Мапы для быстрого доступа по ID

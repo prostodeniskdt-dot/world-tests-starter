@@ -128,13 +128,50 @@ export async function POST(req: Request) {
   }
 
 
+  // Функция для нормализации текстовых ответов
+  function normalizeTextAnswer(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ') // Множественные пробелы -> один
+      .replace(/[.,;:!?]/g, '') // Убрать пунктуацию
+      .replace(/мл/g, ' мл')
+      .replace(/%/g, ' процентов')
+      .replace(/,/g, '.') // Заменить запятую на точку для чисел
+      .replace(/≈/g, '') // Убрать знак приблизительно
+      .trim();
+  }
+
+  // Функция для проверки текстовых ответов
+  function checkTextAnswer(userAnswer: string, correctAnswers: string | string[]): boolean {
+    const normalized = normalizeTextAnswer(userAnswer);
+    const correct = Array.isArray(correctAnswers) ? correctAnswers : [correctAnswers];
+    
+    return correct.some(correct => {
+      const normalizedCorrect = normalizeTextAnswer(correct);
+      // Точное совпадение после нормализации
+      if (normalized === normalizedCorrect) {
+        return true;
+      }
+      // Частичное совпадение (содержит ключевые слова)
+      const userWords = normalized.split(' ').filter(w => w.length > 2);
+      const correctWords = normalizedCorrect.split(' ').filter(w => w.length > 2);
+      const matchCount = userWords.filter(w => correctWords.includes(w)).length;
+      // Если совпадает больше половины ключевых слов
+      if (correctWords.length > 0 && matchCount >= Math.ceil(correctWords.length * 0.5)) {
+        return true;
+      }
+      return false;
+    });
+  }
+
   // Получаем ID всех вопросов из теста
   const questionIds = testPublic.questions.map((q) => q.id);
 
   // Проверка что ответы на все вопросы есть
   for (const qId of questionIds) {
     const v = answers[qId];
-    if (typeof v !== "number") {
+    if (v === null || v === undefined) {
       return NextResponse.json(
         { ok: false, error: "Ответь на все вопросы" },
         { status: 400 }
@@ -146,10 +183,25 @@ export async function POST(req: Request) {
   const totalQuestions = questionIds.length;
   let correctCount = 0;
   for (const qId of questionIds) {
+    const question = testPublic.questions.find(q => q.id === qId);
     const userAnswer = answers[qId];
-    const correctAnswer = testSecret.answerKey[qId];
-    if (userAnswer === correctAnswer) {
-      correctCount += 1;
+    
+    if (!question) continue;
+    
+    if (question.type === "text") {
+      // Текстовая проверка
+      const correctAnswers = (testSecret as any).textAnswers?.[qId];
+      if (typeof userAnswer === "string" && correctAnswers) {
+        if (checkTextAnswer(userAnswer, correctAnswers)) {
+          correctCount += 1;
+        }
+      }
+    } else {
+      // Проверка вариантов
+      const correctAnswer = testSecret.answerKey[qId];
+      if (typeof userAnswer === "number" && userAnswer === correctAnswer) {
+        correctCount += 1;
+      }
     }
   }
 
