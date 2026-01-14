@@ -91,11 +91,11 @@ begin
   insert into public.attempts (user_id, test_id, score_percent, points_awarded)
   values (p_user_id, p_test_id, p_score_percent, p_points_awarded);
 
-  insert into public.user_stats (user_id, total_points, tests_completed)
+  insert into public.user_stats as us (user_id, total_points, tests_completed)
   values (p_user_id, p_points_awarded, 1)
   on conflict (user_id) do update
-    set total_points = public.user_stats.total_points + excluded.total_points,
-        tests_completed = public.user_stats.tests_completed + 1,
+    set total_points = us.total_points + excluded.total_points,
+        tests_completed = us.tests_completed + 1,
         updated_at = now();
 
   return query
