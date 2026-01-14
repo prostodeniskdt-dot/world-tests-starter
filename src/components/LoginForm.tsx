@@ -94,7 +94,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="example@email.com"
-          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
         />
       </div>
 
@@ -118,7 +118,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="Введите пароль"
-          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
         />
         <div className="flex justify-end mt-1">
           <button
@@ -132,7 +132,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-950 border border-red-800 p-3 text-sm text-red-300">
+        <div className="rounded-md bg-zinc-800 border border-zinc-700 p-3 text-sm text-zinc-200">
           {error}
         </div>
       )}

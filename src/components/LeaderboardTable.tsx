@@ -66,7 +66,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                       r.rank <= 3 
                         ? "bg-white/30 text-white border-2 border-white/50" 
-                        : "bg-red-900 text-red-300"
+                        : "bg-zinc-800 text-zinc-200"
                     }`}>
                       {r.first_name?.charAt(0).toUpperCase() || "?"}
                     </div>
@@ -82,7 +82,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                       href={`https://t.me/${r.telegram_username}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-red-500 hover:underline text-sm"
+                      className="text-white hover:underline text-sm"
                     >
                       @{r.telegram_username}
                     </a>

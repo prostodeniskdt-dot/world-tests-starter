@@ -60,7 +60,7 @@ export function UserMenu() {
                 href={`https://t.me/${user.telegramUsername}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-red-500 hover:underline mt-1 block"
+                className="text-xs text-white hover:underline mt-1 block"
               >
                 @{user.telegramUsername}
               </a>
@@ -77,7 +77,7 @@ export function UserMenu() {
           {user.isAdmin && (
             <Link
               href="/admin"
-              className="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-950 transition-colors border-t border-zinc-800 mt-1"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors border-t border-zinc-800 mt-1"
               onClick={() => setIsOpen(false)}
             >
               <Shield className="h-4 w-4" aria-hidden="true" />
@@ -86,7 +86,7 @@ export function UserMenu() {
           )}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 text-left px-4 py-2 text-sm text-error hover:bg-red-950 transition-colors"
+            className="w-full flex items-center gap-3 text-left px-4 py-2 text-sm text-error hover:bg-zinc-800 transition-colors"
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />
             Выйти

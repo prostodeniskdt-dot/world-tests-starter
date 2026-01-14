@@ -54,7 +54,7 @@ export function ToastContainer() {
             toast.type === "success"
               ? "bg-green-950 border border-green-800 text-green-300"
               : toast.type === "error"
-              ? "bg-red-950 border border-red-800 text-red-300"
+              ? "bg-zinc-800 border border-zinc-700 text-zinc-200"
               : "bg-blue-950 border border-blue-800 text-blue-300"
           }`}
           role="alert"

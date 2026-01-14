@@ -21,7 +21,7 @@ export default function RootLayout({
       <body>
         <a 
           href="#main-content" 
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-red-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
         >
           Перейти к основному содержимому
         </a>
@@ -32,7 +32,7 @@ export default function RootLayout({
             <footer className="border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-sm py-8 mt-12">
               <div className="max-w-7xl mx-auto px-4 text-sm text-zinc-400 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Trophy className="h-4 w-4 text-red-500" />
+                  <Trophy className="h-4 w-4 text-white" />
                   <span className="font-semibold text-zinc-100">King of the Bar</span>
                 </div>
                 <div>Next.js + Supabase • {new Date().getFullYear()}</div>

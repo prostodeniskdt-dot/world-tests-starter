@@ -97,12 +97,12 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Ваш email"
                 required
-                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
               />
             </div>
             
             {error && (
-              <div className="rounded-md bg-red-950 border border-red-800 p-3 text-sm text-red-300">
+              <div className="rounded-md bg-zinc-800 border border-zinc-700 p-3 text-sm text-zinc-200">
                 {error}
               </div>
             )}

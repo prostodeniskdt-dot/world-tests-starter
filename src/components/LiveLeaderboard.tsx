@@ -94,16 +94,16 @@ export function LiveLeaderboard() {
           <button
             onClick={fetchLeaderboard}
             disabled={isRefreshing}
-            className="text-xs text-red-500 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2 py-1 rounded hover:bg-red-950"
+            className="text-xs text-white hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2 py-1 rounded hover:bg-zinc-800"
             aria-label="Обновить рейтинг"
           >
             {isRefreshing ? "Обновление..." : "Обновить"}
           </button>
           <span className={`text-xs flex items-center gap-1.5 px-3 py-1 rounded-full font-medium ${
-            isRefreshing ? 'bg-red-950 text-red-500' : 'bg-green-950 text-success'
+            isRefreshing ? 'bg-zinc-800 text-white' : 'bg-green-950 text-success'
           }`}>
             <span className={`h-2 w-2 rounded-full ${
-              isRefreshing ? 'bg-red-500 animate-spin' : 'bg-success animate-pulse'
+              isRefreshing ? 'bg-white animate-spin' : 'bg-success animate-pulse'
             }`}></span>
             {isRefreshing ? 'Обновление...' : 'В реальном времени'}
           </span>
@@ -144,7 +144,7 @@ export function LiveLeaderboard() {
                       <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                         r.rank <= 3 
                           ? "bg-white/30 text-white border-2 border-white/50" 
-                          : "bg-red-900 text-red-300"
+                          : "bg-zinc-800 text-zinc-200"
                       }`}>
                         {r.first_name?.charAt(0).toUpperCase() || "?"}
                       </div>
@@ -182,7 +182,7 @@ export function LiveLeaderboard() {
           <div className="mt-4 text-center">
             <button
               onClick={() => setDisplayLimit(prev => prev + 25)}
-              className="text-sm text-red-500 hover:text-red-400 font-medium transition-colors"
+              className="text-sm text-white hover:text-zinc-300 font-medium transition-colors"
             >
               Показать еще ({rows.length - displayLimit} участников)
             </button>

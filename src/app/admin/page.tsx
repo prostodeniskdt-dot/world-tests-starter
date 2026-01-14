@@ -75,7 +75,7 @@ export default async function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Shield className="h-8 w-8 text-red-500" />
+            <Shield className="h-8 w-8 text-white" />
             <h1 className="text-3xl font-bold text-zinc-100">Админ-панель</h1>
           </div>
           <p className="text-zinc-400">

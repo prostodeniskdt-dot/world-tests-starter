@@ -81,7 +81,7 @@ export default async function ProfilePage({
                 href={`https://t.me/${user.telegram_username}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-red-500 hover:text-red-600 hover:underline"
+                className="inline-flex items-center gap-1 text-sm text-white hover:text-zinc-400 hover:underline"
               >
                 @{user.telegram_username}
                 <ExternalLink className="h-3 w-3" />
@@ -92,12 +92,12 @@ export default async function ProfilePage({
 
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div className="rounded-lg border-2 border-red-900 bg-gradient-to-br from-red-950 to-red-900 p-6">
+            <div className="rounded-lg border-2 border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-800 p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Trophy className="h-6 w-6 text-red-500" />
+                <Trophy className="h-6 w-6 text-white" />
                 <div className="text-sm font-medium text-zinc-400">Всего очков</div>
               </div>
-              <div className="text-4xl font-bold text-red-600">{stats.total_points.toLocaleString()}</div>
+              <div className="text-4xl font-bold text-zinc-400">{stats.total_points.toLocaleString()}</div>
             </div>
 
             <div className="rounded-lg border-2 border-success-200 bg-gradient-to-br from-green-50 to-green-100 p-6">
@@ -151,7 +151,7 @@ export default async function ProfilePage({
                         {attempt.score_percent}%
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-bold text-red-500 text-right">
+                    <td className="px-4 py-3 font-bold text-white text-right">
                       +{attempt.points_awarded}
                     </td>
                   </tr>

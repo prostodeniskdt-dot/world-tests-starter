@@ -6,16 +6,16 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          50: '#fee2e2',
-          100: '#fecaca',
-          200: '#fca5a5',
-          300: '#f87171',
-          400: '#ef4444',
-          500: '#dc2626',
-          600: '#b91c1c',
-          700: '#991b1b',
-          800: '#7f1d1d',
-          900: '#450a0a',
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46',
+          800: '#27272a',
+          900: '#18181b',
         },
         accent: {
           50: '#fafafa',
@@ -38,7 +38,7 @@ const config: Config = {
       },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'glow': '0 0 20px rgba(220, 38, 38, 0.3)',
+        'glow': '0 0 20px rgba(255, 255, 255, 0.1)',
       },
       ringOffsetWidth: {
         DEFAULT: '2px',

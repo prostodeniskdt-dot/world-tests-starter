@@ -162,7 +162,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="example@email.com"
-          className={`w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+          className={`w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 ${
             emailError ? "border-red-300" : ""
           }`}
         />
@@ -184,7 +184,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           minLength={1}
           maxLength={50}
           placeholder="Ваше имя"
-          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
         />
       </div>
 
@@ -201,7 +201,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           minLength={1}
           maxLength={50}
           placeholder="Ваша фамилия"
-          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
         />
       </div>
 
@@ -239,7 +239,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             required
             minLength={8}
             placeholder="Минимум 8 символов"
-            className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
           />
           <button
             type="button"
@@ -266,7 +266,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             placeholder="Повторите пароль"
-            className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
           />
           <button
             type="button"

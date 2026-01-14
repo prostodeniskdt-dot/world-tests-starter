@@ -36,21 +36,21 @@ export function TestCategories({
         onClick={() => onCategorySelect(null)}
         className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
           selectedCategory === null
-            ? "border-red-500 bg-red-950 shadow-md"
-            : "border-zinc-800 hover:border-red-700 hover:bg-zinc-800"
+            ? "border-white bg-zinc-800 shadow-md"
+            : "border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800"
         }`}
         aria-label="Показать все тесты"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-red-500" aria-hidden="true" />
+            <BookOpen className="h-5 w-5 text-white" aria-hidden="true" />
             <div>
               <div className="font-bold text-lg text-zinc-100">Все тесты</div>
               <div className="text-sm text-zinc-400">{getTestsCount(null)} тестов</div>
             </div>
           </div>
           {selectedCategory === null && (
-            <div className="h-2 w-2 rounded-full bg-red-500"></div>
+            <div className="h-2 w-2 rounded-full bg-white"></div>
           )}
         </div>
       </button>
@@ -82,7 +82,7 @@ export function TestCategories({
                   </div>
                 </div>
                 {isSelected && (
-                  <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                  <div className="h-2 w-2 rounded-full bg-white"></div>
                 )}
               </div>
             </button>

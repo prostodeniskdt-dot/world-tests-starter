@@ -34,7 +34,7 @@ export function Nav() {
             href="/" 
             className="flex items-center gap-2 font-bold text-xl text-gradient hover:opacity-80 transition-opacity whitespace-nowrap"
           >
-            <Trophy className="h-6 w-6 text-red-500 flex-shrink-0" aria-label="Трофей" />
+            <Trophy className="h-6 w-6 text-white flex-shrink-0" aria-label="Трофей" />
             <span className="whitespace-nowrap">King of the Bar</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

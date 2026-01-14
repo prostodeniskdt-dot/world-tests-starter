@@ -83,7 +83,7 @@ export function LeaderboardPagination({
                 href={createPageUrl(page as number)}
                 className={`px-3 py-2 border rounded-md transition-colors ${
                   currentPage === page
-                    ? "bg-red-500 text-white border-red-500"
+                    ? "bg-white text-white border-white"
                     : "hover:bg-zinc-800"
                 }`}
                 aria-label={`Страница ${page}${currentPage === page ? ', текущая страница' : ''}`}
@@ -117,12 +117,12 @@ export function LeaderboardPagination({
           value={pageInput}
           onChange={(e) => setPageInput(e.target.value)}
           placeholder={currentPage.toString()}
-          className="w-20 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="w-20 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
           aria-label="Номер страницы"
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+          className="px-4 py-2 bg-white text-white rounded-md hover:bg-zinc-500 transition-colors text-sm"
           aria-label="Перейти на страницу"
         >
           Перейти

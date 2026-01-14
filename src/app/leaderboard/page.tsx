@@ -30,14 +30,14 @@ export default async function LeaderboardPage({
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-6">
         <div className="flex items-center gap-3 mb-2">
-          <Trophy className="h-8 w-8 text-red-500" />
+          <Trophy className="h-8 w-8 text-white" />
           <h1 className="text-3xl font-bold text-zinc-100">Мировой рейтинг</h1>
         </div>
         <p className="mt-2 text-zinc-400">
           Сортировка по сумме очков (чем больше — тем выше).
         </p>
         {error ? (
-          <p className="mt-3 text-sm text-error bg-red-950 border border-red-800 rounded-lg p-3">
+          <p className="mt-3 text-sm text-error bg-zinc-800 border border-zinc-700 rounded-lg p-3">
             Ошибка чтения рейтинга: {error.message}
           </p>
         ) : null}

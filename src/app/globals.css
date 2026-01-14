@@ -4,7 +4,7 @@
 
 :root {
   color-scheme: dark;
-  --gradient-primary: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  --gradient-primary: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
   --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
   --gradient-gold: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
   --gradient-silver: linear-gradient(135deg, #c0c0c0 0%, #e5e7eb 100%);

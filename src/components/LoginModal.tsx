@@ -90,13 +90,13 @@ export function LoginModal({
             onClick={() => setMode("login")}
             className={`flex-1 py-3 text-sm font-semibold transition-all relative ${
               mode === "login"
-                ? "text-red-500"
+                ? "text-white"
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
             Вход
             {mode === "login" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-t"></span>
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white rounded-t"></span>
             )}
           </button>
           <button
@@ -104,13 +104,13 @@ export function LoginModal({
             onClick={() => setMode("register")}
             className={`flex-1 py-3 text-sm font-semibold transition-all relative ${
               mode === "register"
-                ? "text-red-500"
+                ? "text-white"
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
             Регистрация
             {mode === "register" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-t"></span>
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white rounded-t"></span>
             )}
           </button>
         </div>

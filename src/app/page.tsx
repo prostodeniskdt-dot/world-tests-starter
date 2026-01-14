@@ -68,7 +68,7 @@ export default function Page() {
           {user ? (
             <>
               <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-8">
-                <h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
                   Доступные тесты
                 </h1>
                 <p className="text-zinc-400 mb-8 text-base leading-relaxed">
@@ -90,12 +90,12 @@ export default function Page() {
                     {filteredTests.map((test) => (
                       <div 
                         key={test.id} 
-                        className="group border-2 border-zinc-800 rounded-xl p-6 hover:shadow-lg hover:border-red-700 transition-all bg-zinc-900"
+                        className="group border-2 border-zinc-800 rounded-xl p-6 hover:shadow-lg hover:border-zinc-600 transition-all bg-zinc-900"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <BookOpen className="h-5 w-5 text-red-500" aria-hidden="true" />
+                              <BookOpen className="h-5 w-5 text-white" aria-hidden="true" />
                               <h3 className="font-bold text-xl text-zinc-100">{test.title}</h3>
                             </div>
                             {test.description && (
@@ -125,7 +125,7 @@ export default function Page() {
             </>
           ) : (
             <div className="rounded-xl border border-zinc-800 bg-zinc-950 shadow-soft p-8 h-full">
-              <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
                 King of the Bar
               </h1>
               <div className="space-y-6 text-zinc-200 leading-relaxed">
@@ -138,7 +138,7 @@ export default function Page() {
                     King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
                     пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.
                   </p>
-                  <p className="mt-6 text-zinc-400 bg-red-950 p-4 rounded-lg border border-red-900">
+                  <p className="mt-6 text-zinc-400 bg-zinc-800 p-4 rounded-lg border border-zinc-700">
                     Начните свой путь к вершине рейтинга уже сегодня! Войдите или зарегистрируйтесь, 
                     чтобы получить доступ к тестам и начать зарабатывать очки.
                   </p>

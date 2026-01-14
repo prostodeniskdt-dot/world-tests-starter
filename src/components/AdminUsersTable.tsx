@@ -105,7 +105,7 @@ export function AdminUsersTable({ initialUsers = [], initialPagination }: AdminU
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full pl-10 pr-4 py-2 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
           />
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -163,7 +163,7 @@ export function AdminUsersTable({ initialUsers = [], initialPagination }: AdminU
                         <div className="font-medium text-zinc-100">
                           {user.firstName} {user.lastName}
                           {user.isAdmin && (
-                            <Shield className="inline-block ml-2 h-4 w-4 text-red-500" />
+                            <Shield className="inline-block ml-2 h-4 w-4 text-white" />
                           )}
                         </div>
                         <div className="text-sm text-zinc-400">{user.email}</div>
