@@ -5,8 +5,8 @@ import { requireAuth } from "@/lib/auth-middleware";
 export async function GET(req: Request) {
   // Проверяем авторизацию
   const authResult = await requireAuth(req);
-  if (!("ok" in authResult) || !authResult.ok) {
-    return authResult as NextResponse;
+  if (authResult instanceof NextResponse || !authResult.ok) {
+    return authResult;
   }
 
   const { userId } = authResult;
