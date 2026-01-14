@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { requireAuth } from "@/lib/auth-middleware";
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
-
-  if (!userId) {
-    return NextResponse.json(
-      { ok: false, error: "userId обязателен" },
-      { status: 400 }
-    );
+  // Проверяем авторизацию
+  const authResult = await requireAuth(req);
+  if (!("ok" in authResult) || !authResult.ok) {
+    return authResult as NextResponse;
   }
 
-  // Получаем все попытки пользователя
+  const { userId } = authResult;
+
+  // Получаем все попытки пользователя (только свои попытки)
   const { data: attempts, error } = await supabaseAdmin
     .from("attempts")
     .select("*")

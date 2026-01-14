@@ -24,7 +24,8 @@ export default async function ProfilePage({
   const token = cookieStore.get("auth_token")?.value;
   const currentUser = token ? verifyToken(token) : null;
   
-  const userId = searchParams.userId || currentUser?.userId;
+  // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Используем только userId из токена, игнорируем searchParams для безопасности
+  const userId = currentUser?.userId;
 
   if (!userId) {
     return (

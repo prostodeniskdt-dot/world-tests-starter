@@ -104,7 +104,8 @@ export function TestClient({ test }: { test: PublicTest }) {
 
   useEffect(() => {
     if (currentUser?.userId) {
-      fetch(`/api/tests/${test.id}/attempts?userId=${currentUser.userId}`)
+      // userId больше не передается в query, берется из JWT токена для безопасности
+      fetch(`/api/tests/${test.id}/attempts`)
         .then((res) => res.json())
         .then((data) => {
           if (data.ok) {
@@ -350,7 +351,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                              userId: user.userId,
+                              // userId больше не передается, берется из JWT токена для безопасности
                               testId: test.id,
                               answers,
                               startTime,
