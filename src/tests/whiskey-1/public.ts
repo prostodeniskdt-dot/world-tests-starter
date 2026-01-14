@@ -8,11 +8,13 @@ export const WHISKEY_1_PUBLIC: PublicTest = {
   questions: [
     {
       id: "q1",
+      type: "multiple-choice",
       text: "Из какого зерна обычно производят шотландский виски?",
       options: ["Пшеница", "Ячмень", "Кукуруза", "Рожь"],
     },
     {
       id: "q2",
+      type: "multiple-choice",
       text: "Что означает 'single malt' виски?",
       options: [
         "Виски из одного винокуренного завода",
@@ -23,16 +25,19 @@ export const WHISKEY_1_PUBLIC: PublicTest = {
     },
     {
       id: "q3",
+      type: "multiple-choice",
       text: "Минимальный срок выдержки шотландского виски составляет:",
       options: ["2 года", "3 года", "5 лет", "7 лет"],
     },
     {
       id: "q4",
+      type: "multiple-choice",
       text: "Какой регион Шотландии известен дымными виски?",
       options: ["Highlands", "Islay", "Lowlands", "Speyside"],
     },
     {
       id: "q5",
+      type: "multiple-choice",
       text: "Что такое 'peaty' вкус в виски?",
       options: [
         "Сладкий вкус",

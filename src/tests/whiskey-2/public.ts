@@ -8,11 +8,13 @@ export const WHISKEY_2_PUBLIC: PublicTest = {
   questions: [
     {
       id: "q1",
+      type: "multiple-choice",
       text: "Какой регион Шотландии производит больше всего виски?",
       options: ["Highlands", "Islay", "Lowlands", "Speyside"],
     },
     {
       id: "q2",
+      type: "multiple-choice",
       text: "Что означает 'cask strength' виски?",
       options: [
         "Виски без разбавления",
@@ -23,11 +25,13 @@ export const WHISKEY_2_PUBLIC: PublicTest = {
     },
     {
       id: "q3",
+      type: "multiple-choice",
       text: "Какой известный бренд производит виски 'Macallan'?",
       options: ["Speyside", "Highlands", "Islay", "Lowlands"],
     },
     {
       id: "q4",
+      type: "multiple-choice",
       text: "Что такое 'finish' в виски?",
       options: [
         "Дополнительная выдержка в другой бочке",
@@ -38,6 +42,7 @@ export const WHISKEY_2_PUBLIC: PublicTest = {
     },
     {
       id: "q5",
+      type: "multiple-choice",
       text: "Какой виски известен своим дымным вкусом из-за использования торфа?",
       options: ["Glenfiddich", "Laphroaig", "Glenlivet", "Macallan"],
     },

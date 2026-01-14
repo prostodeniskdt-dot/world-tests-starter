@@ -8,16 +8,19 @@ export const VODKA_1_PUBLIC: PublicTest = {
   questions: [
     {
       id: "q1",
+      type: "multiple-choice",
       text: "Из какого сырья традиционно производят водку?",
       options: ["Пшеница", "Ячмень", "Картофель", "Все перечисленные"],
     },
     {
       id: "q2",
+      type: "multiple-choice",
       text: "Какая страна считается родиной водки?",
       options: ["Россия", "Польша", "Швеция", "Россия и Польша спорят"],
     },
     {
       id: "q3",
+      type: "multiple-choice",
       text: "Что означает 'rectification' в производстве водки?",
       options: [
         "Многократная дистилляция и очистка",
@@ -28,11 +31,13 @@ export const VODKA_1_PUBLIC: PublicTest = {
     },
     {
       id: "q4",
+      type: "multiple-choice",
       text: "Какой крепости обычно бывает водка?",
       options: ["35-38%", "38-40%", "40-45%", "45-50%"],
     },
     {
       id: "q5",
+      type: "multiple-choice",
       text: "Что такое 'chill filtration' в производстве водки?",
       options: [
         "Фильтрация при низкой температуре",
