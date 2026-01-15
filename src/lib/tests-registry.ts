@@ -5,8 +5,12 @@ import { BALANCE_PRACTICE_1_PUBLIC } from "@/tests/balance-practice-1/public";
 import { BALANCE_PRACTICE_1_SECRET } from "@/tests/balance-practice-1/answer";
 import { ENGINEERING_1_PUBLIC } from "@/tests/engineering-1/public";
 import { ENGINEERING_1_SECRET } from "@/tests/engineering-1/answer";
-import { CARBONIZATION_5_PILLARS_PUBLIC } from "@/tests/carbonization-5-pillars/public";
-import { CARBONIZATION_5_PILLARS_SECRET } from "@/tests/carbonization-5-pillars/answer";
+import { CARBONIZATION_FUNDAMENTALS_PUBLIC } from "@/tests/carbonization-fundamentals/public";
+import { CARBONIZATION_FUNDAMENTALS_SECRET } from "@/tests/carbonization-fundamentals/answer";
+import { CARBONIZATION_PRACTICE_PUBLIC } from "@/tests/carbonization-practice/public";
+import { CARBONIZATION_PRACTICE_SECRET } from "@/tests/carbonization-practice/answer";
+import { CARBONIZATION_ADVANCED_PUBLIC } from "@/tests/carbonization-advanced/public";
+import { CARBONIZATION_ADVANCED_SECRET } from "@/tests/carbonization-advanced/answer";
 
 // Типы (экспортируем для использования в других файлах)
 export type { PublicTest, PublicTestQuestion } from "@/tests/types";
@@ -16,7 +20,9 @@ export const PUBLIC_TESTS = [
   COCKTAIL_SYSTEM_1_PUBLIC,
   BALANCE_PRACTICE_1_PUBLIC,
   ENGINEERING_1_PUBLIC,
-  CARBONIZATION_5_PILLARS_PUBLIC,
+  CARBONIZATION_FUNDAMENTALS_PUBLIC,
+  CARBONIZATION_PRACTICE_PUBLIC,
+  CARBONIZATION_ADVANCED_PUBLIC,
 ] as const;
 
 // Реестр всех секретных тестов (с правильными ответами)
@@ -24,7 +30,9 @@ export const SECRET_TESTS = [
   COCKTAIL_SYSTEM_1_SECRET,
   BALANCE_PRACTICE_1_SECRET,
   ENGINEERING_1_SECRET,
-  CARBONIZATION_5_PILLARS_SECRET,
+  CARBONIZATION_FUNDAMENTALS_SECRET,
+  CARBONIZATION_PRACTICE_SECRET,
+  CARBONIZATION_ADVANCED_SECRET,
 ] as const;
 
 // Мапы для быстрого доступа по ID

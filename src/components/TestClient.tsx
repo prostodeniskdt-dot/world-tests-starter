@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import Link from "next/link";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { CheckCircle2, Circle, ArrowRight, Award } from "lucide-react";
 import { addToast } from "./Toast";
@@ -451,13 +452,13 @@ export function TestClient({ test }: { test: PublicTest }) {
                       </div>
                     </div>
                     <div className="pt-2">
-                      <a
+                      <Link
                         href="/leaderboard"
                         className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-zinc-600 underline"
                       >
                         Перейти в рейтинг
                         <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 ) : (
