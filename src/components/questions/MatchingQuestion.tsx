@@ -61,12 +61,12 @@ export function MatchingQuestion({
           <h4 className="font-semibold text-green-900 mb-2 text-sm">Созданные соединения ({pairs.length}):</h4>
           <div className="space-y-2">
             {pairs.map(([leftIdx, rightIdx], pairIdx) => (
-              <div key={pairIdx} className="flex items-center gap-3 p-2 bg-white rounded border border-green-200">
-                <div className="flex-1 text-sm text-zinc-700">
+              <div key={pairIdx} className="flex items-start gap-3 p-2 bg-white rounded border border-green-200">
+                <div className="flex-1 text-sm text-zinc-700 break-words">
                   <span className="font-medium text-primary-600">{leftIdx + 1}.</span> {question.leftItems[leftIdx]}
                 </div>
-                <div className="flex-shrink-0 text-green-600 font-bold text-lg">→</div>
-                <div className="flex-1 text-sm text-zinc-700">
+                <div className="flex-shrink-0 text-green-600 font-bold text-lg mt-0.5">→</div>
+                <div className="flex-1 text-sm text-zinc-700 break-words">
                   <span className="font-medium text-accent-600">{String.fromCharCode(65 + rightIdx)}.</span> {question.rightItems[rightIdx]}
                 </div>
                 <button
@@ -107,10 +107,10 @@ export function MatchingQuestion({
                       : "border-zinc-300 bg-white hover:border-primary-300"
                   } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-primary-600">{idx + 1}.</span>
-                      <span>{item}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 flex-1">
+                      <span className="font-bold text-primary-600 flex-shrink-0 mt-0.5">{idx + 1}.</span>
+                      <span className="break-words">{item}</span>
                     </div>
                     {rightIdx !== null && (
                       <span className="text-xs bg-green-600 text-white px-2 py-1 rounded font-medium">
@@ -146,10 +146,10 @@ export function MatchingQuestion({
                       : "border-zinc-300 bg-zinc-50 opacity-50"
                   } ${disabled || !isSelected || isUsed ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-accent-600">{String.fromCharCode(65 + idx)}.</span>
-                    <span>{item}</span>
-                    {isUsed && <span className="ml-auto text-xs bg-green-600 text-white px-2 py-1 rounded">✓ Используется</span>}
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-accent-600 flex-shrink-0 mt-0.5">{String.fromCharCode(65 + idx)}.</span>
+                    <span className="break-words flex-1">{item}</span>
+                    {isUsed && <span className="flex-shrink-0 text-xs bg-green-600 text-white px-2 py-1 rounded mt-0.5">✓</span>}
                   </div>
                 </button>
               );
@@ -182,10 +182,10 @@ export function MatchingQuestion({
                       : "border-zinc-300 bg-white hover:border-primary-300"
                   } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-primary-600 min-w-[24px]">{idx + 1}.</span>
-                      <span className="text-sm">{item}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 flex-1">
+                      <span className="font-bold text-primary-600 min-w-[24px] flex-shrink-0 mt-0.5">{idx + 1}.</span>
+                      <span className="text-sm break-words">{item}</span>
                     </div>
                     {rightIdx !== null && (
                       <span className="text-xs bg-green-600 text-white px-2 py-1 rounded font-medium whitespace-nowrap">
@@ -221,10 +221,10 @@ export function MatchingQuestion({
                       : "border-zinc-300 bg-zinc-50 opacity-50"
                   } ${disabled || !isSelected || isUsed ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-accent-600 min-w-[28px]">{String.fromCharCode(65 + idx)}.</span>
-                    <span className="text-sm flex-1">{item}</span>
-                    {isUsed && <span className="text-xs bg-green-600 text-white px-2 py-1 rounded whitespace-nowrap">✓ Используется</span>}
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-accent-600 min-w-[28px] flex-shrink-0 mt-0.5">{String.fromCharCode(65 + idx)}.</span>
+                    <span className="text-sm flex-1 break-words">{item}</span>
+                    {isUsed && <span className="flex-shrink-0 text-xs bg-green-600 text-white px-2 py-1 rounded mt-0.5">✓</span>}
                   </div>
                 </button>
               );

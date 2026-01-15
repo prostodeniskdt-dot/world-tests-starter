@@ -64,44 +64,73 @@ export function MatrixQuestion({
             ))}
           </div>
         </div>
+        {/* УЛУЧШЕННАЯ мобильная версия */}
         <div className="block sm:hidden space-y-4">
-          {question.rows.map((row, rowIdx) => (
-            <div key={rowIdx} className="border border-zinc-200 rounded-lg p-4">
-              <div className="font-semibold mb-3 text-zinc-900">{row}</div>
-              <div className="space-y-2">
-                {question.columns.map((col, colIdx) => {
-                  const isSelected = selected[rowIdx] === colIdx;
-                  return (
-                    <label
-                      key={colIdx}
-                      className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 min-h-[44px] touch-manipulation ${
-                        isSelected
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-zinc-200 hover:border-primary-300"
-                      } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      <input
-                        type="radio"
-                        name={`row-${rowIdx}`}
-                        checked={isSelected}
-                        disabled={disabled}
-                        onChange={() => handleSelect(rowIdx, colIdx)}
-                        className="hidden"
-                      />
-                      <div className="flex-shrink-0">
-                        {isSelected ? (
-                          <Circle className="h-5 w-5 text-primary-600 fill-primary-600" />
-                        ) : (
-                          <Circle className="h-5 w-5 text-zinc-600" />
-                        )}
+          {question.rows.map((row, rowIdx) => {
+            const hasSelection = selected[rowIdx] !== undefined;
+            return (
+              <div 
+                key={rowIdx} 
+                className={`border-2 rounded-xl p-4 transition-all ${
+                  hasSelection 
+                    ? "border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 shadow-md" 
+                    : "border-zinc-300 bg-white"
+                }`}
+              >
+                <div className="flex items-start gap-2 mb-3">
+                  <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+                    hasSelection ? "bg-green-600 text-white" : "bg-zinc-200 text-zinc-700"
+                  }`}>
+                    {rowIdx + 1}
+                  </span>
+                  <div className="flex-1">
+                    <div className="font-bold text-zinc-900 text-base break-words">{row}</div>
+                    {hasSelection && (
+                      <div className="text-xs text-green-700 font-medium mt-1">
+                        ✓ Выбрано: {String.fromCharCode(65 + selected[rowIdx])}
                       </div>
-                      <span className="text-zinc-700 flex-1 text-base sm:text-sm">{col}</span>
-                    </label>
-                  );
-                })}
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {question.columns.map((col, colIdx) => {
+                    const isSelected = selected[rowIdx] === colIdx;
+                    return (
+                      <label
+                        key={colIdx}
+                        className={`flex items-start gap-3 rounded-lg border-2 px-4 py-3 min-h-[44px] touch-manipulation transition-all ${
+                          isSelected
+                            ? "border-green-600 bg-green-50 shadow-lg ring-2 ring-green-300"
+                            : "border-zinc-300 hover:border-primary-300 bg-white"
+                        } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`row-${rowIdx}`}
+                          checked={isSelected}
+                          disabled={disabled}
+                          onChange={() => handleSelect(rowIdx, colIdx)}
+                          className="hidden"
+                        />
+                        <div className="flex-shrink-0 mt-0.5">
+                          {isSelected ? (
+                            <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">{String.fromCharCode(65 + colIdx)}</span>
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 rounded-full border-2 border-zinc-400 flex items-center justify-center">
+                              <span className="text-zinc-600 text-xs font-bold">{String.fromCharCode(65 + colIdx)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-zinc-700 flex-1 text-sm leading-relaxed break-words">{col}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Десктопная версия: улучшенная таблица */}
@@ -245,43 +274,74 @@ export function MatrixQuestion({
             ))}
           </div>
         </div>
+        {/* УЛУЧШЕННАЯ мобильная версия */}
         <div className="block sm:hidden space-y-4">
-          {question.rows.map((row, rowIdx) => (
-            <div key={rowIdx} className="border border-zinc-200 rounded-lg p-4">
-              <div className="font-semibold mb-3 text-zinc-900">{row}</div>
-              <div className="space-y-2">
-                {question.columns.map((col, colIdx) => {
-                  const isSelected = selected[rowIdx]?.includes(colIdx);
-                  return (
-                    <label
-                      key={colIdx}
-                      className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 min-h-[44px] touch-manipulation ${
-                        isSelected
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-zinc-200 hover:border-primary-300"
-                      } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        disabled={disabled}
-                        onChange={() => toggleSelection(rowIdx, colIdx)}
-                        className="hidden"
-                      />
-                      <div className="flex-shrink-0">
-                        {isSelected ? (
-                          <CheckSquare className="h-5 w-5 text-primary-600" />
-                        ) : (
-                          <Square className="h-5 w-5 text-zinc-600" />
-                        )}
+          {question.rows.map((row, rowIdx) => {
+            const rowSelections = selected[rowIdx] || [];
+            const hasSelection = rowSelections.length > 0;
+            
+            return (
+              <div 
+                key={rowIdx} 
+                className={`border-2 rounded-xl p-4 transition-all ${
+                  hasSelection 
+                    ? "border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 shadow-md" 
+                    : "border-zinc-300 bg-white"
+                }`}
+              >
+                <div className="flex items-start gap-2 mb-3">
+                  <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+                    hasSelection ? "bg-green-600 text-white" : "bg-zinc-200 text-zinc-700"
+                  }`}>
+                    {rowIdx + 1}
+                  </span>
+                  <div className="flex-1">
+                    <div className="font-bold text-zinc-900 text-base break-words">{row}</div>
+                    {hasSelection && (
+                      <div className="text-xs text-green-700 font-medium mt-1">
+                        ✓ Выбрано: {rowSelections.map(c => String.fromCharCode(65 + c)).join(", ")}
                       </div>
-                      <span className="text-zinc-700 flex-1 text-base sm:text-sm">{col}</span>
-                    </label>
-                  );
-                })}
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {question.columns.map((col, colIdx) => {
+                    const isSelected = selected[rowIdx]?.includes(colIdx);
+                    return (
+                      <label
+                        key={colIdx}
+                        className={`flex items-start gap-3 rounded-lg border-2 px-4 py-3 min-h-[44px] touch-manipulation transition-all ${
+                          isSelected
+                            ? "border-green-600 bg-green-50 shadow-lg ring-2 ring-green-300"
+                            : "border-zinc-300 hover:border-primary-300 bg-white"
+                        } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          disabled={disabled}
+                          onChange={() => toggleSelection(rowIdx, colIdx)}
+                          className="hidden"
+                        />
+                        <div className="flex-shrink-0 mt-0.5">
+                          {isSelected ? (
+                            <div className="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">{String.fromCharCode(65 + colIdx)}</span>
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 border-2 border-zinc-400 rounded flex items-center justify-center">
+                              <span className="text-zinc-600 text-xs font-bold">{String.fromCharCode(65 + colIdx)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-zinc-700 flex-1 text-sm leading-relaxed break-words">{col}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Десктопная версия: улучшенная таблица */}

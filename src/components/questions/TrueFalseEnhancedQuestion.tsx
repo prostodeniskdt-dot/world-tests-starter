@@ -182,7 +182,7 @@ export function TrueFalseEnhancedQuestion({
                         <Circle className="h-6 w-6 text-zinc-400" />
                       )}
                     </div>
-                    <span className={`flex-1 text-base sm:text-sm ${
+                    <span className={`flex-1 text-base sm:text-sm break-words leading-relaxed ${
                       selected ? "font-medium text-zinc-900" : "text-zinc-700"
                     }`}>
                       {reason}

@@ -116,7 +116,7 @@ export function OrderingQuestion({
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm">
                 {displayIndex + 1}
               </div>
-              <div className="flex-1 text-base sm:text-sm text-zinc-700">{item}</div>
+              <div className="flex-1 text-base sm:text-sm text-zinc-700 break-words leading-relaxed">{item}</div>
               {isExtra && (
                 <span className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded font-medium">
                   Лишний

@@ -121,7 +121,7 @@ export function TwoStepQuestion({
                       <Circle className="h-5 w-5 text-zinc-600" />
                     )}
                   </div>
-                  <span className="text-zinc-700 flex-1 text-base sm:text-sm">{opt}</span>
+                  <span className="text-zinc-700 flex-1 text-base sm:text-sm break-words leading-relaxed">{opt}</span>
                 </label>
               );
             })}
@@ -194,7 +194,7 @@ export function TwoStepQuestion({
                       <Circle className="h-5 w-5 text-zinc-600" />
                     )}
                   </div>
-                  <span className="text-zinc-700 flex-1 text-base sm:text-sm">{opt}</span>
+                  <span className="text-zinc-700 flex-1 text-base sm:text-sm break-words leading-relaxed">{opt}</span>
                 </label>
               );
             })}
