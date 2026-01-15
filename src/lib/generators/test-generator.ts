@@ -39,11 +39,21 @@ function generatePublicFile(test: ParsedTest): string {
         }
         questionCode += `      allowMultiple: true,\n`;
       } else if (q.type === "two-step") {
-        if (q.step1) {
+        if (q.step1 && q.step2) {
           questionCode += `      step1: ${JSON.stringify(q.step1)},\n`;
-        }
-        if (q.step2) {
           questionCode += `      step2: ${JSON.stringify(q.step2)},\n`;
+        } else {
+          // Генерируем по умолчанию, если step1/step2 не были распарсены
+          const defaultStep1 = {
+            question: q.text || "Выберите наиболее корректное утверждение",
+            options: q.options || []
+          };
+          const defaultStep2 = {
+            question: "Выберите объяснение",
+            options: q.options || []
+          };
+          questionCode += `      step1: ${JSON.stringify(defaultStep1)},\n`;
+          questionCode += `      step2: ${JSON.stringify(defaultStep2)},\n`;
         }
       } else if (q.type === "matrix") {
         if (q.rows && q.rows.length > 0) {
