@@ -12,18 +12,34 @@ export default async function LeaderboardPage({
 }: {
   searchParams: { page?: string };
 }) {
-  const page = parseInt(searchParams.page || "1", 10);
-  const limit = 50;
-  const offset = (page - 1) * limit;
+  let page = 1;
+  let rows: LeaderboardRow[] = [];
+  let totalPages = 1;
+  let error: Error | null = null;
 
-  const { data, error, count } = await supabaseAdmin
-    .from("leaderboard")
-    .select("*", { count: "exact" })
-    .order("rank", { ascending: true })
-    .range(offset, offset + limit - 1);
+  try {
+    page = parseInt(searchParams?.page || "1", 10);
+    const limit = 50;
+    const offset = (page - 1) * limit;
 
-  const rows = (data ?? []) as unknown as LeaderboardRow[];
-  const totalPages = count ? Math.ceil(count / limit) : 1;
+    const { data, error: dbError, count } = await supabaseAdmin
+      .from("leaderboard")
+      .select("*", { count: "exact" })
+      .order("rank", { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (dbError) {
+      error = new Error(dbError.message);
+    }
+
+    rows = (data ?? []) as unknown as LeaderboardRow[];
+    totalPages = count ? Math.ceil(count / limit) : 1;
+  } catch (e) {
+    error = e instanceof Error ? e : new Error("Неизвестная ошибка при загрузке рейтинга");
+    rows = [];
+    totalPages = 1;
+  }
+
   const hintText = 'Подсказка: чтобы быстро тестировать, открой сайт в инкогнито — получится второй "пользователь" 🙂';
 
   return (

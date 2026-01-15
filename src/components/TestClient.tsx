@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { CheckCircle2, Circle, ArrowRight, Award } from "lucide-react";
 import { addToast } from "./Toast";
@@ -23,6 +23,7 @@ type SubmitResponse =
   | { ok: false; error: string };
 
 export function TestClient({ test }: { test: PublicTest }) {
+  const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, number | null>>(() => {
     const init: Record<string, number | null> = {};
     for (const q of test.questions) init[q.id] = null;
@@ -452,13 +453,16 @@ export function TestClient({ test }: { test: PublicTest }) {
                       </div>
                     </div>
                     <div className="pt-2">
-                      <Link
-                        href="/leaderboard"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-zinc-600 underline"
+                      <button
+                        onClick={() => {
+                          // Используем полную перезагрузку для обхода проблем с Server Components
+                          window.location.href = "/leaderboard";
+                        }}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-zinc-600 underline cursor-pointer bg-transparent border-none p-0"
                       >
                         Перейти в рейтинг
                         <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 ) : (
