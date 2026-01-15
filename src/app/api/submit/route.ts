@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { submitSchema } from "@/lib/validators";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { checkRateLimit, submitRateLimiter } from "@/lib/rateLimit";
-import { PUBLIC_TESTS_MAP, SECRET_TESTS_MAP } from "@/lib/tests-registry";
+import { PUBLIC_TESTS_MAP, SECRET_TESTS_MAP, type PublicTestQuestion } from "@/lib/tests-registry";
 import { requireAuth } from "@/lib/auth-middleware";
 
 export async function POST(req: Request) {
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
 
 
   // Получаем ID всех вопросов из теста
-  const questionIds = testPublic.questions.map((q) => q.id);
+  const questionIds = testPublic.questions.map((q: PublicTestQuestion) => q.id);
 
   // Проверка что ответы на все вопросы есть
   for (const qId of questionIds) {
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
   const totalQuestions = questionIds.length;
   let correctCount = 0;
   for (const qId of questionIds) {
-    const question = testPublic.questions.find(q => q.id === qId);
+    const question = testPublic.questions.find((q: PublicTestQuestion) => q.id === qId);
     const userAnswer = answers[qId];
     
     if (!question) continue;
