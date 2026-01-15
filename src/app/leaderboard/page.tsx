@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { LeaderboardTable, type LeaderboardRow } from "@/components/LeaderboardTable";
 import { LeaderboardPagination } from "@/components/LeaderboardPagination";
@@ -61,10 +62,12 @@ export default async function LeaderboardPage({
 
       <LeaderboardTable rows={rows} />
 
-      <LeaderboardPagination
-        currentPage={page}
-        totalPages={totalPages}
-      />
+      <Suspense fallback={<div className="text-center py-4 text-zinc-600">Загрузка пагинации...</div>}>
+        <LeaderboardPagination
+          currentPage={page}
+          totalPages={totalPages}
+        />
+      </Suspense>
 
       <div className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg p-4">
         {hintText}
