@@ -51,19 +51,19 @@ export function QuestionRenderer({
       {question.videoUrl && <QuestionVideo videoUrl={question.videoUrl} />}
 
       {/* Рендеринг вопроса по типу */}
-      {question.type === "multiple-choice" && <MultipleChoiceQuestion {...commonProps} question={question} />}
-      {question.type === "multiple-select" && <MultipleSelectQuestion {...commonProps} question={question} />}
-      {question.type === "matching" && <MatchingQuestion {...commonProps} question={question} />}
-      {question.type === "ordering" && <OrderingQuestion {...commonProps} question={question} />}
-      {question.type === "grouping" && <GroupingQuestion {...commonProps} question={question} />}
-      {question.type === "true-false-enhanced" && <TrueFalseEnhancedQuestion {...commonProps} question={question} />}
-      {question.type === "cloze-dropdown" && <ClozeDropdownQuestion {...commonProps} question={question} />}
-      {question.type === "select-errors" && <SelectErrorsQuestion {...commonProps} question={question} />}
-      {question.type === "two-step" && <TwoStepQuestion {...commonProps} question={question} />}
-      {question.type === "matrix" && <MatrixQuestion {...commonProps} question={question} />}
-      {question.type === "best-example" && <BestExampleQuestion {...commonProps} question={question} />}
-      {question.type === "scenario" && <ScenarioQuestion {...commonProps} question={question} />}
-      {question.type === "construct" && <ConstructQuestion {...commonProps} question={question} />}
+      {question.type === "multiple-choice" && <MultipleChoiceQuestion {...commonProps} />}
+      {question.type === "multiple-select" && <MultipleSelectQuestion {...commonProps} />}
+      {question.type === "matching" && <MatchingQuestion {...commonProps} />}
+      {question.type === "ordering" && <OrderingQuestion {...commonProps} />}
+      {question.type === "grouping" && <GroupingQuestion {...commonProps} />}
+      {question.type === "true-false-enhanced" && <TrueFalseEnhancedQuestion {...commonProps} />}
+      {question.type === "cloze-dropdown" && <ClozeDropdownQuestion {...commonProps} />}
+      {question.type === "select-errors" && <SelectErrorsQuestion {...commonProps} />}
+      {question.type === "two-step" && <TwoStepQuestion {...commonProps} />}
+      {question.type === "matrix" && <MatrixQuestion {...commonProps} />}
+      {question.type === "best-example" && <BestExampleQuestion {...commonProps} />}
+      {question.type === "scenario" && <ScenarioQuestion {...commonProps} />}
+      {question.type === "construct" && <ConstructQuestion {...commonProps} />}
 
       {/* Подсказка */}
       {showHint && question.hint && (
