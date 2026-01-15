@@ -235,7 +235,7 @@ export function MatchingQuestion({
 
       {selectedLeft !== null && (
         <div className="text-sm font-medium text-primary-700 mt-2 p-3 bg-primary-50 border border-primary-200 rounded-lg animate-pulse">
-          ℹ️ Теперь выберите элемент справа для создания соединения с "{question.leftItems[selectedLeft]}"
+          ℹ️ Теперь выберите элемент справа для создания соединения с &ldquo;{question.leftItems[selectedLeft]}&rdquo;
         </div>
       )}
     </div>
