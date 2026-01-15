@@ -73,8 +73,15 @@ export function OrderingQuestion({
           ℹ️ {question.instruction}
         </div>
       )}
-      <div className="text-sm text-zinc-600 mb-3 p-2 bg-zinc-50 rounded border border-zinc-200">
-        <span className="font-medium">Подсказка:</span> На компьютере можно перетаскивать элементы мышью. На телефоне используйте кнопки со стрелками.
+      
+      {/* Адаптивная подсказка */}
+      <div className="p-3 rounded-lg border-2">
+        <div className="hidden md:block text-sm font-medium text-indigo-700 bg-indigo-50 border-indigo-300 p-2 rounded">
+          🖱️ <span className="font-bold">Десктоп:</span> Перетаскивайте элементы мышью
+        </div>
+        <div className="block md:hidden text-sm font-medium text-purple-700 bg-purple-50 border-purple-300 p-2 rounded">
+          👆 <span className="font-bold">Мобильный:</span> Используйте кнопки со стрелками ↑ ↓ справа
+        </div>
       </div>
       <div className="space-y-2">
         {order.map((itemIndex, displayIndex) => {
@@ -91,7 +98,7 @@ export function OrderingQuestion({
               onDragOver={(e) => handleDragOver(e, displayIndex)}
               onDragEnd={handleDragEnd}
               onDrop={(e) => handleDrop(e, displayIndex)}
-              className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border-2 min-h-[44px] transition-all ${
+              className={`flex items-center gap-3 p-3 sm:p-4 rounded-lg border-2 min-h-[44px] transition-all ${
                 isDragging
                   ? "opacity-50 scale-95 border-primary-400 bg-primary-50"
                   : isDragOver
@@ -99,10 +106,10 @@ export function OrderingQuestion({
                   : isExtra
                   ? "border-amber-300 bg-amber-50"
                   : "border-zinc-200 bg-white hover:border-zinc-300"
-              } ${!disabled && !isExtra ? "cursor-move" : ""}`}
+              } ${!disabled && !isExtra ? "md:cursor-move" : ""}`}
             >
               {!disabled && !isExtra && (
-                <div className="flex-shrink-0 text-zinc-400 hover:text-zinc-600 cursor-grab active:cursor-grabbing hidden sm:block">
+                <div className="flex-shrink-0 text-zinc-400 hover:text-zinc-600 cursor-grab active:cursor-grabbing hidden md:block">
                   <GripVertical className="h-5 w-5" />
                 </div>
               )}
@@ -115,24 +122,33 @@ export function OrderingQuestion({
                   Лишний
                 </span>
               )}
-              <div className="flex gap-1 sm:gap-0 sm:flex-col">
+              {/* УЛУЧШЕННЫЕ кнопки - особенно для мобильных */}
+              <div className="flex md:flex-col gap-2 md:gap-1">
                 <button
                   onClick={() => moveUp(displayIndex)}
                   disabled={disabled || displayIndex === 0}
-                  className="p-1 sm:p-1 rounded hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[32px] sm:min-w-[32px] flex items-center justify-center transition-colors"
+                  className={`p-2 rounded-lg border-2 touch-manipulation min-h-[44px] min-w-[44px] md:min-h-[36px] md:min-w-[36px] flex items-center justify-center transition-all ${
+                    disabled || displayIndex === 0
+                      ? "opacity-30 cursor-not-allowed border-zinc-200 bg-zinc-50"
+                      : "border-primary-400 bg-primary-50 hover:bg-primary-100 active:scale-95 cursor-pointer"
+                  }`}
                   aria-label="Переместить вверх"
                   title="Переместить вверх"
                 >
-                  <ArrowUp className="h-4 w-4 sm:h-4 sm:w-4" />
+                  <ArrowUp className="h-5 w-5 md:h-4 md:w-4 text-primary-700" />
                 </button>
                 <button
                   onClick={() => moveDown(displayIndex)}
                   disabled={disabled || displayIndex === order.length - 1}
-                  className="p-1 sm:p-1 rounded hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[32px] sm:min-w-[32px] flex items-center justify-center transition-colors"
+                  className={`p-2 rounded-lg border-2 touch-manipulation min-h-[44px] min-w-[44px] md:min-h-[36px] md:min-w-[36px] flex items-center justify-center transition-all ${
+                    disabled || displayIndex === order.length - 1
+                      ? "opacity-30 cursor-not-allowed border-zinc-200 bg-zinc-50"
+                      : "border-accent-400 bg-accent-50 hover:bg-accent-100 active:scale-95 cursor-pointer"
+                  }`}
                   aria-label="Переместить вниз"
                   title="Переместить вниз"
                 >
-                  <ArrowDown className="h-4 w-4 sm:h-4 sm:w-4" />
+                  <ArrowDown className="h-5 w-5 md:h-4 md:w-4 text-accent-700" />
                 </button>
               </div>
             </div>
