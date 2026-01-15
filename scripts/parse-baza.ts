@@ -21,34 +21,62 @@ function main() {
   
   console.log(`Найдено тестов: ${parsedTests.length}`);
   
+  const testsDir = path.join(__dirname, "../src/tests");
+  
+  // Удаляем старые тесты карбонизации
+  const oldCarbonizationTests = [
+    "carbonization-base-1",
+    "carbonization-practice-2",
+    "carbonization-advanced-3",
+  ];
+  
+  console.log("\nУдаление старых тестов карбонизации...");
+  for (const oldTestId of oldCarbonizationTests) {
+    const oldTestDir = path.join(testsDir, oldTestId);
+    if (fs.existsSync(oldTestDir)) {
+      console.log(`  Удаление: ${oldTestId}`);
+      fs.rmSync(oldTestDir, { recursive: true, force: true });
+    }
+  }
+  
   for (const test of parsedTests) {
-    console.log(`\nОбработка теста: ${test.title}`);
+    console.log(`\nОбработка теста: ${test.title} (${test.id})`);
     
-    // Валидация
+    // Валидация (не блокируем создание, если только отсутствуют ответы)
     const validation = validateParsedTest(test);
     if (!validation.valid) {
-      console.error(`Ошибки валидации для теста "${test.title}":`);
-      validation.errors.forEach((err) => console.error(`  - ${err}`));
-      continue;
+      const criticalErrors = validation.errors.filter(e => !e.includes("не имеет правильного ответа"));
+      if (criticalErrors.length > 0) {
+        console.error(`Критические ошибки валидации для теста "${test.title}":`);
+        criticalErrors.forEach((err) => console.error(`  - ${err}`));
+        continue;
+      }
+      // Если только отсутствуют ответы, продолжаем с предупреждением
+      console.warn(`  ⚠ Некоторые вопросы не имеют правильных ответов, но тест будет создан`);
+    }
+    
+    // Создаем директорию для теста
+    const testDir = path.join(testsDir, test.id);
+    if (!fs.existsSync(testDir)) {
+      fs.mkdirSync(testDir, { recursive: true });
     }
     
     // Генерация файлов
-    const { publicFile, answerFile } = generateTestFiles(test, "");
+    const { publicFile, answerFile } = generateTestFiles(test, testDir);
     
-    // Вывод результатов (в реальности здесь можно записать в файлы)
-    console.log(`  ✓ Сгенерирован public.ts (${publicFile.length} символов)`);
-    console.log(`  ✓ Сгенерирован answer.ts (${answerFile.length} символов)`);
+    // Записываем файлы
+    const publicFilePath = path.join(testDir, "public.ts");
+    const answerFilePath = path.join(testDir, "answer.ts");
+    
+    fs.writeFileSync(publicFilePath, publicFile, "utf-8");
+    fs.writeFileSync(answerFilePath, answerFile, "utf-8");
+    
+    console.log(`  ✓ Создан public.ts (${publicFile.length} символов)`);
+    console.log(`  ✓ Создан answer.ts (${answerFile.length} символов)`);
     console.log(`  ✓ Вопросов: ${test.questions.length}`);
-    
-    // В реальной реализации здесь нужно:
-    // 1. Создать папку для теста (если не существует)
-    // 2. Записать publicFile в public.ts
-    // 3. Записать answerFile в answer.ts
-    // 4. Обновить tests-registry.ts
   }
   
   console.log("\n✓ Парсинг завершен");
-  console.log("\nПримечание: Для сохранения файлов нужно добавить логику записи в файловую систему");
 }
 
 if (require.main === module) {

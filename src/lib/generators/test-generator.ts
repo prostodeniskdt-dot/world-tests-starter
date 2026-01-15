@@ -16,25 +16,82 @@ function generatePublicFile(test: ParsedTest): string {
   const questionsCode = test.questions
     .map((q, idx) => {
       const questionId = `q${idx + 1}`;
-      let questionCode = `    {\n      id: "${questionId}",\n      type: "${q.type}",\n      text: ${JSON.stringify(q.text)},\n`;
+      let questionCode = `    {\n      id: "${questionId}",\n      type: "${q.type}",\n`;
 
-      // Добавляем специфичные поля для каждого типа
-      if (q.options && q.options.length > 0) {
-        questionCode += `      options: ${JSON.stringify(q.options)},\n`;
-      }
+      // Обрабатываем разные типы вопросов
+      if (q.type === "true-false-enhanced") {
+        questionCode += `      statement: ${JSON.stringify(q.text)},\n`;
+        if (q.options && q.options.length > 0) {
+          questionCode += `      reasons: ${JSON.stringify(q.options)},\n`;
+        }
+      } else if (q.type === "cloze-dropdown") {
+        questionCode += `      text: ${JSON.stringify(q.text)},\n`;
+        if (q.gaps && q.gaps.length > 0) {
+          questionCode += `      gaps: ${JSON.stringify(q.gaps)},\n`;
+        } else {
+          questionCode += `      gaps: [],\n`;
+        }
+      } else if (q.type === "select-errors") {
+        questionCode += `      content: ${JSON.stringify(q.text)},\n`;
+        if (q.markedParts && q.markedParts.length > 0) {
+          questionCode += `      markedParts: ${JSON.stringify(q.markedParts)},\n`;
+        } else {
+          questionCode += `      markedParts: [],\n`;
+        }
+        questionCode += `      allowMultiple: true,\n`;
+      } else if (q.type === "two-step") {
+        if (q.step1) {
+          questionCode += `      step1: ${JSON.stringify(q.step1)},\n`;
+        }
+        if (q.step2) {
+          questionCode += `      step2: ${JSON.stringify(q.step2)},\n`;
+        }
+      } else if (q.type === "matrix") {
+        if (q.rows && q.rows.length > 0) {
+          questionCode += `      rows: ${JSON.stringify(q.rows)},\n`;
+        } else {
+          questionCode += `      rows: [],\n`;
+        }
+        if (q.columns && q.columns.length > 0) {
+          questionCode += `      columns: ${JSON.stringify(q.columns)},\n`;
+        } else {
+          questionCode += `      columns: [],\n`;
+        }
+        questionCode += `      matrixType: ${q.matrixType ? JSON.stringify(q.matrixType) : '"single-select"'},\n`;
+      } else if (q.type === "scenario") {
+        questionCode += `      situation: ${JSON.stringify(q.text)},\n`;
+        questionCode += `      question: "Что нужно сделать?",\n`;
+        questionCode += `      actionType: "select",\n`;
+        if (q.options && q.options.length > 0) {
+          questionCode += `      actions: ${JSON.stringify(q.options)},\n`;
+        } else {
+          questionCode += `      actions: [],\n`;
+        }
+      } else {
+        // Обычные вопросы с text
+        questionCode += `      text: ${JSON.stringify(q.text)},\n`;
+        
+        if (q.options && q.options.length > 0) {
+          questionCode += `      options: ${JSON.stringify(q.options)},\n`;
+        }
 
-      if (q.leftItems && q.rightItems) {
-        questionCode += `      leftItems: ${JSON.stringify(q.leftItems)},\n`;
-        questionCode += `      rightItems: ${JSON.stringify(q.rightItems)},\n`;
-        questionCode += `      variant: "1-to-1",\n`;
-      }
+        if (q.leftItems && q.rightItems) {
+          questionCode += `      leftItems: ${JSON.stringify(q.leftItems)},\n`;
+          questionCode += `      rightItems: ${JSON.stringify(q.rightItems)},\n`;
+          questionCode += `      variant: "1-to-1",\n`;
+          questionCode += `      correctPairs: [],\n`;
+        }
 
-      if (q.items) {
-        questionCode += `      items: ${JSON.stringify(q.items)},\n`;
-      }
+        if (q.items) {
+          questionCode += `      items: ${JSON.stringify(q.items)},\n`;
+          if (q.type === "ordering") {
+            questionCode += `      correctOrder: [],\n`;
+          }
+        }
 
-      if (q.categories) {
-        questionCode += `      categories: ${JSON.stringify(q.categories)},\n`;
+        if (q.categories) {
+          questionCode += `      categories: ${JSON.stringify(q.categories)},\n`;
+        }
       }
 
       if (q.hint) {
@@ -52,8 +109,8 @@ export const ${testName}_PUBLIC: PublicTest = {
   id: "${test.id}",
   title: ${JSON.stringify(test.title)},
   description: ${JSON.stringify(`${test.level} • ${test.questions.length} вопросов`)},
-  category: "uncategorized",
-  difficultyLevel: ${test.level.toLowerCase().includes("базов") ? 1 : test.level.toLowerCase().includes("продвинут") ? 3 : 2},
+  category: "карбонизация",
+  difficultyLevel: ${test.level.toLowerCase().includes("простой") || test.level.toLowerCase().includes("базов") ? 1 : test.level.toLowerCase().includes("сложный") || test.level.toLowerCase().includes("продвинут") ? 3 : 2},
   questions: [
 ${questionsCode}
   ],
@@ -292,8 +349,10 @@ export function validateParsedTest(test: ParsedTest): {
     if (!q.type) {
       errors.push(`Вопрос ${i + 1} не имеет типа`);
     }
+    // Предупреждение вместо ошибки для отсутствующих ответов
     if (q.correctAnswer === null || q.correctAnswer === undefined) {
-      errors.push(`Вопрос ${i + 1} не имеет правильного ответа`);
+      console.warn(`  ⚠ Вопрос ${i + 1} не имеет правильного ответа (будет установлен null)`);
+      // Не добавляем как ошибку, чтобы тест все равно создался
     }
   }
 

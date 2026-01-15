@@ -1,9 +1,66 @@
 import type { QuestionMechanic } from "@/tests/types";
 
 /**
+ * Извлекает механику из скобок в тексте вопроса
+ * Формат: *(Mechanic name)* или *(Mechanic name / Alternative)*
+ */
+function extractMechanicFromParentheses(text: string): QuestionMechanic | null {
+  const match = text.match(/\*\(([^)]+)\)\*/);
+  if (!match) return null;
+  
+  const mechanicText = match[1].toLowerCase();
+  
+  // Обрабатываем варианты типа "Best paraphrase / Single select"
+  if (mechanicText.includes("single select") || mechanicText.includes("single-select")) {
+    return "multiple-choice";
+  }
+  if (mechanicText.includes("multiple select") || mechanicText.includes("multiple-select")) {
+    return "multiple-select";
+  }
+  if (mechanicText.includes("matching")) {
+    return "matching";
+  }
+  if (mechanicText.includes("ordering")) {
+    return "ordering";
+  }
+  if (mechanicText.includes("grouping") || mechanicText.includes("classification")) {
+    return "grouping";
+  }
+  if (mechanicText.includes("dropdown cloze") || mechanicText.includes("cloze")) {
+    return "cloze-dropdown";
+  }
+  if (mechanicText.includes("true/false") || mechanicText.includes("true-false") || mechanicText.includes("reason")) {
+    return "true-false-enhanced";
+  }
+  if (mechanicText.includes("select errors") || mechanicText.includes("select-errors")) {
+    return "select-errors";
+  }
+  if (mechanicText.includes("two-step") || mechanicText.includes("branching")) {
+    return "two-step";
+  }
+  if (mechanicText.includes("grid") || mechanicText.includes("matrix")) {
+    return "matrix";
+  }
+  if (mechanicText.includes("best example") || mechanicText.includes("best-example") || mechanicText.includes("best paraphrase")) {
+    return "best-example";
+  }
+  if (mechanicText.includes("mini-case") || mechanicText.includes("scenario")) {
+    return "scenario";
+  }
+  
+  return null;
+}
+
+/**
  * Определяет механику вопроса на основе текста и структуры
  */
 export function detectMechanic(text: string): QuestionMechanic {
+  // Сначала пытаемся извлечь из скобок
+  const mechanicFromParentheses = extractMechanicFromParentheses(text);
+  if (mechanicFromParentheses) {
+    return mechanicFromParentheses;
+  }
+  
   const lowerText = text.toLowerCase();
 
   // Matching: "соедините", "соответствие", "сопоставьте", "соедини"
