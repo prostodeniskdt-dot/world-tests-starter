@@ -36,11 +36,11 @@ export const SECRET_TESTS = [
 ] as const;
 
 // Мапы для быстрого доступа по ID
-export const PUBLIC_TESTS_MAP: Record<string, typeof COCKTAIL_SYSTEM_1_PUBLIC> = Object.fromEntries(
+export const PUBLIC_TESTS_MAP: Record<string, typeof COCKTAIL_FOUNDATION_A_PUBLIC> = Object.fromEntries(
   PUBLIC_TESTS.map((test) => [test.id, test])
 );
 
-export const SECRET_TESTS_MAP: Record<string, typeof COCKTAIL_SYSTEM_1_SECRET> = Object.fromEntries(
+export const SECRET_TESTS_MAP: Record<string, typeof COCKTAIL_FOUNDATION_A_SECRET> = Object.fromEntries(
   SECRET_TESTS.map((test) => [test.id, test])
 );
 
