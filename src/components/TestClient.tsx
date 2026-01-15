@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { CheckCircle2, Circle, ArrowRight, Award } from "lucide-react";
 import { addToast } from "./Toast";
@@ -23,7 +22,6 @@ type SubmitResponse =
   | { ok: false; error: string };
 
 export function TestClient({ test }: { test: PublicTest }) {
-  const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, number | null>>(() => {
     const init: Record<string, number | null> = {};
     for (const q of test.questions) init[q.id] = null;
