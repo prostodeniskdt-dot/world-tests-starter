@@ -31,7 +31,9 @@ function generatePublicFile(test: ParsedTest): string {
           questionCode += `      gaps: [],\n`;
         }
       } else if (q.type === "select-errors") {
-        questionCode += `      content: ${JSON.stringify(q.text)},\n`;
+        // SelectErrorsQuestion требует поле text (из BaseQuestion)
+        questionCode += `      text: ${JSON.stringify(q.text || "")},\n`;
+        questionCode += `      content: ${JSON.stringify(q.text || "")},\n`;
         if (q.markedParts && q.markedParts.length > 0) {
           questionCode += `      markedParts: ${JSON.stringify(q.markedParts)},\n`;
         } else {
