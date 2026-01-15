@@ -19,7 +19,9 @@ function generatePublicFile(test: ParsedTest): string {
 
       // Обрабатываем разные типы вопросов
       if (q.type === "true-false-enhanced") {
-        questionCode += `      statement: ${JSON.stringify(q.text)},\n`;
+        // TrueFalseEnhancedQuestion требует поле text (из BaseQuestion)
+        questionCode += `      text: ${JSON.stringify(q.text || "")},\n`;
+        questionCode += `      statement: ${JSON.stringify(q.text || "")},\n`;
         if (q.options && q.options.length > 0) {
           questionCode += `      reasons: ${JSON.stringify(q.options)},\n`;
         }
@@ -60,6 +62,8 @@ function generatePublicFile(test: ParsedTest): string {
           questionCode += `      step2: ${JSON.stringify(defaultStep2)},\n`;
         }
       } else if (q.type === "matrix") {
+        // MatrixQuestion требует поле text (из BaseQuestion)
+        questionCode += `      text: ${JSON.stringify(q.text || "")},\n`;
         if (q.rows && q.rows.length > 0) {
           questionCode += `      rows: ${JSON.stringify(q.rows)},\n`;
         } else {
@@ -72,7 +76,9 @@ function generatePublicFile(test: ParsedTest): string {
         }
         questionCode += `      matrixType: ${q.matrixType ? JSON.stringify(q.matrixType) : '"single-select"'},\n`;
       } else if (q.type === "scenario") {
-        questionCode += `      situation: ${JSON.stringify(q.text)},\n`;
+        // ScenarioQuestion требует поле text (из BaseQuestion)
+        questionCode += `      text: ${JSON.stringify(q.text || "")},\n`;
+        questionCode += `      situation: ${JSON.stringify(q.text || "")},\n`;
         questionCode += `      question: "Что нужно сделать?",\n`;
         questionCode += `      actionType: "select",\n`;
         if (q.options && q.options.length > 0) {
