@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SECRET_TESTS_MAP, PUBLIC_TESTS_MAP } from "@/lib/tests-registry";
+import { SECRET_TESTS_MAP, PUBLIC_TESTS_MAP, type PublicTestQuestion } from "@/lib/tests-registry";
 
 export async function POST(
   req: Request,
@@ -36,7 +36,7 @@ export async function POST(
     );
   }
   
-  const question = testPublic.questions.find(q => q.id === questionId);
+  const question = testPublic.questions.find((q: PublicTestQuestion) => q.id === questionId);
   if (!question) {
     return NextResponse.json(
       { ok: false, error: "Вопрос не найден" },
