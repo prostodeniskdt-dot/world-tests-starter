@@ -6,7 +6,7 @@ import "server-only";
  * иначе правильные ответы утекут в браузер.
  */
 
-export const CARBONIZATIONBASE_SECRET = {
+export const CARBONIZATION_BASE_1_SECRET = {
   id: "carbonization-base-1",
   basePoints: 200,
   difficulty: 2,

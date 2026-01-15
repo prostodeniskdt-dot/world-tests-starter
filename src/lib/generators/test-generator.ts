@@ -5,13 +5,12 @@ import type { PublicTestQuestion } from "@/tests/types";
  * Генерирует TypeScript код для public.ts файла
  */
 function generatePublicFile(test: ParsedTest): string {
+  // Генерируем имя в формате CARBONIZATION_BASE_1_PUBLIC
   const testName = test.id
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join("")
-    .replace(/\d/g, "")
-    .toUpperCase()
-    .replace(/[^A-Z]/g, "");
+    .join("_")
+    .toUpperCase();
 
   const questionsCode = test.questions
     .map((q, idx) => {
@@ -122,13 +121,12 @@ ${questionsCode}
  * Генерирует TypeScript код для answer.ts файла
  */
 function generateAnswerFile(test: ParsedTest): string {
+  // Генерируем имя в формате CARBONIZATION_BASE_1_SECRET
   const testName = test.id
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join("")
-    .replace(/\d/g, "")
-    .toUpperCase()
-    .replace(/[^A-Z]/g, "");
+    .join("_")
+    .toUpperCase();
 
   const answerKeyEntries = test.questions
     .map((q, idx) => {

@@ -1,6 +1,6 @@
 import type { PublicTest } from "../types";
 
-export const CARBONIZATIONADVANCED_PUBLIC: PublicTest = {
+export const CARBONIZATION_ADVANCED_3_PUBLIC: PublicTest = {
   id: "carbonization-advanced-3",
   title: "Тонкая настройка: компромиссы пузырьков",
   description: "Сложный • 20 вопросов",
