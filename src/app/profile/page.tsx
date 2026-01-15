@@ -4,6 +4,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { Trophy, Award, Calendar, ExternalLink } from "lucide-react";
+import { PUBLIC_TESTS_MAP } from "@/lib/tests-registry";
 
 export const revalidate = 10;
 
@@ -24,10 +25,13 @@ export default async function ProfilePage({
   const token = cookieStore.get("auth_token")?.value;
   const currentUser = token ? verifyToken(token) : null;
   
-  // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Используем только userId из токена, игнорируем searchParams для безопасности
-  const userId = currentUser?.userId;
+  // Определяем userId: если передан searchParams.userId, используем его, иначе используем текущего пользователя
+  // Для просмотра профилей других пользователей требуется авторизация
+  const requestedUserId = searchParams.userId;
+  const userId = requestedUserId || currentUser?.userId;
 
-  if (!userId) {
+  // Требуем авторизацию для просмотра любого профиля
+  if (!currentUser) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
@@ -38,6 +42,10 @@ export default async function ProfilePage({
         </div>
       </div>
     );
+  }
+
+  if (!userId) {
+    notFound();
   }
 
   const { data: user, error: userError } = await supabaseAdmin
@@ -64,6 +72,12 @@ export default async function ProfilePage({
     .limit(50);
 
   const attemptsList = (attempts || []) as Attempt[];
+
+  // Функция для получения названия теста
+  const getTestTitle = (testId: string): string => {
+    const test = PUBLIC_TESTS_MAP[testId];
+    return test?.title || testId;
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
@@ -124,7 +138,7 @@ export default async function ProfilePage({
               {attemptsList.map((attempt) => (
                 <div key={attempt.id} className="border border-zinc-200 rounded-lg p-4 bg-white">
                   <div className="flex justify-between items-start mb-2">
-                    <div className="font-medium text-zinc-900 text-sm truncate flex-1 min-w-0 pr-2">{attempt.test_id}</div>
+                    <div className="font-medium text-zinc-900 text-sm truncate flex-1 min-w-0 pr-2">{getTestTitle(attempt.test_id)}</div>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
                       attempt.score_percent >= 80 
                         ? "bg-green-100 text-success"
@@ -174,7 +188,7 @@ export default async function ProfilePage({
                           minute: "2-digit",
                         })}
                       </td>
-                      <td className="px-4 py-3 font-medium text-zinc-900">{attempt.test_id}</td>
+                      <td className="px-4 py-3 font-medium text-zinc-900">{getTestTitle(attempt.test_id)}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           attempt.score_percent >= 80 
