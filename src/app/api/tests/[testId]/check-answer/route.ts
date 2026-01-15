@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { SECRET_TESTS_MAP, PUBLIC_TESTS_MAP, type PublicTestQuestion } from "@/lib/tests-registry";
+import { checkAnswer } from "@/lib/answer-checkers";
+import type { QuestionAnswer } from "@/tests/types";
 
 export async function POST(
   req: Request,
@@ -17,7 +19,7 @@ export async function POST(
     );
   }
 
-  const { questionId, answer } = body as { questionId?: string; answer?: number };
+  const { questionId, answer } = body as { questionId?: string; answer?: QuestionAnswer };
   
   if (!questionId || answer === undefined || answer === null) {
     return NextResponse.json(
@@ -44,9 +46,9 @@ export async function POST(
     );
   }
   
-  // Все вопросы теперь только с вариантами
+  // Используем checkAnswer для поддержки всех механик
   const correctAnswer = testSecret.answerKey[questionId];
-  const correct = typeof answer === "number" && answer === correctAnswer;
+  const correct = checkAnswer(question, answer, correctAnswer);
   
   return NextResponse.json({ ok: true, correct });
 }

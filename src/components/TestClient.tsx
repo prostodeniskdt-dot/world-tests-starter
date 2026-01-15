@@ -2,10 +2,12 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { UserGate, useLocalUser } from "@/components/UserGate";
-import { CheckCircle2, Circle, ArrowRight, Award } from "lucide-react";
+import { ArrowRight, Award } from "lucide-react";
 import { addToast } from "./Toast";
 import { NavigateToLeaderboard } from "./NavigateToLeaderboard";
+import { QuestionRenderer } from "./questions/QuestionRenderer";
 import type { PublicTest } from "@/lib/tests-registry";
+import type { QuestionAnswer } from "@/tests/types";
 
 type SubmitResponse =
   | {
@@ -23,8 +25,8 @@ type SubmitResponse =
   | { ok: false; error: string };
 
 export function TestClient({ test }: { test: PublicTest }) {
-  const [answers, setAnswers] = useState<Record<string, number | null>>(() => {
-    const init: Record<string, number | null> = {};
+  const [answers, setAnswers] = useState<Record<string, QuestionAnswer | null>>(() => {
+    const init: Record<string, QuestionAnswer | null> = {};
     for (const q of test.questions) init[q.id] = null;
     return init;
   });
@@ -32,10 +34,17 @@ export function TestClient({ test }: { test: PublicTest }) {
   const [answeredHints, setAnsweredHints] = useState<Record<string, boolean>>({});
   const [hintResults, setHintResults] = useState<Record<string, boolean>>({});
 
-  const allAnswered = useMemo(
-    () => Object.values(answers).every((v) => v !== null),
-    [answers]
-  );
+  const allAnswered = useMemo(() => {
+    return Object.values(answers).every((v) => {
+      if (v === null) return false;
+      // Проверяем, что ответ не пустой массив или пустой объект
+      if (Array.isArray(v)) return v.length > 0;
+      if (typeof v === "object") {
+        return Object.keys(v).length > 0;
+      }
+      return true;
+    });
+  }, [answers]);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -75,7 +84,7 @@ export function TestClient({ test }: { test: PublicTest }) {
   };
 
   // Функция для проверки ответа на клиенте (для показа справки)
-  const checkAnswerLocally = async (questionId: string, answer: number) => {
+  const checkAnswerLocally = async (questionId: string, answer: QuestionAnswer) => {
     try {
       const res = await fetch(`/api/tests/${test.id}/check-answer`, {
         method: "POST",
@@ -220,57 +229,18 @@ export function TestClient({ test }: { test: PublicTest }) {
                         {q.text}
                       </div>
                     </div>
-                    <div className="ml-0 sm:ml-11 space-y-2">
-                      {q.options?.map((opt, optIdx) => {
-                        const checked = answers[q.id] === optIdx;
-                        return (
-                          <label
-                            key={optIdx}
-                            className={`flex items-center gap-3 rounded-lg border-2 px-3 py-3 sm:px-4 sm:py-3 transition-all ${
-                              submitted
-                                ? checked
-                                  ? "border-primary-500 bg-primary-50 shadow-md cursor-default"
-                                  : "border-zinc-200 bg-zinc-50 cursor-not-allowed opacity-60"
-                                : checked
-                                ? "border-primary-500 bg-primary-50 shadow-md cursor-pointer"
-                                : "border-zinc-200 hover:border-primary-300 hover:bg-zinc-50 cursor-pointer"
-                            }`}
-                            aria-label={`Вариант ответа ${optIdx + 1}: ${opt}`}
-                          >
-                            <div className="flex-shrink-0">
-                              {checked ? (
-                                <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center">
-                                  <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
-                                </div>
-                              ) : (
-                                <Circle className="h-5 w-5 text-zinc-600" aria-hidden="true" />
-                              )}
-                            </div>
-                            <input
-                              type="radio"
-                              name={q.id}
-                              checked={checked}
-                              disabled={submitted}
-                              onChange={() => {
-                                if (submitted || submitting) return;
-                                setAnswers((prev) => ({ ...prev, [q.id]: optIdx }));
-                              }}
-                              className="hidden"
-                              aria-label={`Выбрать вариант ${optIdx + 1}`}
-                            />
-                            <span className="text-zinc-700 flex-1" aria-hidden="true">{opt}</span>
-                          </label>
-                        );
-                      })}
-                      {showHint && (
-                        <div className={`mt-2 p-3 rounded-lg border-2 ${
-                          isCorrect 
-                            ? "bg-green-50 border-green-300 text-green-800" 
-                            : "bg-red-50 border-red-300 text-red-800"
-                        }`}>
-                          <strong>Справка:</strong> {q.hint}
-                        </div>
-                      )}
+                    <div className="ml-0 sm:ml-11">
+                      <QuestionRenderer
+                        question={q}
+                        answer={answers[q.id]}
+                        onChange={(answer) => {
+                          if (submitted || submitting) return;
+                          setAnswers((prev) => ({ ...prev, [q.id]: answer }));
+                        }}
+                        disabled={submitted}
+                        showHint={!!showHint}
+                        isCorrect={isCorrect}
+                      />
                     </div>
                     <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 mt-4 pt-4 border-t border-zinc-200">
                       <button

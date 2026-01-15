@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { checkRateLimit, submitRateLimiter } from "@/lib/rateLimit";
 import { PUBLIC_TESTS_MAP, SECRET_TESTS_MAP, type PublicTestQuestion } from "@/lib/tests-registry";
 import { requireAuth } from "@/lib/auth-middleware";
+import { checkAnswer } from "@/lib/answer-checkers";
 
 export async function POST(req: Request) {
   // Получаем IP адрес
@@ -117,7 +118,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // Проверяем ответы используя answerKey из файла
+  // Проверяем ответы используя answerKey из файла и checkAnswer для всех механик
   const totalQuestions = questionIds.length;
   let correctCount = 0;
   for (const qId of questionIds) {
@@ -126,9 +127,8 @@ export async function POST(req: Request) {
     
     if (!question) continue;
     
-    // Все вопросы теперь только с вариантами
     const correctAnswer = testSecret.answerKey[qId];
-    if (typeof userAnswer === "number" && userAnswer === correctAnswer) {
+    if (checkAnswer(question, userAnswer, correctAnswer)) {
       correctCount += 1;
     }
   }
