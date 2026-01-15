@@ -128,7 +128,7 @@ export const ${testName}_PUBLIC: PublicTest = {
   id: "${test.id}",
   title: ${JSON.stringify(test.title)},
   description: ${JSON.stringify(`${test.level} • ${test.questions.length} вопросов`)},
-  category: "карбонизация",
+  category: "коктейль",
   difficultyLevel: ${test.level.toLowerCase().includes("простой") || test.level.toLowerCase().includes("базов") ? 1 : test.level.toLowerCase().includes("сложный") || test.level.toLowerCase().includes("продвинут") ? 3 : 2},
   questions: [
 ${questionsCode}

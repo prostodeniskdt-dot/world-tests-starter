@@ -23,15 +23,15 @@ function main() {
   
   const testsDir = path.join(__dirname, "../src/tests");
   
-  // Удаляем старые тесты карбонизации
-  const oldCarbonizationTests = [
-    "carbonization-base-1",
-    "carbonization-practice-2",
-    "carbonization-advanced-3",
+  // Удаляем старые тесты коктейлей
+  const oldCocktailTests = [
+    "cocktail-foundation-a",
+    "cocktail-practice-b",
+    "cocktail-analysis-c",
   ];
   
-  console.log("\nУдаление старых тестов карбонизации...");
-  for (const oldTestId of oldCarbonizationTests) {
+  console.log("\nУдаление старых тестов коктейлей...");
+  for (const oldTestId of oldCocktailTests) {
     const oldTestDir = path.join(testsDir, oldTestId);
     if (fs.existsSync(oldTestDir)) {
       console.log(`  Удаление: ${oldTestId}`);

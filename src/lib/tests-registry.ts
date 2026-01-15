@@ -1,10 +1,10 @@
 import "server-only";
-import { COCKTAIL_FOUNDATION_A_PUBLIC } from "@/tests/cocktail-foundation-a/public";
-import { COCKTAIL_FOUNDATION_A_SECRET } from "@/tests/cocktail-foundation-a/answer";
-import { COCKTAIL_PRACTICE_B_PUBLIC } from "@/tests/cocktail-practice-b/public";
-import { COCKTAIL_PRACTICE_B_SECRET } from "@/tests/cocktail-practice-b/answer";
-import { COCKTAIL_ANALYSIS_C_PUBLIC } from "@/tests/cocktail-analysis-c/public";
-import { COCKTAIL_ANALYSIS_C_SECRET } from "@/tests/cocktail-analysis-c/answer";
+import { COCKTAIL_BASE_1_PUBLIC } from "@/tests/cocktail-base-1/public";
+import { COCKTAIL_BASE_1_SECRET } from "@/tests/cocktail-base-1/answer";
+import { COCKTAIL_PRACTICE_2_PUBLIC } from "@/tests/cocktail-practice-2/public";
+import { COCKTAIL_PRACTICE_2_SECRET } from "@/tests/cocktail-practice-2/answer";
+import { COCKTAIL_ADVANCED_3_PUBLIC } from "@/tests/cocktail-advanced-3/public";
+import { COCKTAIL_ADVANCED_3_SECRET } from "@/tests/cocktail-advanced-3/answer";
 
 import { CARBONIZATION_BASE_1_PUBLIC } from "@/tests/carbonization-base-1/public";
 import { CARBONIZATION_BASE_1_SECRET } from "@/tests/carbonization-base-1/answer";
@@ -18,9 +18,9 @@ export type { PublicTest, PublicTestQuestion } from "@/tests/types";
 
 // Реестр всех публичных тестов (без правильных ответов)
 export const PUBLIC_TESTS = [
-  COCKTAIL_FOUNDATION_A_PUBLIC,
-  COCKTAIL_PRACTICE_B_PUBLIC,
-  COCKTAIL_ANALYSIS_C_PUBLIC,
+  COCKTAIL_BASE_1_PUBLIC,
+  COCKTAIL_PRACTICE_2_PUBLIC,
+  COCKTAIL_ADVANCED_3_PUBLIC,
   CARBONIZATION_BASE_1_PUBLIC,
   CARBONIZATION_PRACTICE_2_PUBLIC,
   CARBONIZATION_ADVANCED_3_PUBLIC,
@@ -28,20 +28,20 @@ export const PUBLIC_TESTS = [
 
 // Реестр всех секретных тестов (с правильными ответами)
 export const SECRET_TESTS = [
-  COCKTAIL_FOUNDATION_A_SECRET,
-  COCKTAIL_PRACTICE_B_SECRET,
-  COCKTAIL_ANALYSIS_C_SECRET,
+  COCKTAIL_BASE_1_SECRET,
+  COCKTAIL_PRACTICE_2_SECRET,
+  COCKTAIL_ADVANCED_3_SECRET,
   CARBONIZATION_BASE_1_SECRET,
   CARBONIZATION_PRACTICE_2_SECRET,
   CARBONIZATION_ADVANCED_3_SECRET,
 ] as const;
 
 // Мапы для быстрого доступа по ID
-export const PUBLIC_TESTS_MAP: Record<string, typeof COCKTAIL_FOUNDATION_A_PUBLIC> = Object.fromEntries(
+export const PUBLIC_TESTS_MAP: Record<string, typeof COCKTAIL_BASE_1_PUBLIC> = Object.fromEntries(
   PUBLIC_TESTS.map((test) => [test.id, test])
 );
 
-export const SECRET_TESTS_MAP: Record<string, typeof COCKTAIL_FOUNDATION_A_SECRET> = Object.fromEntries(
+export const SECRET_TESTS_MAP: Record<string, typeof COCKTAIL_BASE_1_SECRET> = Object.fromEntries(
   SECRET_TESTS.map((test) => [test.id, test])
 );
 

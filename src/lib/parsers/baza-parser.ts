@@ -289,19 +289,26 @@ function parseQuestion(
   const lines = questionText.split("\n").map((l) => l.trim()).filter((l) => l);
   if (lines.length === 0) return null;
   
-  // Находим строку с вопросом (начинается с "**Вопрос X.**")
+  // Находим строку с вопросом (начинается с "**Вопрос X.**" или "**Задание X.**")
   let questionLine = "";
   let questionTextLine = "";
   let mechanic: QuestionMechanic = "multiple-choice";
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (line.match(/^\*\*Вопрос\s+\d+\.\*\*/i)) {
+    if (line.match(/^\*\*Вопрос\s+\d+\.\*\*/i) || line.match(/^\*\*Задание\s+\d+/i)) {
       // Извлекаем текст вопроса и механику
-      const questionMatch = line.match(/^\*\*Вопрос\s+\d+\.\*\*\s*(.+)/i);
+      const questionMatch = line.match(/^\*\*(?:Вопрос|Задание)\s+\d+[\.\)].*\*\*\s*(.+)/i) || 
+                           line.match(/^\*\*Задание\s+\d+\s*\([^)]+\)\.\*\*\s*(.+)/i);
       if (questionMatch) {
         questionTextLine = questionMatch[1].trim();
         mechanic = detectMechanic(questionTextLine);
+      } else {
+        // Если не нашли текст в той же строке, берем следующую
+        if (i + 1 < lines.length) {
+          questionTextLine = lines[i + 1].trim();
+          mechanic = detectMechanic(questionTextLine);
+        }
       }
       questionLine = line;
       break;
@@ -313,7 +320,7 @@ function parseQuestion(
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (line.includes("?") && !questionTextLine) {
-        questionTextLine = line.replace(/^\*\*Вопрос\s+\d+\.\*\*\s*/i, "").trim();
+        questionTextLine = line.replace(/^\*\*(?:Вопрос|Задание)\s+\d+[\.\)].*\*\*\s*/i, "").trim();
         mechanic = detectMechanic(line);
         break;
       }
@@ -322,7 +329,7 @@ function parseQuestion(
   
   if (!questionTextLine) {
     // Пытаемся взять первую строку
-    questionTextLine = lines[0].replace(/^\*\*Вопрос\s+\d+\.\*\*\s*/i, "").trim();
+    questionTextLine = lines[0].replace(/^\*\*(?:Вопрос|Задание)\s+\d+[\.\)].*\*\*\s*/i, "").trim();
     mechanic = detectMechanic(lines[0]);
   }
   
@@ -607,8 +614,8 @@ function parseHints(text: string): Record<number, string> {
       if (hintText && currentQuestionNum > 0) {
         hints[currentQuestionNum] = hintText;
       }
-    } else if (/^\*\*Вопрос\s+(\d+)\.\*\*/i.test(line)) {
-      const match = line.match(/^\*\*Вопрос\s+(\d+)\.\*\*/i);
+    } else if (/^\*\*Вопрос\s+(\d+)\.\*\*/i.test(line) || /^\*\*Задание\s+(\d+)/i.test(line)) {
+      const match = line.match(/^\*\*Вопрос\s+(\d+)\.\*\*/i) || line.match(/^\*\*Задание\s+(\d+)/i);
       if (match) {
         currentQuestionNum = parseInt(match[1], 10);
       }
@@ -703,7 +710,7 @@ export function parseBazaFile(content: string): ParsedTest[] {
       const line = lines[i].trim();
       
       // Начало нового вопроса
-      if (/^\*\*Вопрос\s+\d+\.\*\*/i.test(line)) {
+      if (/^\*\*Вопрос\s+\d+\.\*\*/i.test(line) || /^\*\*Задание\s+\d+/i.test(line)) {
         if (currentQuestion && questionStarted) {
           questionTexts.push(currentQuestion);
         }
@@ -752,7 +759,7 @@ export function parseBazaFile(content: string): ParsedTest[] {
       };
       const levelKey = levelMap[metadata.level.toLowerCase()] || "base";
       const testNum = tests.length + 1;
-      const testId = `carbonization-${levelKey}-${testNum}`;
+      const testId = `cocktail-${levelKey}-${testNum}`;
       
       tests.push({
         id: testId,
