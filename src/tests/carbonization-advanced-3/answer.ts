@@ -13,7 +13,7 @@ export const CARBONIZATION_ADVANCED_3_SECRET = {
   maxAttempts: null as number | null,
   answerKey: {
     q1: null,
-    q2: null,
+    q2: {"step1":0,"step2":0}, // "Часть CO₂ выходит" -> "Падение давления вызывает..."
     q3: null,
     q4: null,
     q5: null,
@@ -23,13 +23,13 @@ export const CARBONIZATION_ADVANCED_3_SECRET = {
     q9: null,
     q10: null,
     q11: null,
-    q12: null,
+    q12: [1], // "формы угольной кислоты" (index 0 в options + 1 для select value)
     q13: null,
     q14: null,
     q15: null,
     q16: null,
     q17: null,
-    q18: null,
+    q18: [1], // "доле (концентрации)" (index 0 в options + 1 для select value)
     q19: null,
     q20: null,
   } as Record<string, any>,

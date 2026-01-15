@@ -16,7 +16,7 @@ export const CARBONIZATION_PRACTICE_2_SECRET = {
     q2: [0,3],
     q3: [[0,1],[1,2],[2,0],[3,3]],
     q4: {"answer":true,"reason":0},
-    q5: {"1":0},
+    q5: [1], // "смеси газов" (index 0 в options + 1 для select value)
     q6: 0,
     q7: [0,3,1,2],
     q8: [0,3],
@@ -26,8 +26,8 @@ export const CARBONIZATION_PRACTICE_2_SECRET = {
     q12: 0,
     q13: 0,
     q14: [[0,1,4],[2,3]],
-    q15: {"1":0},
-    q16: {"step1":0,"step2":0},
+    q15: [1], // "снижается" (index 0 в options + 1 для select value)
+    q16: {"step1":0,"step2":0}, // "Растворимость повышается" -> "Холод повышает растворимость..."
     q17: {"0":0,"1":2,"2":1},
     q18: 0,
     q19: [[0,0],[1,1],[2,2],[3,3]],
