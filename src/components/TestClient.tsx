@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { CheckCircle2, Circle, ArrowRight, Award } from "lucide-react";
 import { addToast } from "./Toast";
+import { NavigateToLeaderboard } from "./NavigateToLeaderboard";
 import type { PublicTest } from "@/lib/tests-registry";
 
 type SubmitResponse =
@@ -451,16 +452,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                       </div>
                     </div>
                     <div className="pt-2">
-                      <button
-                        onClick={() => {
-                          // Используем полную перезагрузку для обхода проблем с Server Components
-                          window.location.href = "/leaderboard";
-                        }}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-zinc-600 underline cursor-pointer bg-transparent border-none p-0"
-                      >
-                        Перейти в рейтинг
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                      </button>
+                      <NavigateToLeaderboard />
                     </div>
                   </div>
                 ) : (
