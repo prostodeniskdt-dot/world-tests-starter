@@ -5,12 +5,12 @@ import { COCKTAIL_PRACTICE_B_PUBLIC } from "@/tests/cocktail-practice-b/public";
 import { COCKTAIL_PRACTICE_B_SECRET } from "@/tests/cocktail-practice-b/answer";
 import { COCKTAIL_ANALYSIS_C_PUBLIC } from "@/tests/cocktail-analysis-c/public";
 import { COCKTAIL_ANALYSIS_C_SECRET } from "@/tests/cocktail-analysis-c/answer";
-import { CARBONIZATION_FUNDAMENTALS_PUBLIC } from "@/tests/carbonization-fundamentals/public";
-import { CARBONIZATION_FUNDAMENTALS_SECRET } from "@/tests/carbonization-fundamentals/answer";
-import { CARBONIZATION_PRACTICE_PUBLIC } from "@/tests/carbonization-practice/public";
-import { CARBONIZATION_PRACTICE_SECRET } from "@/tests/carbonization-practice/answer";
-import { CARBONIZATION_ADVANCED_PUBLIC } from "@/tests/carbonization-advanced/public";
-import { CARBONIZATION_ADVANCED_SECRET } from "@/tests/carbonization-advanced/answer";
+import { CARBONIZATION_BASE_1_PUBLIC } from "@/tests/carbonization-base-1/public";
+import { CARBONIZATION_BASE_1_SECRET } from "@/tests/carbonization-base-1/answer";
+import { CARBONIZATION_PRACTICE_2_PUBLIC } from "@/tests/carbonization-practice-2/public";
+import { CARBONIZATION_PRACTICE_2_SECRET } from "@/tests/carbonization-practice-2/answer";
+import { CARBONIZATION_ADVANCED_3_PUBLIC } from "@/tests/carbonization-advanced-3/public";
+import { CARBONIZATION_ADVANCED_3_SECRET } from "@/tests/carbonization-advanced-3/answer";
 
 // Типы (экспортируем для использования в других файлах)
 export type { PublicTest, PublicTestQuestion } from "@/tests/types";
@@ -20,9 +20,9 @@ export const PUBLIC_TESTS = [
   COCKTAIL_FOUNDATION_A_PUBLIC,
   COCKTAIL_PRACTICE_B_PUBLIC,
   COCKTAIL_ANALYSIS_C_PUBLIC,
-  CARBONIZATION_FUNDAMENTALS_PUBLIC,
-  CARBONIZATION_PRACTICE_PUBLIC,
-  CARBONIZATION_ADVANCED_PUBLIC,
+  CARBONIZATION_BASE_1_PUBLIC,
+  CARBONIZATION_PRACTICE_2_PUBLIC,
+  CARBONIZATION_ADVANCED_3_PUBLIC,
 ] as const;
 
 // Реестр всех секретных тестов (с правильными ответами)
@@ -30,9 +30,9 @@ export const SECRET_TESTS = [
   COCKTAIL_FOUNDATION_A_SECRET,
   COCKTAIL_PRACTICE_B_SECRET,
   COCKTAIL_ANALYSIS_C_SECRET,
-  CARBONIZATION_FUNDAMENTALS_SECRET,
-  CARBONIZATION_PRACTICE_SECRET,
-  CARBONIZATION_ADVANCED_SECRET,
+  CARBONIZATION_BASE_1_SECRET,
+  CARBONIZATION_PRACTICE_2_SECRET,
+  CARBONIZATION_ADVANCED_3_SECRET,
 ] as const;
 
 // Мапы для быстрого доступа по ID
