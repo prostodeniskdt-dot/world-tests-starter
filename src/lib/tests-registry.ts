@@ -1,10 +1,10 @@
 import "server-only";
-import { COCKTAIL_SYSTEM_1_PUBLIC } from "@/tests/cocktail-system-1/public";
-import { COCKTAIL_SYSTEM_1_SECRET } from "@/tests/cocktail-system-1/answer";
-import { BALANCE_PRACTICE_1_PUBLIC } from "@/tests/balance-practice-1/public";
-import { BALANCE_PRACTICE_1_SECRET } from "@/tests/balance-practice-1/answer";
-import { ENGINEERING_1_PUBLIC } from "@/tests/engineering-1/public";
-import { ENGINEERING_1_SECRET } from "@/tests/engineering-1/answer";
+import { COCKTAIL_FOUNDATION_A_PUBLIC } from "@/tests/cocktail-foundation-a/public";
+import { COCKTAIL_FOUNDATION_A_SECRET } from "@/tests/cocktail-foundation-a/answer";
+import { COCKTAIL_PRACTICE_B_PUBLIC } from "@/tests/cocktail-practice-b/public";
+import { COCKTAIL_PRACTICE_B_SECRET } from "@/tests/cocktail-practice-b/answer";
+import { COCKTAIL_ANALYSIS_C_PUBLIC } from "@/tests/cocktail-analysis-c/public";
+import { COCKTAIL_ANALYSIS_C_SECRET } from "@/tests/cocktail-analysis-c/answer";
 import { CARBONIZATION_FUNDAMENTALS_PUBLIC } from "@/tests/carbonization-fundamentals/public";
 import { CARBONIZATION_FUNDAMENTALS_SECRET } from "@/tests/carbonization-fundamentals/answer";
 import { CARBONIZATION_PRACTICE_PUBLIC } from "@/tests/carbonization-practice/public";
@@ -17,9 +17,9 @@ export type { PublicTest, PublicTestQuestion } from "@/tests/types";
 
 // Реестр всех публичных тестов (без правильных ответов)
 export const PUBLIC_TESTS = [
-  COCKTAIL_SYSTEM_1_PUBLIC,
-  BALANCE_PRACTICE_1_PUBLIC,
-  ENGINEERING_1_PUBLIC,
+  COCKTAIL_FOUNDATION_A_PUBLIC,
+  COCKTAIL_PRACTICE_B_PUBLIC,
+  COCKTAIL_ANALYSIS_C_PUBLIC,
   CARBONIZATION_FUNDAMENTALS_PUBLIC,
   CARBONIZATION_PRACTICE_PUBLIC,
   CARBONIZATION_ADVANCED_PUBLIC,
@@ -27,9 +27,9 @@ export const PUBLIC_TESTS = [
 
 // Реестр всех секретных тестов (с правильными ответами)
 export const SECRET_TESTS = [
-  COCKTAIL_SYSTEM_1_SECRET,
-  BALANCE_PRACTICE_1_SECRET,
-  ENGINEERING_1_SECRET,
+  COCKTAIL_FOUNDATION_A_SECRET,
+  COCKTAIL_PRACTICE_B_SECRET,
+  COCKTAIL_ANALYSIS_C_SECRET,
   CARBONIZATION_FUNDAMENTALS_SECRET,
   CARBONIZATION_PRACTICE_SECRET,
   CARBONIZATION_ADVANCED_SECRET,
