@@ -4,7 +4,7 @@ export const CARBONIZATION_ADVANCED_3_PUBLIC: PublicTest = {
   id: "carbonization-advanced-3",
   title: "Карбонизация: продвинуто — компромиссы и диагностика",
   description: "Уровень: продвинутый • 24 вопроса • 1 правильный ответ • Основано на книге: Liquid Intelligence: The Art and Science of the Perfect Cocktail",
-  category: "коктейль",
+  category: "карбонизация",
   difficultyLevel: 3,
   questions: [
     {

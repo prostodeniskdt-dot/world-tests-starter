@@ -4,7 +4,7 @@ export const CARBONIZATION_PRACTICE_2_PUBLIC: PublicTest = {
   id: "carbonization-practice-2",
   title: "Карбонизация: практика настройки системы и рецепта",
   description: "Уровень: практический • 24 вопроса • 1 правильный ответ • Основано на книге: Liquid Intelligence: The Art and Science of the Perfect Cocktail",
-  category: "коктейль",
+  category: "карбонизация",
   difficultyLevel: 2,
   questions: [
     {

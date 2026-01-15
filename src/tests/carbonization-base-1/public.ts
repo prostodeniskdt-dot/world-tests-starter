@@ -4,7 +4,7 @@ export const CARBONIZATION_BASE_1_PUBLIC: PublicTest = {
   id: "carbonization-base-1",
   title: "Карбонизация: база и подача",
   description: "Уровень: базовый • 24 вопроса • 1 правильный ответ • Основано на книге: Liquid Intelligence: The Art and Science of the Perfect Cocktail",
-  category: "коктейль",
+  category: "карбонизация",
   difficultyLevel: 1,
   questions: [
     {
