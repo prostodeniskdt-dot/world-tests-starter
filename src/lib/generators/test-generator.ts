@@ -39,6 +39,8 @@ function generatePublicFile(test: ParsedTest): string {
         }
         questionCode += `      allowMultiple: true,\n`;
       } else if (q.type === "two-step") {
+        // TwoStepQuestion требует поле text (из BaseQuestion)
+        questionCode += `      text: ${JSON.stringify(q.text || "")},\n`;
         if (q.step1 && q.step2) {
           questionCode += `      step1: ${JSON.stringify(q.step1)},\n`;
           questionCode += `      step2: ${JSON.stringify(q.step2)},\n`;
