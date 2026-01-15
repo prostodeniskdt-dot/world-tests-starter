@@ -1,16 +1,14 @@
-import { Suspense } from "react";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { LeaderboardTable, type LeaderboardRow } from "@/components/LeaderboardTable";
 import { LeaderboardPagination } from "@/components/LeaderboardPagination";
 import { Trophy } from "lucide-react";
-import { TableSkeleton } from "@/components/LoadingSkeleton";
 
 export const revalidate = 10;
 
 export default async function LeaderboardPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }> | { page?: string };
 }) {
   let page = 1;
   let rows: LeaderboardRow[] = [];
@@ -18,7 +16,9 @@ export default async function LeaderboardPage({
   let error: Error | null = null;
 
   try {
-    page = parseInt(searchParams?.page || "1", 10);
+    // Обработка searchParams как Promise (Next.js 15) или обычного объекта
+    const params = searchParams instanceof Promise ? await searchParams : searchParams;
+    page = parseInt(params?.page || "1", 10);
     const limit = 50;
     const offset = (page - 1) * limit;
 
@@ -59,16 +59,12 @@ export default async function LeaderboardPage({
         ) : null}
       </div>
 
-      <Suspense fallback={<TableSkeleton />}>
-        <LeaderboardTable rows={rows} />
-      </Suspense>
+      <LeaderboardTable rows={rows} />
 
-      <Suspense fallback={<div className="text-center py-4 text-zinc-600">Загрузка пагинации...</div>}>
-        <LeaderboardPagination
-          currentPage={page}
-          totalPages={totalPages}
-        />
-      </Suspense>
+      <LeaderboardPagination
+        currentPage={page}
+        totalPages={totalPages}
+      />
 
       <div className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg p-4">
         {hintText}
