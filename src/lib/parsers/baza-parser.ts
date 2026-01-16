@@ -31,7 +31,7 @@ export interface ParsedQuestion {
 }
 
 /**
- * Парсит ключ ответов из формата "1B, 2A, 3(1–B,2–A,3–C,4–D), 4A, 5(D→A→C→B), ..."
+ * Парсит ключ ответов из формата "1A, 2(1B2D3A4C), 3(B→D→A→C), ..."
  */
 function parseAnswerKey(keyText: string): Record<number, any> {
   const answers: Record<number, any> = {};
@@ -39,8 +39,8 @@ function parseAnswerKey(keyText: string): Record<number, any> {
   // Убираем "Ключ (Тест X):" если есть
   keyText = keyText.replace(/^.*?:\s*/, "").trim();
   
-  // Разбиваем по точкам с запятой, но учитываем скобки
-  // Формат: "1A; 2: 1–A,2–D,3–C,4–B; 3A; ..."
+  // Разбиваем по запятым, но учитываем скобки и multiple-select формат
+  // Формат: "1A, 2(1B2D3A4C), 3(B→D→A→C), 8A,C, ..."
   const parts: string[] = [];
   let current = "";
   let depth = 0;
@@ -49,11 +49,24 @@ function parseAnswerKey(keyText: string): Record<number, any> {
     const char = keyText[i];
     if (char === "(") depth++;
     if (char === ")") depth--;
-    // Разделяем по ";" если глубина скобок = 0
-    if (char === ";" && depth === 0) {
-      if (current.trim()) {
-        parts.push(current.trim());
-        current = "";
+    // Разделяем по "," если глубина скобок = 0
+    // НО не разбиваем, если это multiple-select формат (цифра + буквы через запятую)
+    if (char === "," && depth === 0) {
+      // Проверяем, не является ли это multiple-select форматом
+      // Если текущая часть заканчивается буквой и следующий символ - буква, это multiple-select
+      const nextChar = i + 1 < keyText.length ? keyText[i + 1].trim() : "";
+      const currentEndsWithLetter = /[A-Z]$/.test(current.trim());
+      const nextIsLetter = /^[A-Z]/.test(nextChar);
+      
+      if (currentEndsWithLetter && nextIsLetter) {
+        // Это multiple-select, не разбиваем
+        current += char;
+      } else {
+        // Обычная запятая, разбиваем
+        if (current.trim()) {
+          parts.push(current.trim());
+          current = "";
+        }
       }
     } else {
       current += char;
@@ -67,6 +80,16 @@ function parseAnswerKey(keyText: string): Record<number, any> {
     let trimmedPart = part.trim();
     // Убираем завершающую точку если есть
     trimmedPart = trimmedPart.replace(/\.$/, "");
+    
+    // Multiple select без скобок: "8A,C" или "2A,D,F" (проверяем ПЕРЕД простым ответом)
+    const multiSelectNoBrackets = trimmedPart.match(/^(\d+)([A-Z](?:,\s*[A-Z])+)$/);
+    if (multiSelectNoBrackets) {
+      const qNum = parseInt(multiSelectNoBrackets[1], 10);
+      const letters = multiSelectNoBrackets[2].split(",").map(s => s.trim());
+      const indices = letters.map(letter => letter.toUpperCase().charCodeAt(0) - 65);
+      answers[qNum] = indices;
+      continue;
+    }
     
     // Простой ответ: "1B" или "1A" или " 1A " (с пробелами) или "20A."
     // Проверяем сначала простые ответы, чтобы не перехватить их другими паттернами
@@ -110,18 +133,39 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Matching: "3(1–B,2–A,3–C,4–D)" или "8(1–C,2–B,3–A,4–D)" или "15(1–A,2–B,3–C,4–D)"
+    // Matching: "3(1–B,2–A,3–C,4–D)" или "2(1B2D3A4C)" (без тире и запятых)
     const matchingMatch = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
     if (matchingMatch) {
       const qNum = parseInt(matchingMatch[1], 10);
       const pairsText = matchingMatch[2];
-      // Проверяем, что это matching (содержит пары вида "число–буква" через запятую)
-      if (pairsText.match(/^\d+[–-][A-Z](,\s*\d+[–-][A-Z])+$/)) {
+      
+      // Формат 1: с тире и запятыми "1–B,2–A,3–C,4–D"
+      if (pairsText.match(/^\d+[–-][A-Z]/)) {
         const pairs: [number, number][] = [];
         const pairMatches = pairsText.match(/(\d+)[–-]([A-Z])/g);
         if (pairMatches) {
           for (const pairMatch of pairMatches) {
             const m = pairMatch.match(/(\d+)[–-]([A-Z])/);
+            if (m) {
+              const leftIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
+              const rightLetter = m[2].toUpperCase();
+              const rightIdx = rightLetter.charCodeAt(0) - 65; // A=0, B=1, ...
+              pairs.push([leftIdx, rightIdx]);
+            }
+          }
+        }
+        answers[qNum] = pairs;
+        continue;
+      }
+      
+      // Формат 2: без тире и запятых "1B2D3A4C"
+      const compactMatching = pairsText.match(/^(\d[A-Z])+$/);
+      if (compactMatching) {
+        const pairs: [number, number][] = [];
+        const pairMatches = pairsText.match(/(\d)([A-Z])/g);
+        if (pairMatches) {
+          for (const pairMatch of pairMatches) {
+            const m = pairMatch.match(/(\d)([A-Z])/);
             if (m) {
               const leftIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
               const rightLetter = m[2].toUpperCase();
@@ -183,17 +227,21 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Grouping: "7(A,B / C,D)" или "9(A,B,E / C,D)" или "14(A,B,E / C,D)" или "8 У: A,C / С: B,D,E"
+    // Grouping: "7(A,B / C,D)" или "7(Объём A,C,E; Масса B,D)" или "8 У: A,C / С: B,D,E"
     const groupingMatch1 = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
-    if (groupingMatch1 && groupingMatch1[2].includes("/")) {
+    if (groupingMatch1 && (groupingMatch1[2].includes("/") || groupingMatch1[2].includes(";"))) {
       const qNum = parseInt(groupingMatch1[1], 10);
       const groupsText = groupingMatch1[2];
-      const categoryParts = groupsText.split("/");
-      // Это сложнее, нужно знать категории заранее
-      // Пока оставляем как массив массивов
+      // Разделяем по "/" или ";" для категорий
+      const separator = groupsText.includes(";") ? ";" : "/";
+      const categoryParts = groupsText.split(separator);
+      
       const categoryArrays: number[][] = [];
       for (const catPart of categoryParts) {
-        const letters = catPart.split(",").map(s => s.trim().replace(/^[^:]+:\s*/, "")); // Убираем префикс типа "У:"
+        // Убираем название категории (все до первой буквы варианта)
+        // Формат: "Объём A,C,E" или "A,C,E" или "У: A,C"
+        const cleanPart = catPart.trim().replace(/^[^A-Z]+/, ""); // Убираем все до первой заглавной буквы
+        const letters = cleanPart.split(",").map(s => s.trim());
         const indices = letters.map(letter => {
           const cleanLetter = letter.trim();
           if (cleanLetter.match(/^[A-Z]$/)) {
@@ -233,7 +281,7 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Cloze: "11([1]=A)" или "12([1]=A)" или "15([1]=A)" или "18([1]=A)" или "10 [1]=A" (без скобок)
+    // Cloze: "11([1]=A)" или "5[1A]" (компактный формат) или "10 [1]=A" (без скобок)
     const clozeMatch1 = trimmedPart.match(/^(\d+)\(\[(\d+)\]=([A-Z])\)$/);
     if (clozeMatch1) {
       const qNum = parseInt(clozeMatch1[1], 10);
@@ -243,6 +291,18 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       answers[qNum] = { [gapIdx]: answerIndex };
       continue;
     }
+    
+    // Cloze компактный формат: "5[1A]"
+    const clozeMatchCompact = trimmedPart.match(/^(\d+)\[(\d+)([A-Z])\]$/);
+    if (clozeMatchCompact) {
+      const qNum = parseInt(clozeMatchCompact[1], 10);
+      const gapIdx = parseInt(clozeMatchCompact[2], 10);
+      const letter = clozeMatchCompact[3].toUpperCase();
+      const answerIndex = letter.charCodeAt(0) - 65;
+      answers[qNum] = { [gapIdx]: answerIndex };
+      continue;
+    }
+    
     
     // Cloze без скобок: "10 [1]=A"
     const clozeMatch2 = trimmedPart.match(/^(\d+)\s+\[(\d+)\]=([A-Z])$/);
@@ -255,9 +315,9 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Two-step: "2(Ч1=A;Ч2=A)" или "16(Ч1=A;Ч2=A)" или "10 Ч1=A;Ч2=A" (без скобок)
-    // Используем Unicode для кириллицы
-    const twoStepMatch1 = trimmedPart.match(/^(\d+)\([ЧЧ]1=([A-Z]);[ЧЧ]2=([A-Z])\)$/);
+    // Two-step: "1(Ч1A Ч2A)" или "2(Ч1=A;Ч2=A)" или "10 Ч1=A;Ч2=A" (без скобок)
+    // Формат 1: "Ч1A Ч2A" (без знака равенства, с пробелом)
+    const twoStepMatch1 = trimmedPart.match(/^(\d+)\([ЧЧ]1\s*([A-Z])\s+[ЧЧ]2\s*([A-Z])\)$/);
     if (twoStepMatch1) {
       const qNum = parseInt(twoStepMatch1[1], 10);
       const step1Letter = twoStepMatch1[2].toUpperCase();
@@ -268,8 +328,8 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Two-step без скобок: "10 Ч1=A;Ч2=A"
-    const twoStepMatch2 = trimmedPart.match(/^(\d+)\s+[ЧЧ]1=([A-Z]);[ЧЧ]2=([A-Z])$/);
+    // Формат 2: "Ч1=A;Ч2=A" (со знаком равенства)
+    const twoStepMatch2 = trimmedPart.match(/^(\d+)\([ЧЧ]1=([A-Z]);[ЧЧ]2=([A-Z])\)$/);
     if (twoStepMatch2) {
       const qNum = parseInt(twoStepMatch2[1], 10);
       const step1Letter = twoStepMatch2[2].toUpperCase();
@@ -280,24 +340,60 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Matrix: "4(1–A;2–B;3–C)" или "17(1–A;2–C;3–B)" или "12 1–A;2–B;3–C" (без скобок)
+    // Two-step без скобок: "10 Ч1=A;Ч2=A"
+    const twoStepMatch3 = trimmedPart.match(/^(\d+)\s+[ЧЧ]1=([A-Z]);[ЧЧ]2=([A-Z])$/);
+    if (twoStepMatch3) {
+      const qNum = parseInt(twoStepMatch3[1], 10);
+      const step1Letter = twoStepMatch3[2].toUpperCase();
+      const step2Letter = twoStepMatch3[3].toUpperCase();
+      const step1Idx = step1Letter.charCodeAt(0) - 65;
+      const step2Idx = step2Letter.charCodeAt(0) - 65;
+      answers[qNum] = { step1: step1Idx, step2: step2Idx };
+      continue;
+    }
+    
+    // Matrix: "4(1–A;2–B;3–C)" или "8(1A2B3C)" (компактный формат) или "12 1–A;2–B;3–C" (без скобок)
     const matrixMatch1 = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
-    if (matrixMatch1 && matrixMatch1[2].includes(";") && matrixMatch1[2].includes("–")) {
+    if (matrixMatch1) {
       const qNum = parseInt(matrixMatch1[1], 10);
       const pairsText = matrixMatch1[2];
-      const pairs: Record<number, number> = {};
-      const pairMatches = pairsText.split(";");
-      for (const pairMatch of pairMatches) {
-        const m = pairMatch.match(/(\d+)[–-]([A-Z])/);
-        if (m) {
-          const rowIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
-          const colLetter = m[2].toUpperCase();
-          const colIdx = colLetter.charCodeAt(0) - 65;
-          pairs[rowIdx] = colIdx;
+      
+      // Формат 1: с точкой с запятой и тире "1–A;2–B;3–C"
+      if (pairsText.includes(";") && pairsText.match(/\d+[–-][A-Z]/)) {
+        const pairs: Record<number, number> = {};
+        const pairMatches = pairsText.split(";");
+        for (const pairMatch of pairMatches) {
+          const m = pairMatch.match(/(\d+)[–-]([A-Z])/);
+          if (m) {
+            const rowIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
+            const colLetter = m[2].toUpperCase();
+            const colIdx = colLetter.charCodeAt(0) - 65;
+            pairs[rowIdx] = colIdx;
+          }
         }
+        answers[qNum] = pairs;
+        continue;
       }
-      answers[qNum] = pairs;
-      continue;
+      
+      // Формат 2: компактный "1A2B3C"
+      const compactMatrix = pairsText.match(/^(\d[A-Z])+$/);
+      if (compactMatrix && !pairsText.includes("→")) {
+        const pairs: Record<number, number> = {};
+        const pairMatches = pairsText.match(/(\d)([A-Z])/g);
+        if (pairMatches) {
+          for (const pairMatch of pairMatches) {
+            const m = pairMatch.match(/(\d)([A-Z])/);
+            if (m) {
+              const rowIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
+              const colLetter = m[2].toUpperCase();
+              const colIdx = colLetter.charCodeAt(0) - 65;
+              pairs[rowIdx] = colIdx;
+            }
+          }
+        }
+        answers[qNum] = pairs;
+        continue;
+      }
     }
     
     // Matrix без скобок: "12 1–A;2–B;3–C"
@@ -318,31 +414,6 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       }
       answers[qNum] = pairs;
       continue;
-    }
-    
-    // Matching (если не обработано выше): "8(1–C,2–B,3–A,4–D)" или "15(1–A,2–B,3–C,4–D)" или "19(1–A,2–B,3–C,4–D)"
-    const matchingMatch2 = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
-    if (matchingMatch2) {
-      const qNum = parseInt(matchingMatch2[1], 10);
-      const pairsText = matchingMatch2[2];
-      // Проверяем, что это matching (содержит пары вида "число–буква" через запятую, но не через точку с запятой)
-      if (pairsText.match(/^\d+[–-][A-Z](,\s*\d+[–-][A-Z])+$/) && !pairsText.includes(";")) {
-        const pairs: [number, number][] = [];
-        const pairMatches = pairsText.match(/(\d+)[–-]([A-Z])/g);
-        if (pairMatches) {
-          for (const pairMatch of pairMatches) {
-            const m = pairMatch.match(/(\d+)[–-]([A-Z])/);
-            if (m) {
-              const leftIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
-              const rightLetter = m[2].toUpperCase();
-              const rightIdx = rightLetter.charCodeAt(0) - 65; // A=0, B=1, ...
-              pairs.push([leftIdx, rightIdx]);
-            }
-          }
-        }
-        answers[qNum] = pairs;
-        continue;
-      }
     }
     
     // Select errors: "11(2,6)" или "16 2,5" (без скобок)
@@ -384,12 +455,32 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Формат "5 Неверно/C? (A)" - True/False с причиной
-    const tfMatch2 = trimmedPart.match(/^(\d+)\s+([Вв]ерно|[Нн]еверно)[^;]*\(([A-Z])\)$/);
+    // Формат "5 Неверно/C? (A)" или "4Верно/C? (A)" - True/False с причиной
+    const tfMatch2 = trimmedPart.match(/^(\d+)\s*([Вв]ерно|[Нн]еверно)(?:\/[A-Z])?\?\s*\(([A-Z])\)$/);
     if (tfMatch2) {
       const qNum = parseInt(tfMatch2[1], 10);
       const isTrue = /верно/i.test(tfMatch2[2]);
       const reasonIdx = tfMatch2[3].toUpperCase().charCodeAt(0) - 65;
+      answers[qNum] = { answer: isTrue, reason: reasonIdx };
+      continue;
+    }
+    
+    // Формат без скобок: "4Неверно/A" или "15Верно/A"
+    const tfMatchNoBrackets = trimmedPart.match(/^(\d+)([Вв]ерно|[Нн]еверно)\/([A-Z])$/);
+    if (tfMatchNoBrackets) {
+      const qNum = parseInt(tfMatchNoBrackets[1], 10);
+      const isTrue = /верно/i.test(tfMatchNoBrackets[2]);
+      const reasonIdx = tfMatchNoBrackets[3].toUpperCase().charCodeAt(0) - 65;
+      answers[qNum] = { answer: isTrue, reason: reasonIdx };
+      continue;
+    }
+    
+    // Универсальный формат True/False: "4Верно (A)" или любой текст между статусом и скобкой
+    const tfMatch3 = trimmedPart.match(/^(\d+)\s*([Вв]ерно|[Нн]еверно)[^(]*\(([A-Z])\)$/);
+    if (tfMatch3) {
+      const qNum = parseInt(tfMatch3[1], 10);
+      const isTrue = /верно/i.test(tfMatch3[2]);
+      const reasonIdx = tfMatch3[3].toUpperCase().charCodeAt(0) - 65;
       answers[qNum] = { answer: isTrue, reason: reasonIdx };
       continue;
     }
@@ -563,10 +654,14 @@ function parseQuestion(
       }
       
       if (inItems) {
+        // Пропускаем строки с ответами и пояснениями
+        if (/^Ответ:/i.test(line) || /^Пояснение:/i.test(line) || /^\*\*Ответ:/i.test(line) || /^\*\*Пояснение:/i.test(line)) {
+          continue;
+        }
         const itemMatch = line.match(/^([A-Z])\)\s*(.+)$/);
         if (itemMatch) {
           items.push(itemMatch[2].trim());
-        } else if (line && !line.match(/^[A-Z]\)/) && !line.match(/^\d+\./)) {
+        } else if (line && !line.match(/^[A-Z]\)/) && !line.match(/^\d+\./) && !line.match(/^Ответ:/i) && !line.match(/^Пояснение:/i)) {
           items.push(line);
         }
       }
@@ -799,6 +894,17 @@ function parseHints(text: string): Record<number, string> {
 export function parseBazaFile(content: string): ParsedTest[] {
   const tests: ParsedTest[] = [];
   
+  // СНАЧАЛА извлекаем все ключи ответов из файла
+  const allKeys: Record<number, string> = {};
+  // Формат: **Ключ (Тест 1):** 1A, 2(1B2D3A4C), ...
+  const keyRegex = /\*\*Ключ\s*\(Тест\s+(\d+)\):\*\*\s*(.+?)(?=\n\n|---|\*\*Ключ|$)/gs;
+  let keyMatch;
+  while ((keyMatch = keyRegex.exec(content)) !== null) {
+    const testNum = parseInt(keyMatch[1], 10);
+    const keyText = keyMatch[2].trim();
+    allKeys[testNum] = keyText;
+  }
+  
   // Разделяем на тесты по заголовкам "## ТЕСТ X" или "ТЕСТ X"
   const testSections = content.split(/(?=(?:##\s+)?ТЕСТ\s+\d+)/i);
   
@@ -828,52 +934,13 @@ export function parseBazaFile(content: string): ParsedTest[] {
     
     currentLine++;
     
-    // Ищем ключ ответов
-    let answerKeyText = "";
+    // Используем предварительно найденный ключ для этого теста
     let answerKey: Record<number, any> = {};
     let keyLineIndex = -1;
     
-    for (let i = currentLine; i < lines.length; i++) {
-      if (/^(?:\*\*)?Ключ/i.test(lines[i])) {
-        // Ключ может быть на нескольких строках
-        // Убираем "**Ключ (Тест X):**" или "Ключ (Тест X):" и берем остальное
-        // Сначала проверяем, есть ли что-то после двоеточия в этой строке
-        const keyLineMatch = lines[i].match(/^(?:\*\*)?Ключ[^:]*:\s*(?:\*\*)?(.+)/i);
-        if (keyLineMatch && keyLineMatch[1] && keyLineMatch[1].trim()) {
-          answerKeyText = keyLineMatch[1].trim();
-        } else {
-          // Если в строке только "Ключ (Тест X):", читаем следующую строку
-          answerKeyText = "";
-        }
-        let j = i + 1;
-        // Если ключ пустой, читаем следующую строку
-        if (!answerKeyText && j < lines.length) {
-          const nextLine = lines[j] ? lines[j].trim() : "";
-          if (nextLine && !nextLine.match(/^---/) && !nextLine.match(/^_{3,}/) && !nextLine.match(/^ТЕСТ/i) && !nextLine.match(/^_{10,}/)) {
-            answerKeyText = nextLine;
-            j++;
-          }
-        }
-        // Продолжаем читать до пустой строки или следующего раздела
-        while (j < lines.length) {
-          const nextLine = lines[j] ? lines[j].trim() : "";
-          if (!nextLine || nextLine.match(/^---/) || nextLine.match(/^_{3,}/) || nextLine.match(/^ТЕСТ/i) || nextLine.match(/^_{10,}/)) {
-            break;
-          }
-          // Если следующая строка не начинается с "**" или "ТЕСТ", добавляем к ключу
-          if (!nextLine.match(/^\*\*/) && !nextLine.match(/^ТЕСТ/i)) {
-            answerKeyText += " " + nextLine;
-          } else {
-            break;
-          }
-          j++;
-        }
-        if (answerKeyText) {
-          answerKey = parseAnswerKey(answerKeyText);
-        }
-        keyLineIndex = i;
-        break;
-      }
+    const answerKeyText = allKeys[testNumber];
+    if (answerKeyText) {
+      answerKey = parseAnswerKey(answerKeyText);
     }
     
     // Извлекаем пояснения

@@ -73,9 +73,14 @@ export function detectMechanic(text: string): QuestionMechanic {
   }
 
   // Ordering: "расставьте", "упорядочьте", "хронология", "последовательность", "порядок"
+  // НО не для вопросов с "Утверждение" (это true-false-enhanced)
+  // И не для вопросов с "Ситуация" или "Что выбрать" (это scenario или multiple-choice)
   if (
-    /расстав|упорядоч|хронология|последовательность|в порядке|порядок/i.test(text) ||
-    /от.*к|от причины к следствию/i.test(text)
+    !/утверждение/i.test(text) &&
+    !/ситуация/i.test(text) &&
+    !/что отличает|что лучше|что характерно/i.test(text) &&
+    (/расстав|упорядоч|хронология|последовательность|в порядке|порядок/i.test(text) ||
+    /от.*к|от причины к следствию/i.test(text))
   ) {
     return "ordering";
   }
@@ -112,10 +117,12 @@ export function detectMechanic(text: string): QuestionMechanic {
     return "select-errors";
   }
 
-  // True/False Enhanced: "верно/неверно" + причина
+  // True/False Enhanced: "верно/неверно" + причина или "Утверждение:" + True/False
   if (
     /верно.*неверно|верно.*не верно|true.*false/i.test(text) ||
-    (/верно|неверно/i.test(text) && /причина|объяснение/i.test(text))
+    (/верно|неверно/i.test(text) && /причина|объяснение/i.test(text)) ||
+    /утверждение.*верно|утверждение.*неверно/i.test(text) ||
+    (/утверждение/i.test(text) && /true.*false|верно.*неверно/i.test(text))
   ) {
     return "true-false-enhanced";
   }
@@ -145,9 +152,11 @@ export function detectMechanic(text: string): QuestionMechanic {
   }
 
   // Scenario: "ситуация", "кейс", "выберите шаги", "приоритеты"
+  // Проверяем ПЕРЕД ordering, чтобы не перехватить вопросы с "расставьте"
   if (
     /ситуация|кейс|сценарий|выберите.*шаг|приоритет/i.test(text) ||
-    /проблема.*действие/i.test(text)
+    /проблема.*действие/i.test(text) ||
+    (/ситуация/i.test(text) && /что выбрать|что сделать/i.test(text))
   ) {
     return "scenario";
   }
