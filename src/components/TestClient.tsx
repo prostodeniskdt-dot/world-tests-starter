@@ -43,11 +43,14 @@ export function TestClient({ test }: { test: PublicTest }) {
         // Проверяем тип первого элемента, чтобы определить структуру массива
         if (typeof v[0] === "number") {
           // Для cloze-dropdown проверяем, что нет -1 (не выбрано)
-          return v.every((idx: number) => idx >= 0);
+          // TypeScript не может автоматически сузить тип, поэтому используем явное приведение
+          const numArray = v as number[];
+          return numArray.every((idx) => idx >= 0);
         }
         if (Array.isArray(v[0])) {
           // Для matching это [number, number][]
-          return v.every((pair: [number, number]) => 
+          const tupleArray = v as [number, number][];
+          return tupleArray.every((pair) => 
             Array.isArray(pair) && pair.length === 2 && 
             typeof pair[0] === "number" && typeof pair[1] === "number" &&
             pair[0] >= 0 && pair[1] >= 0
