@@ -39,8 +39,21 @@ export function TestClient({ test }: { test: PublicTest }) {
       if (v === null) return false;
       // Проверяем, что ответ не пустой массив или пустой объект
       if (Array.isArray(v)) {
-        // Для cloze-dropdown проверяем, что нет -1 (не выбрано)
-        return v.length > 0 && v.every(idx => idx >= 0);
+        if (v.length === 0) return false;
+        // Проверяем тип первого элемента, чтобы определить структуру массива
+        if (typeof v[0] === "number") {
+          // Для cloze-dropdown проверяем, что нет -1 (не выбрано)
+          return v.every((idx: number) => idx >= 0);
+        }
+        if (Array.isArray(v[0])) {
+          // Для matching это [number, number][]
+          return v.every((pair: [number, number]) => 
+            Array.isArray(pair) && pair.length === 2 && 
+            typeof pair[0] === "number" && typeof pair[1] === "number" &&
+            pair[0] >= 0 && pair[1] >= 0
+          );
+        }
+        return false;
       }
       if (typeof v === "object") {
         return Object.keys(v).length > 0;
