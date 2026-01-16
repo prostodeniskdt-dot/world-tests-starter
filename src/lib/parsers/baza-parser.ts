@@ -811,40 +811,106 @@ function parseQuestion(
   } else if (mechanic === "two-step") {
     const step1Options: string[] = [];
     const step2Options: string[] = [];
+    let step1Question = "";
+    let step2Question = "";
     let inStep1 = false;
     let inStep2 = false;
     
     for (const line of lines) {
-      if (/^Задание\s+\d+\s*\(Часть\s+1\)/i.test(line) || /^Часть\s+1/i.test(line)) {
-        inStep1 = true;
+      // Останавливаемся при встрече ответов и пояснений
+      if (/^Ответ:/i.test(line) || /^Пояснение:/i.test(line) || /^\*\*Ответ:/i.test(line) || /^\*\*Пояснение:/i.test(line)) {
+        inStep1 = false;
         inStep2 = false;
         continue;
       }
-      if (/^Задание\s+\d+\s*\(Часть\s+2\)/i.test(line) || /^Часть\s+2/i.test(line)) {
+      
+      // Ищем начало Части 1
+      const step1Match = line.match(/^Задание\s+\d+\s*\(Часть\s+1\)[\.\)]\s*(.+)/i);
+      if (step1Match) {
+        inStep1 = true;
+        inStep2 = false;
+        step1Question = step1Match[1].trim();
+        continue;
+      }
+      if (/^Задание\s+\d+\s*\(Часть\s+1\)/i.test(line)) {
+        inStep1 = true;
+        inStep2 = false;
+        // Ищем вопрос в следующей строке
+        continue;
+      }
+      if (/^Часть\s+1/i.test(line) && !inStep1 && !inStep2) {
+        inStep1 = true;
+        inStep2 = false;
+        const nextLineMatch = line.match(/^Часть\s+1[\.\)]\s*(.+)/i);
+        if (nextLineMatch) {
+          step1Question = nextLineMatch[1].trim();
+        }
+        continue;
+      }
+      
+      // Ищем начало Части 2
+      const step2Match = line.match(/^Задание\s+\d+\s*\(Часть\s+2\)[\.\)]\s*(.+)/i);
+      if (step2Match) {
         inStep2 = true;
         inStep1 = false;
+        step2Question = step2Match[1].trim();
+        continue;
+      }
+      if (/^Задание\s+\d+\s*\(Часть\s+2\)/i.test(line)) {
+        inStep2 = true;
+        inStep1 = false;
+        // Извлекаем вопрос из той же строки
+        const questionMatch = line.match(/^Задание\s+\d+\s*\(Часть\s+2\)[\.\)]\s*(.+)/i);
+        if (questionMatch) {
+          step2Question = questionMatch[1].trim();
+        }
+        continue;
+      }
+      if (/^Часть\s+2/i.test(line) && !inStep2) {
+        inStep2 = true;
+        inStep1 = false;
+        const nextLineMatch = line.match(/^Часть\s+2[\.\)]\s*(.+)/i);
+        if (nextLineMatch) {
+          step2Question = nextLineMatch[1].trim();
+        }
         continue;
       }
       
       if (inStep1) {
-        const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
-        if (optMatch) {
-          step1Options.push(optMatch[2].trim());
+        // Если еще нет вопроса step1, пытаемся извлечь из строки
+        if (!step1Question && line && !line.match(/^([A-Z])\)/)) {
+          step1Question = line.trim();
+        } else {
+          const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
+          if (optMatch) {
+            step1Options.push(optMatch[2].trim());
+          }
         }
       }
       if (inStep2) {
-        const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
-        if (optMatch) {
-          step2Options.push(optMatch[2].trim());
+        // Если еще нет вопроса step2, пытаемся извлечь из строки
+        if (!step2Question && line && !line.match(/^([A-Z])\)/)) {
+          step2Question = line.trim();
+        } else {
+          const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
+          if (optMatch) {
+            step2Options.push(optMatch[2].trim());
+          }
         }
       }
     }
     
     if (step1Options.length > 0) {
-      question.step1 = { question: questionTextLine, options: step1Options };
+      question.step1 = { 
+        question: step1Question || questionTextLine, 
+        options: step1Options 
+      };
     }
     if (step2Options.length > 0) {
-      question.step2 = { question: "Выберите объяснение", options: step2Options };
+      question.step2 = { 
+        question: step2Question || "Выберите объяснение", 
+        options: step2Options 
+      };
     }
   } else if (mechanic === "matrix") {
     const rows: string[] = [];
@@ -853,6 +919,13 @@ function parseQuestion(
     let inCharacteristics = false;
     
     for (const line of lines) {
+      // Останавливаемся при встрече ответов и пояснений
+      if (/^Ответ:/i.test(line) || /^Пояснение:/i.test(line) || /^\*\*Ответ:/i.test(line) || /^\*\*Пояснение:/i.test(line)) {
+        inObjects = false;
+        inCharacteristics = false;
+        continue;
+      }
+      
       if (/^Объекты:/i.test(line)) {
         inObjects = true;
         inCharacteristics = false;
@@ -868,6 +941,9 @@ function parseQuestion(
         const objMatch = line.match(/^(\d+)\.\s*(.+)$/);
         if (objMatch) {
           rows.push(objMatch[2].trim());
+        } else if (line && line.trim() && !line.match(/^[A-Z]\)/)) {
+          // Альтернативный формат без номера
+          rows.push(line.trim());
         }
       }
       if (inCharacteristics) {
@@ -885,18 +961,32 @@ function parseQuestion(
     // Для select-errors нужно парсить пронумерованные строки
     const markedParts: Array<{ id: number; text: string; start: number; end: number }> = [];
     let partId = 1;
+    let inText = false;
+    let stopParsing = false;
     
     for (const line of lines) {
-      if (/^Текст:/i.test(line)) continue;
-      const textMatch = line.match(/^\[(\d+)\]\s*(.+)$/);
-      if (textMatch) {
-        const text = textMatch[2].trim();
-        markedParts.push({
-          id: partId++,
-          text,
-          start: 0,
-          end: text.length,
-        });
+      // Останавливаемся при встрече исправленного текста
+      if (/^Исправленный текст/i.test(line) || /^Чтобы соблюсти формат/i.test(line)) {
+        stopParsing = true;
+        break;
+      }
+      
+      if (/^Текст:/i.test(line)) {
+        inText = true;
+        continue;
+      }
+      
+      if (inText || !stopParsing) {
+        const textMatch = line.match(/^\[(\d+)\]\s*(.+)$/);
+        if (textMatch) {
+          const text = textMatch[2].trim();
+          markedParts.push({
+            id: partId++,
+            text,
+            start: 0,
+            end: text.length,
+          });
+        }
       }
     }
     
@@ -1015,13 +1105,28 @@ export function parseBazaFile(content: string): ParsedTest[] {
     for (let i = currentLine; i < endLine; i++) {
       const line = lines[i].trim();
       
+      // Проверяем, не является ли это частью two-step вопроса
+      // Если предыдущий вопрос был two-step и текущая строка - "Задание X (Часть Y)", это продолжение
+      const isTwoStepPart = /^Задание\s+\d+\s*\(Часть\s+[12]\)/i.test(line);
+      if (isTwoStepPart && currentQuestion && questionStarted) {
+        // Это часть two-step вопроса, добавляем к текущему вопросу
+        currentQuestion += line + "\n";
+        continue;
+      }
+      
       // Начало нового вопроса (поддерживаем оба формата: с ** и без)
       if (/^(?:\*\*)?Вопрос\s+\d+[\.\)]/i.test(line) || /^(?:\*\*)?Задание\s+\d+/i.test(line)) {
-        if (currentQuestion && questionStarted) {
-          questionTexts.push(currentQuestion);
+        // Проверяем, не является ли это частью two-step (Часть 1 или Часть 2)
+        if (!isTwoStepPart) {
+          if (currentQuestion && questionStarted) {
+            questionTexts.push(currentQuestion);
+          }
+          currentQuestion = line + "\n";
+          questionStarted = true;
+        } else {
+          // Это часть two-step, добавляем к текущему
+          currentQuestion += line + "\n";
         }
-        currentQuestion = line + "\n";
-        questionStarted = true;
         continue;
       }
       

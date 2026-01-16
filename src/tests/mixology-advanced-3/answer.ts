@@ -24,7 +24,5 @@ export const MIXOLOGY_ADVANCED_3_SECRET = {
     q10: null,
     q11: null,
     q12: null,
-    q13: null,
-    q14: null,
   } as Record<string, any>,
 };

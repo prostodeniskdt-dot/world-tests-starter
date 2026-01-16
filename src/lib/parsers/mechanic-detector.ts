@@ -3,9 +3,15 @@ import type { QuestionMechanic } from "@/tests/types";
 /**
  * Извлекает механику из скобок в тексте вопроса
  * Формат: *(Mechanic name)* или *(Mechanic name / Alternative)*
+ * Или: (Mechanic name) или (Mechanic name / Alternative) без звездочек
  */
 function extractMechanicFromParentheses(text: string): QuestionMechanic | null {
-  const match = text.match(/\*\(([^)]+)\)\*/);
+  // Сначала пробуем формат со звездочками
+  let match = text.match(/\*\(([^)]+)\)\*/);
+  // Если не нашли, пробуем формат без звездочек
+  if (!match) {
+    match = text.match(/\(([^)]+)\)/);
+  }
   if (!match) return null;
   
   const mechanicText = match[1].toLowerCase();
