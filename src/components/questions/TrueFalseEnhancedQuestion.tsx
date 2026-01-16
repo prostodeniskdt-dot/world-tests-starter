@@ -39,7 +39,7 @@ export function TrueFalseEnhancedQuestion({
     <div className="space-y-4">
       {/* Инструкция */}
       <div className="text-xs sm:text-sm font-medium text-zinc-700 mb-3 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        ℹ️ Сначала выберите "Верно" или "Неверно", затем укажите причину
+        ℹ️ Сначала выберите &quot;Верно&quot; или &quot;Неверно&quot;, затем укажите причину
       </div>
       
       {/* Улучшенный степпер с прогрессом */}
