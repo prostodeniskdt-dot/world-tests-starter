@@ -604,6 +604,13 @@ function parseQuestion(
     let inRight = false;
     
     for (const line of lines) {
+      // Останавливаемся при встрече ответов и пояснений
+      if (/^Ответ:/i.test(line) || /^Пояснение:/i.test(line) || /^\*\*Ответ:/i.test(line) || /^\*\*Пояснение:/i.test(line)) {
+        inLeft = false;
+        inRight = false;
+        continue;
+      }
+      
       if (/^Слева:/i.test(line)) {
         inLeft = true;
         inRight = false;
@@ -671,21 +678,24 @@ function parseQuestion(
     
     if (mechanic === "grouping") {
       const categories: string[] = [];
-      let inCategories = false;
       
       for (const line of lines) {
         if (/^Категории:/i.test(line)) {
-          inCategories = true;
-          continue;
-        }
-        if (inCategories) {
-          const catMatch = line.match(/^\*\*([^:]+):\*\*/);
-          if (catMatch) {
-            categories.push(catMatch[1].trim());
-          } else if (line && line.includes(":")) {
-            const parts = line.split(":");
-            if (parts[0]) categories.push(parts[0].trim());
+          // Извлекаем категории из строки "Категории: «Категория 1», «Категория 2»"
+          const catLine = line.replace(/^Категории:\s*/i, "").trim();
+          // Убираем кавычки и разбиваем по запятым
+          const catMatches = catLine.match(/[«"]([^»"]+)[»"]/g);
+          if (catMatches) {
+            for (const match of catMatches) {
+              const cat = match.replace(/[«»"]/g, "").trim();
+              if (cat) categories.push(cat);
+            }
+          } else {
+            // Альтернативный формат без кавычек: "Категории: Категория 1, Категория 2"
+            const parts = catLine.split(",").map(p => p.trim()).filter(p => p);
+            categories.push(...parts);
           }
+          break;
         }
       }
       
@@ -693,24 +703,72 @@ function parseQuestion(
     }
   } else if (mechanic === "cloze-dropdown") {
     const gaps: Array<{ index: number; options: string[] }> = [];
-    const options: string[] = [];
-    let inOptions = false;
+    let clozeText = questionTextLine;
     
-    // Ищем пропуски вида [1: ___]
-    const gapMatch = questionTextLine.match(/\[(\d+):\s*___\]/);
-    if (gapMatch) {
-      const gapIndex = parseInt(gapMatch[1], 10);
+    // Ищем строку "Текст:" для извлечения полного текста
+    for (const line of lines) {
+      if (/^Текст:/i.test(line)) {
+        const textMatch = line.match(/^Текст:\s*[«"]?([^»"]+)[»"]?/i);
+        if (textMatch) {
+          clozeText = textMatch[1].trim();
+          question.text = clozeText;
+        } else {
+          // Альтернативный формат без кавычек
+          const textMatch2 = line.replace(/^Текст:\s*/i, "").trim();
+          if (textMatch2) {
+            clozeText = textMatch2;
+            question.text = clozeText;
+          }
+        }
+        break;
+      }
+    }
+    
+    // Ищем пропуски вида [1: ___] в тексте
+    const gapMatches = clozeText.matchAll(/\[(\d+):\s*___\]/g);
+    const gapIndices: number[] = [];
+    for (const gapMatch of gapMatches) {
+      gapIndices.push(parseInt(gapMatch[1], 10));
+    }
+    
+    // Для каждого пропуска ищем варианты
+    for (const gapIndex of gapIndices) {
+      const options: string[] = [];
+      let inOptions = false;
+      let foundGapOptions = false;
       
-      // Ищем варианты для этого пропуска
       for (const line of lines) {
-        if (/^Варианты для/i.test(line)) {
+        const optionsMatch = line.match(/^Варианты для\s*\[(\d+)\]:/i);
+        if (optionsMatch && parseInt(optionsMatch[1], 10) === gapIndex) {
           inOptions = true;
+          foundGapOptions = true;
           continue;
         }
         if (inOptions) {
           const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
           if (optMatch) {
             options.push(optMatch[2].trim());
+          } else if (/^Варианты для/i.test(line) || /^Ответ:/i.test(line) || /^Пояснение:/i.test(line)) {
+            // Конец вариантов для этого пропуска
+            break;
+          }
+        }
+      }
+      
+      // Если не нашли специфичные варианты для пропуска, ищем общие варианты
+      if (!foundGapOptions && gapIndices.length === 1) {
+        for (const line of lines) {
+          if (/^Варианты для/i.test(line)) {
+            inOptions = true;
+            continue;
+          }
+          if (inOptions) {
+            const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
+            if (optMatch) {
+              options.push(optMatch[2].trim());
+            } else if (/^Ответ:/i.test(line) || /^Пояснение:/i.test(line)) {
+              break;
+            }
           }
         }
       }
