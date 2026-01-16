@@ -89,6 +89,7 @@ export function TestClient({ test }: { test: PublicTest }) {
       const res = await fetch(`/api/tests/${test.id}/check-answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ questionId, answer }),
       });
       const data = await res.json();
@@ -115,7 +116,9 @@ export function TestClient({ test }: { test: PublicTest }) {
   useEffect(() => {
     if (currentUser?.userId) {
       // userId больше не передается в query, берется из JWT токена для безопасности
-      fetch(`/api/tests/${test.id}/attempts`)
+      fetch(`/api/tests/${test.id}/attempts`, {
+        credentials: "include",
+      })
         .then((res) => res.json())
         .then((data) => {
           if (data.ok) {
@@ -321,6 +324,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                           const res = await fetch("/api/submit", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
+                            credentials: "include", // Важно: отправляем cookies для аутентификации
                             body: JSON.stringify({
                               // userId больше не передается, берется из JWT токена для безопасности
                               testId: test.id,
@@ -340,20 +344,44 @@ export function TestClient({ test }: { test: PublicTest }) {
                           try {
                             const text = await res.text();
                             if (!text) {
-                              throw new Error("Пустой ответ от сервера");
+                              // Если пустой ответ, создаем ошибку на основе статуса
+                              const statusCode = res.status || 0;
+                              console.error("Пустой ответ от сервера, статус:", statusCode);
+                              const errorMsg = 
+                                statusCode === 401
+                                  ? "Требуется авторизация. Пожалуйста, войдите в систему."
+                                  : statusCode === 403
+                                  ? "Доступ запрещен. Проверьте права доступа."
+                                  : statusCode >= 500
+                                  ? "Сервер временно недоступен. Попробуйте позже."
+                                  : statusCode === 0
+                                  ? "Сеть/сервер недоступны. Проверьте подключение к интернету."
+                                  : `Ошибка сервера (${statusCode})`;
+                              throw new Error(errorMsg);
                             }
                             json = JSON.parse(text) as SubmitResponse;
+                            // Логируем ответ для отладки
+                            if (!json.ok) {
+                              console.error("Ошибка от сервера:", json.error, "Статус:", res.status);
+                            }
                           } catch (parseError) {
                             // Если не удалось распарсить JSON, создаем ошибку на основе статуса
                             const statusText = res.statusText || "Неизвестная ошибка";
                             const statusCode = res.status || 0;
-                            throw new Error(
-                              statusCode >= 500
+                            console.error("Ошибка парсинга ответа:", parseError, "Статус:", statusCode, "Статус текст:", statusText);
+                            const errorMsg = 
+                              statusCode === 401
+                                ? "Требуется авторизация. Пожалуйста, войдите в систему."
+                                : statusCode === 403
+                                ? "Доступ запрещен. Проверьте права доступа."
+                                : statusCode >= 500
                                 ? "Сервер временно недоступен. Попробуйте позже."
                                 : statusCode === 0
                                 ? "Сеть/сервер недоступны. Проверьте подключение к интернету."
-                                : `Ошибка сервера (${statusCode}): ${statusText}`
-                            );
+                                : parseError instanceof Error
+                                ? parseError.message
+                                : `Ошибка сервера (${statusCode}): ${statusText}`;
+                            throw new Error(errorMsg);
                           }
 
                           setResult(json);
@@ -381,8 +409,9 @@ export function TestClient({ test }: { test: PublicTest }) {
                             await checkAllAnswers();
                             addToast("Тест успешно отправлен!", "success");
                           } else {
-                            // Сервер вернул ошибку в формате JSON
-                            addToast(json.error || "Ошибка отправки теста", "error");
+                            // Сервер вернул ошибку в формате JSON - показываем реальное сообщение
+                            const errorMsg = json.error || "Ошибка отправки теста";
+                            addToast(errorMsg, "error");
                           }
                         } catch (e) {
                           // Обработка сетевых ошибок и ошибок парсинга
