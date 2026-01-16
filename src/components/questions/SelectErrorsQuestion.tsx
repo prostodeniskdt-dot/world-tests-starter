@@ -45,22 +45,13 @@ export function SelectErrorsQuestion({
       );
     }
 
-    // Отображаем контент с выделенными частями
+    // Отображаем части последовательно, разделяя их пробелами
+    // Не используем content для промежуточного текста, чтобы избежать обрывков
     const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
 
     question.markedParts
       .sort((a, b) => a.start - b.start)
-      .forEach((part) => {
-        // Текст до части
-        if (part.start > lastIndex) {
-          parts.push(
-            <span key={`text-${lastIndex}`}>
-              {question.content.substring(lastIndex, part.start)}
-            </span>
-          );
-        }
-
+      .forEach((part, index) => {
         // Выделенная часть с номером
         const isSelected = selectedIds.includes(part.id);
         const partNumber = getPartNumber(part.id);
@@ -83,15 +74,11 @@ export function SelectErrorsQuestion({
           </span>
         );
 
-        lastIndex = part.end;
+        // Добавляем пробел между частями (кроме последней)
+        if (index < question.markedParts.length - 1) {
+          parts.push(<span key={`space-${part.id}`}> </span>);
+        }
       });
-
-    // Остаток текста
-    if (lastIndex < question.content.length) {
-      parts.push(
-        <span key={`text-${lastIndex}`}>{question.content.substring(lastIndex)}</span>
-      );
-    }
 
     return parts;
   };
