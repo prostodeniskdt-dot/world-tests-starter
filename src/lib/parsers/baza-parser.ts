@@ -39,7 +39,8 @@ function parseAnswerKey(keyText: string): Record<number, any> {
   // Убираем "Ключ (Тест X):" если есть
   keyText = keyText.replace(/^.*?:\s*/, "").trim();
   
-  // Разбиваем по запятым, но учитываем скобки
+  // Разбиваем по точкам с запятой, но учитываем скобки
+  // Формат: "1A; 2: 1–A,2–D,3–C,4–B; 3A; ..."
   const parts: string[] = [];
   let current = "";
   let depth = 0;
@@ -48,7 +49,8 @@ function parseAnswerKey(keyText: string): Record<number, any> {
     const char = keyText[i];
     if (char === "(") depth++;
     if (char === ")") depth--;
-    if (char === "," && depth === 0) {
+    // Разделяем по ";" если глубина скобок = 0
+    if (char === ";" && depth === 0) {
       if (current.trim()) {
         parts.push(current.trim());
         current = "";
@@ -62,17 +64,44 @@ function parseAnswerKey(keyText: string): Record<number, any> {
   }
   
   for (const part of parts) {
-    const trimmedPart = part.trim();
+    let trimmedPart = part.trim();
+    // Убираем завершающую точку если есть
+    trimmedPart = trimmedPart.replace(/\.$/, "");
     
-    // Простой ответ: "1B" или "1A" или " 1A " (с пробелами)
+    // Простой ответ: "1B" или "1A" или " 1A " (с пробелами) или "20A."
     // Проверяем сначала простые ответы, чтобы не перехватить их другими паттернами
-    const simpleMatch = trimmedPart.match(/^(\d+)([A-Z])$/);
+    const simpleMatch = trimmedPart.match(/^(\d+)([A-Z])\.?$/);
     if (simpleMatch) {
       const qNum = parseInt(simpleMatch[1], 10);
       const letter = simpleMatch[2].toUpperCase();
       const answerIndex = letter.charCodeAt(0) - 65; // A=0, B=1, C=2, ...
       answers[qNum] = answerIndex;
       continue;
+    }
+    
+    // Формат с двоеточием: "2: 1–A,2–D,3–C,4–B" (matching)
+    const colonMatch = trimmedPart.match(/^(\d+):\s*(.+)$/);
+    if (colonMatch) {
+      const qNum = parseInt(colonMatch[1], 10);
+      const pairsText = colonMatch[2];
+      // Проверяем, что это matching (содержит пары вида "число–буква" через запятую)
+      if (pairsText.match(/^\d+[–-][A-Z](,\s*\d+[–-][A-Z])+$/)) {
+        const pairs: [number, number][] = [];
+        const pairMatches = pairsText.match(/(\d+)[–-]([A-Z])/g);
+        if (pairMatches) {
+          for (const pairMatch of pairMatches) {
+            const m = pairMatch.match(/(\d+)[–-]([A-Z])/);
+            if (m) {
+              const leftIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
+              const rightLetter = m[2].toUpperCase();
+              const rightIdx = rightLetter.charCodeAt(0) - 65; // A=0, B=1, ...
+              pairs.push([leftIdx, rightIdx]);
+            }
+          }
+        }
+        answers[qNum] = pairs;
+        continue;
+      }
     }
     
     // Если не простой ответ, проверяем сложные форматы
@@ -106,11 +135,11 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       }
     }
     
-    // Ordering: "5(D→A→C→B)" или "6(A→B→C→D)"
-    const orderingMatch = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
-    if (orderingMatch && orderingMatch[2].includes("→")) {
-      const qNum = parseInt(orderingMatch[1], 10);
-      const orderText = orderingMatch[2];
+    // Ordering: "5(D→A→C→B)" или "6(A→B→C→D)" или "4 A→B→C→D" (без скобок)
+    const orderingMatch1 = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
+    if (orderingMatch1 && orderingMatch1[2].includes("→")) {
+      const qNum = parseInt(orderingMatch1[1], 10);
+      const orderText = orderingMatch1[2];
       const letters = orderText.split(/[→-]/).map(s => s.trim());
       const order = letters.map(letter => {
         const idx = letter.toUpperCase().charCodeAt(0) - 65;
@@ -120,64 +149,162 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // Multiple select: "2(A,D)" или "5(A,C)" или "16(A,C)"
-    const multiSelectMatch = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
-    if (multiSelectMatch && multiSelectMatch[2].match(/^[A-Z](,\s*[A-Z])+$/)) {
-      const qNum = parseInt(multiSelectMatch[1], 10);
-      const letters = multiSelectMatch[2].split(",").map(s => s.trim());
+    // Ordering без скобок: "4 A→B→C→D"
+    const orderingMatch2 = trimmedPart.match(/^(\d+)\s+([A-Z](?:[→-][A-Z])+)$/);
+    if (orderingMatch2 && orderingMatch2[2].includes("→")) {
+      const qNum = parseInt(orderingMatch2[1], 10);
+      const orderText = orderingMatch2[2];
+      const letters = orderText.split(/[→-]/).map(s => s.trim());
+      const order = letters.map(letter => {
+        const idx = letter.toUpperCase().charCodeAt(0) - 65;
+        return idx;
+      });
+      answers[qNum] = order;
+      continue;
+    }
+    
+    // Multiple select: "2(A,D)" или "5(A,C)" или "16(A,C)" или "6 A,D" (без скобок)
+    const multiSelectMatch1 = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
+    if (multiSelectMatch1 && multiSelectMatch1[2].match(/^[A-Z](,\s*[A-Z])+$/)) {
+      const qNum = parseInt(multiSelectMatch1[1], 10);
+      const letters = multiSelectMatch1[2].split(",").map(s => s.trim());
       const indices = letters.map(letter => letter.toUpperCase().charCodeAt(0) - 65);
       answers[qNum] = indices;
       continue;
     }
     
-    // Grouping: "7(A,B / C,D)" или "9(A,B,E / C,D)" или "14(A,B,E / C,D)"
-    const groupingMatch = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
-    if (groupingMatch && groupingMatch[2].includes("/")) {
-      const qNum = parseInt(groupingMatch[1], 10);
-      const groupsText = groupingMatch[2];
-      const groups: Record<string, number[]> = {};
+    // Multiple select без скобок: "6 A,D"
+    const multiSelectMatch2 = trimmedPart.match(/^(\d+)\s+([A-Z](?:,\s*[A-Z])+)$/);
+    if (multiSelectMatch2) {
+      const qNum = parseInt(multiSelectMatch2[1], 10);
+      const letters = multiSelectMatch2[2].split(",").map(s => s.trim());
+      const indices = letters.map(letter => letter.toUpperCase().charCodeAt(0) - 65);
+      answers[qNum] = indices;
+      continue;
+    }
+    
+    // Grouping: "7(A,B / C,D)" или "9(A,B,E / C,D)" или "14(A,B,E / C,D)" или "8 У: A,C / С: B,D,E"
+    const groupingMatch1 = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
+    if (groupingMatch1 && groupingMatch1[2].includes("/")) {
+      const qNum = parseInt(groupingMatch1[1], 10);
+      const groupsText = groupingMatch1[2];
       const categoryParts = groupsText.split("/");
       // Это сложнее, нужно знать категории заранее
       // Пока оставляем как массив массивов
       const categoryArrays: number[][] = [];
       for (const catPart of categoryParts) {
-        const letters = catPart.split(",").map(s => s.trim());
-        const indices = letters.map(letter => letter.toUpperCase().charCodeAt(0) - 65);
-        categoryArrays.push(indices);
+        const letters = catPart.split(",").map(s => s.trim().replace(/^[^:]+:\s*/, "")); // Убираем префикс типа "У:"
+        const indices = letters.map(letter => {
+          const cleanLetter = letter.trim();
+          if (cleanLetter.match(/^[A-Z]$/)) {
+            return cleanLetter.toUpperCase().charCodeAt(0) - 65;
+          }
+          return -1;
+        }).filter(idx => idx >= 0);
+        if (indices.length > 0) {
+          categoryArrays.push(indices);
+        }
       }
       answers[qNum] = categoryArrays;
       continue;
     }
     
-    // Cloze: "11([1]=A)" или "12([1]=A)" или "15([1]=A)" или "18([1]=A)"
-    const clozeMatch = trimmedPart.match(/^(\d+)\(\[(\d+)\]=([A-Z])\)$/);
-    if (clozeMatch) {
-      const qNum = parseInt(clozeMatch[1], 10);
-      const gapIdx = parseInt(clozeMatch[2], 10);
-      const letter = clozeMatch[3].toUpperCase();
+    // Grouping без скобок: "8 У: A,C / С: B,D,E"
+    const groupingMatch2 = trimmedPart.match(/^(\d+)\s+(.+)$/);
+    if (groupingMatch2 && groupingMatch2[2].includes("/")) {
+      const qNum = parseInt(groupingMatch2[1], 10);
+      const groupsText = groupingMatch2[2];
+      const categoryParts = groupsText.split("/");
+      const categoryArrays: number[][] = [];
+      for (const catPart of categoryParts) {
+        const letters = catPart.split(",").map(s => s.trim().replace(/^[^:]+:\s*/, "")); // Убираем префикс типа "У:"
+        const indices = letters.map(letter => {
+          const cleanLetter = letter.trim();
+          if (cleanLetter.match(/^[A-Z]$/)) {
+            return cleanLetter.toUpperCase().charCodeAt(0) - 65;
+          }
+          return -1;
+        }).filter(idx => idx >= 0);
+        if (indices.length > 0) {
+          categoryArrays.push(indices);
+        }
+      }
+      answers[qNum] = categoryArrays;
+      continue;
+    }
+    
+    // Cloze: "11([1]=A)" или "12([1]=A)" или "15([1]=A)" или "18([1]=A)" или "10 [1]=A" (без скобок)
+    const clozeMatch1 = trimmedPart.match(/^(\d+)\(\[(\d+)\]=([A-Z])\)$/);
+    if (clozeMatch1) {
+      const qNum = parseInt(clozeMatch1[1], 10);
+      const gapIdx = parseInt(clozeMatch1[2], 10);
+      const letter = clozeMatch1[3].toUpperCase();
       const answerIndex = letter.charCodeAt(0) - 65;
       answers[qNum] = { [gapIdx]: answerIndex };
       continue;
     }
     
-    // Two-step: "2(Ч1=A;Ч2=A)" или "16(Ч1=A;Ч2=A)"
+    // Cloze без скобок: "10 [1]=A"
+    const clozeMatch2 = trimmedPart.match(/^(\d+)\s+\[(\d+)\]=([A-Z])$/);
+    if (clozeMatch2) {
+      const qNum = parseInt(clozeMatch2[1], 10);
+      const gapIdx = parseInt(clozeMatch2[2], 10);
+      const letter = clozeMatch2[3].toUpperCase();
+      const answerIndex = letter.charCodeAt(0) - 65;
+      answers[qNum] = { [gapIdx]: answerIndex };
+      continue;
+    }
+    
+    // Two-step: "2(Ч1=A;Ч2=A)" или "16(Ч1=A;Ч2=A)" или "10 Ч1=A;Ч2=A" (без скобок)
     // Используем Unicode для кириллицы
-    const twoStepMatch = trimmedPart.match(/^(\d+)\([ЧЧ]1=([A-Z]);[ЧЧ]2=([A-Z])\)$/);
-    if (twoStepMatch) {
-      const qNum = parseInt(twoStepMatch[1], 10);
-      const step1Letter = twoStepMatch[2].toUpperCase();
-      const step2Letter = twoStepMatch[3].toUpperCase();
+    const twoStepMatch1 = trimmedPart.match(/^(\d+)\([ЧЧ]1=([A-Z]);[ЧЧ]2=([A-Z])\)$/);
+    if (twoStepMatch1) {
+      const qNum = parseInt(twoStepMatch1[1], 10);
+      const step1Letter = twoStepMatch1[2].toUpperCase();
+      const step2Letter = twoStepMatch1[3].toUpperCase();
       const step1Idx = step1Letter.charCodeAt(0) - 65;
       const step2Idx = step2Letter.charCodeAt(0) - 65;
       answers[qNum] = { step1: step1Idx, step2: step2Idx };
       continue;
     }
     
-    // Matrix: "4(1–A;2–B;3–C)" или "17(1–A;2–C;3–B)"
-    const matrixMatch = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
-    if (matrixMatch && matrixMatch[2].includes(";") && matrixMatch[2].includes("–")) {
-      const qNum = parseInt(matrixMatch[1], 10);
-      const pairsText = matrixMatch[2];
+    // Two-step без скобок: "10 Ч1=A;Ч2=A"
+    const twoStepMatch2 = trimmedPart.match(/^(\d+)\s+[ЧЧ]1=([A-Z]);[ЧЧ]2=([A-Z])$/);
+    if (twoStepMatch2) {
+      const qNum = parseInt(twoStepMatch2[1], 10);
+      const step1Letter = twoStepMatch2[2].toUpperCase();
+      const step2Letter = twoStepMatch2[3].toUpperCase();
+      const step1Idx = step1Letter.charCodeAt(0) - 65;
+      const step2Idx = step2Letter.charCodeAt(0) - 65;
+      answers[qNum] = { step1: step1Idx, step2: step2Idx };
+      continue;
+    }
+    
+    // Matrix: "4(1–A;2–B;3–C)" или "17(1–A;2–C;3–B)" или "12 1–A;2–B;3–C" (без скобок)
+    const matrixMatch1 = trimmedPart.match(/^(\d+)\(([^)]+)\)$/);
+    if (matrixMatch1 && matrixMatch1[2].includes(";") && matrixMatch1[2].includes("–")) {
+      const qNum = parseInt(matrixMatch1[1], 10);
+      const pairsText = matrixMatch1[2];
+      const pairs: Record<number, number> = {};
+      const pairMatches = pairsText.split(";");
+      for (const pairMatch of pairMatches) {
+        const m = pairMatch.match(/(\d+)[–-]([A-Z])/);
+        if (m) {
+          const rowIdx = parseInt(m[1], 10) - 1; // 1-based to 0-based
+          const colLetter = m[2].toUpperCase();
+          const colIdx = colLetter.charCodeAt(0) - 65;
+          pairs[rowIdx] = colIdx;
+        }
+      }
+      answers[qNum] = pairs;
+      continue;
+    }
+    
+    // Matrix без скобок: "12 1–A;2–B;3–C"
+    const matrixMatch2 = trimmedPart.match(/^(\d+)\s+(\d+[–-][A-Z](?:;\s*\d+[–-][A-Z])+)$/);
+    if (matrixMatch2) {
+      const qNum = parseInt(matrixMatch2[1], 10);
+      const pairsText = matrixMatch2[2];
       const pairs: Record<number, number> = {};
       const pairMatches = pairsText.split(";");
       for (const pairMatch of pairMatches) {
@@ -218,11 +345,20 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       }
     }
     
-    // Select errors: "11(2,6)"
-    const errorsMatch = trimmedPart.match(/^(\d+)\((\d+(?:,\s*\d+)+)\)$/);
-    if (errorsMatch) {
-      const qNum = parseInt(errorsMatch[1], 10);
-      const errorNums = errorsMatch[2].split(",").map(s => parseInt(s.trim(), 10) - 1); // 1-based to 0-based
+    // Select errors: "11(2,6)" или "16 2,5" (без скобок)
+    const errorsMatch1 = trimmedPart.match(/^(\d+)\((\d+(?:,\s*\d+)+)\)$/);
+    if (errorsMatch1) {
+      const qNum = parseInt(errorsMatch1[1], 10);
+      const errorNums = errorsMatch1[2].split(",").map(s => parseInt(s.trim(), 10) - 1); // 1-based to 0-based
+      answers[qNum] = errorNums;
+      continue;
+    }
+    
+    // Select errors без скобок: "16 2,5"
+    const errorsMatch2 = trimmedPart.match(/^(\d+)\s+(\d+(?:,\s*\d+)+)$/);
+    if (errorsMatch2) {
+      const qNum = parseInt(errorsMatch2[1], 10);
+      const errorNums = errorsMatch2[2].split(",").map(s => parseInt(s.trim(), 10) - 1); // 1-based to 0-based
       answers[qNum] = errorNums;
       continue;
     }
@@ -238,12 +374,22 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       continue;
     }
     
-    // True/False: "4(Неверно;A)" или "10(Верно;A)" или "11(Верно;A)"
-    const tfMatch = trimmedPart.match(/^(\d+)\(([Вв]ерно|[Нн]еверно);([A-Z])\)$/);
-    if (tfMatch) {
-      const qNum = parseInt(tfMatch[1], 10);
-      const isTrue = /верно/i.test(tfMatch[2]);
-      const reasonIdx = tfMatch[3].toUpperCase().charCodeAt(0) - 65;
+    // True/False: "4(Неверно;A)" или "10(Верно;A)" или "11(Верно;A)" или "5 Неверно/C? (A)"
+    const tfMatch1 = trimmedPart.match(/^(\d+)\(([Вв]ерно|[Нн]еверно);([A-Z])\)$/);
+    if (tfMatch1) {
+      const qNum = parseInt(tfMatch1[1], 10);
+      const isTrue = /верно/i.test(tfMatch1[2]);
+      const reasonIdx = tfMatch1[3].toUpperCase().charCodeAt(0) - 65;
+      answers[qNum] = { answer: isTrue, reason: reasonIdx };
+      continue;
+    }
+    
+    // Формат "5 Неверно/C? (A)" - True/False с причиной
+    const tfMatch2 = trimmedPart.match(/^(\d+)\s+([Вв]ерно|[Нн]еверно)[^;]*\(([A-Z])\)$/);
+    if (tfMatch2) {
+      const qNum = parseInt(tfMatch2[1], 10);
+      const isTrue = /верно/i.test(tfMatch2[2]);
+      const reasonIdx = tfMatch2[3].toUpperCase().charCodeAt(0) - 65;
       answers[qNum] = { answer: isTrue, reason: reasonIdx };
       continue;
     }
@@ -255,8 +401,11 @@ function parseAnswerKey(keyText: string): Record<number, any> {
 /**
  * Извлекает метаданные теста из заголовка
  * Формат: ## ТЕСТ 1 (Простой). **«Пять колонн пузырьков: базовая сборка»**
+ * Или: ТЕСТ 1 — «Три штриха баланса»
+ * Или: ТЕСТ 3 (Сложный) — «Инженерия вкуса»
  */
-function parseTestHeader(header: string): { title: string; level: string } | null {
+function parseTestHeader(header: string, testNumber: number): { title: string; level: string } | null {
+  // Формат с ## и скобками: ## ТЕСТ 1 (Простой). **«...»**
   const match = header.match(/ТЕСТ\s+\d+\s*\(([^)]+)\)[.\s]*\*\*[«"]?([^»"]+)[»"]?\*\*/i);
   if (match) {
     return {
@@ -265,12 +414,23 @@ function parseTestHeader(header: string): { title: string; level: string } | nul
     };
   }
   
-  // Альтернативный формат без кавычек
-  const match2 = header.match(/ТЕСТ\s+\d+\s*\(([^)]+)\)[.\s]*(.+)/i);
+  // Формат baza1.txt: ТЕСТ 1 — «Три штриха баланса» или ТЕСТ 3 (Сложный) — «Инженерия вкуса»
+  // Используем Unicode для em dash (—) и en dash (–)
+  const match2 = header.match(/ТЕСТ\s+\d+\s*(?:\(([^)]+)\)\s*)?[—–\-]\s*[«"]?([^»"]+)[»"]?/i);
   if (match2) {
+    const level = match2[1] ? match2[1].trim() : (testNumber === 1 ? "Простой" : testNumber === 2 ? "Средний" : "Сложный");
     return {
-      title: match2[2].trim().replace(/\*\*/g, "").replace(/[«"]/g, "").replace(/[»"]/g, ""),
-      level: match2[1].trim(),
+      title: match2[2].trim(),
+      level: level,
+    };
+  }
+  
+  // Альтернативный формат без кавычек
+  const match3 = header.match(/ТЕСТ\s+\d+\s*\(([^)]+)\)[.\s]*(.+)/i);
+  if (match3) {
+    return {
+      title: match3[2].trim().replace(/\*\*/g, "").replace(/[«"]/g, "").replace(/[»"]/g, ""),
+      level: match3[1].trim(),
     };
   }
   
@@ -289,17 +449,18 @@ function parseQuestion(
   const lines = questionText.split("\n").map((l) => l.trim()).filter((l) => l);
   if (lines.length === 0) return null;
   
-  // Находим строку с вопросом (начинается с "**Вопрос X.**" или "**Задание X.**")
+  // Находим строку с вопросом (начинается с "**Вопрос X.**" или "**Задание X.**" или "Вопрос X." или "Задание X.")
   let questionLine = "";
   let questionTextLine = "";
   let mechanic: QuestionMechanic = "multiple-choice";
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (line.match(/^\*\*Вопрос\s+\d+\.\*\*/i) || line.match(/^\*\*Задание\s+\d+/i)) {
+    // Поддерживаем оба формата: с ** и без
+    if (line.match(/^(?:\*\*)?Вопрос\s+\d+[\.\)]/i) || line.match(/^(?:\*\*)?Задание\s+\d+/i)) {
       // Извлекаем текст вопроса и механику
-      const questionMatch = line.match(/^\*\*(?:Вопрос|Задание)\s+\d+[\.\)].*\*\*\s*(.+)/i) || 
-                           line.match(/^\*\*Задание\s+\d+\s*\([^)]+\)\.\*\*\s*(.+)/i);
+      const questionMatch = line.match(/^(?:\*\*)?(?:Вопрос|Задание)\s+\d+[\.\)]\s*(.+)/i) || 
+                           line.match(/^(?:\*\*)?Задание\s+\d+\s*\([^)]+\)[\.\)]\s*(.+)/i);
       if (questionMatch) {
         questionTextLine = questionMatch[1].trim();
         mechanic = detectMechanic(questionTextLine);
@@ -320,7 +481,7 @@ function parseQuestion(
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (line.includes("?") && !questionTextLine) {
-        questionTextLine = line.replace(/^\*\*(?:Вопрос|Задание)\s+\d+[\.\)].*\*\*\s*/i, "").trim();
+        questionTextLine = line.replace(/^(?:\*\*)?(?:Вопрос|Задание)\s+\d+[\.\)].*\s*/i, "").trim();
         mechanic = detectMechanic(line);
         break;
       }
@@ -329,7 +490,7 @@ function parseQuestion(
   
   if (!questionTextLine) {
     // Пытаемся взять первую строку
-    questionTextLine = lines[0].replace(/^\*\*(?:Вопрос|Задание)\s+\d+[\.\)].*\*\*\s*/i, "").trim();
+    questionTextLine = lines[0].replace(/^(?:\*\*)?(?:Вопрос|Задание)\s+\d+[\.\)].*\s*/i, "").trim();
     mechanic = detectMechanic(lines[0]);
   }
   
@@ -603,7 +764,7 @@ function parseHints(text: string): Record<number, string> {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     
-    // Ищем "**Пояснение:**" после вопроса
+    // Ищем "**Пояснение:**" или "Пояснение:" после вопроса
     if (/^\*\*Пояснение:\*\*/i.test(line)) {
       const hintText = line.replace(/^\*\*Пояснение:\*\*\s*/i, "").trim();
       if (hintText && currentQuestionNum > 0) {
@@ -614,16 +775,16 @@ function parseHints(text: string): Record<number, string> {
       if (hintText && currentQuestionNum > 0) {
         hints[currentQuestionNum] = hintText;
       }
-    } else if (/^\*\*Вопрос\s+(\d+)\.\*\*/i.test(line) || /^\*\*Задание\s+(\d+)/i.test(line)) {
-      const match = line.match(/^\*\*Вопрос\s+(\d+)\.\*\*/i) || line.match(/^\*\*Задание\s+(\d+)/i);
+    } else if (/^(?:\*\*)?Вопрос\s+(\d+)[\.\)]/i.test(line) || /^(?:\*\*)?Задание\s+(\d+)/i.test(line)) {
+      const match = line.match(/^(?:\*\*)?Вопрос\s+(\d+)[\.\)]/i) || line.match(/^(?:\*\*)?Задание\s+(\d+)/i);
       if (match) {
         currentQuestionNum = parseInt(match[1], 10);
       }
     }
     
     // Продолжение пояснения на следующей строке
-    if (currentQuestionNum > 0 && hints[currentQuestionNum] && line && !line.match(/^\*\*Вопрос/i) && !line.match(/^[A-Z]\)/) && !line.match(/^\d+\./)) {
-      if (!line.match(/^Пояснение:/i) && !line.match(/^Ключ/i) && !line.match(/^---/)) {
+    if (currentQuestionNum > 0 && hints[currentQuestionNum] && line && !line.match(/^(?:\*\*)?Вопрос/i) && !line.match(/^(?:\*\*)?Задание/i) && !line.match(/^[A-Z]\)/) && !line.match(/^\d+\./)) {
+      if (!line.match(/^Пояснение:/i) && !line.match(/^Ключ/i) && !line.match(/^---/) && !line.match(/^Правильный ответ:/i)) {
         hints[currentQuestionNum] += " " + line;
       }
     }
@@ -638,8 +799,8 @@ function parseHints(text: string): Record<number, string> {
 export function parseBazaFile(content: string): ParsedTest[] {
   const tests: ParsedTest[] = [];
   
-  // Разделяем на тесты по заголовкам "## ТЕСТ X"
-  const testSections = content.split(/(?=##\s+ТЕСТ\s+\d+)/i);
+  // Разделяем на тесты по заголовкам "## ТЕСТ X" или "ТЕСТ X"
+  const testSections = content.split(/(?=(?:##\s+)?ТЕСТ\s+\d+)/i);
   
   for (const section of testSections) {
     if (!section.trim()) continue;
@@ -649,9 +810,12 @@ export function parseBazaFile(content: string): ParsedTest[] {
     
     // Парсим заголовок
     let headerLine = "";
+    let testNumber = 0;
     while (currentLine < lines.length && !headerLine) {
-      if (/^##\s+ТЕСТ\s+\d+/i.test(lines[currentLine])) {
+      const testMatch = lines[currentLine].match(/^(?:##\s+)?ТЕСТ\s+(\d+)/i);
+      if (testMatch) {
         headerLine = lines[currentLine];
+        testNumber = parseInt(testMatch[1], 10);
         break;
       }
       currentLine++;
@@ -659,7 +823,7 @@ export function parseBazaFile(content: string): ParsedTest[] {
     
     if (!headerLine) continue;
     
-    const metadata = parseTestHeader(headerLine);
+    const metadata = parseTestHeader(headerLine, testNumber);
     if (!metadata) continue;
     
     currentLine++;
@@ -670,26 +834,43 @@ export function parseBazaFile(content: string): ParsedTest[] {
     let keyLineIndex = -1;
     
     for (let i = currentLine; i < lines.length; i++) {
-      if (/^\*\*Ключ/i.test(lines[i])) {
+      if (/^(?:\*\*)?Ключ/i.test(lines[i])) {
         // Ключ может быть на нескольких строках
-        // Убираем "**Ключ (Тест X):**" и берем остальное
-        answerKeyText = lines[i].replace(/^\*\*Ключ[^:]*:\s*\*\*/i, "").trim();
+        // Убираем "**Ключ (Тест X):**" или "Ключ (Тест X):" и берем остальное
+        // Сначала проверяем, есть ли что-то после двоеточия в этой строке
+        const keyLineMatch = lines[i].match(/^(?:\*\*)?Ключ[^:]*:\s*(?:\*\*)?(.+)/i);
+        if (keyLineMatch && keyLineMatch[1] && keyLineMatch[1].trim()) {
+          answerKeyText = keyLineMatch[1].trim();
+        } else {
+          // Если в строке только "Ключ (Тест X):", читаем следующую строку
+          answerKeyText = "";
+        }
         let j = i + 1;
+        // Если ключ пустой, читаем следующую строку
+        if (!answerKeyText && j < lines.length) {
+          const nextLine = lines[j] ? lines[j].trim() : "";
+          if (nextLine && !nextLine.match(/^---/) && !nextLine.match(/^_{3,}/) && !nextLine.match(/^ТЕСТ/i) && !nextLine.match(/^_{10,}/)) {
+            answerKeyText = nextLine;
+            j++;
+          }
+        }
         // Продолжаем читать до пустой строки или следующего раздела
         while (j < lines.length) {
-          const nextLine = lines[j].trim();
-          if (!nextLine || nextLine.match(/^---/)) {
+          const nextLine = lines[j] ? lines[j].trim() : "";
+          if (!nextLine || nextLine.match(/^---/) || nextLine.match(/^_{3,}/) || nextLine.match(/^ТЕСТ/i) || nextLine.match(/^_{10,}/)) {
             break;
           }
-          // Если следующая строка не начинается с "**", добавляем к ключу
-          if (!nextLine.match(/^\*\*/)) {
+          // Если следующая строка не начинается с "**" или "ТЕСТ", добавляем к ключу
+          if (!nextLine.match(/^\*\*/) && !nextLine.match(/^ТЕСТ/i)) {
             answerKeyText += " " + nextLine;
           } else {
             break;
           }
           j++;
         }
-        answerKey = parseAnswerKey(answerKeyText);
+        if (answerKeyText) {
+          answerKey = parseAnswerKey(answerKeyText);
+        }
         keyLineIndex = i;
         break;
       }
@@ -709,8 +890,8 @@ export function parseBazaFile(content: string): ParsedTest[] {
     for (let i = currentLine; i < endLine; i++) {
       const line = lines[i].trim();
       
-      // Начало нового вопроса
-      if (/^\*\*Вопрос\s+\d+\.\*\*/i.test(line) || /^\*\*Задание\s+\d+/i.test(line)) {
+      // Начало нового вопроса (поддерживаем оба формата: с ** и без)
+      if (/^(?:\*\*)?Вопрос\s+\d+[\.\)]/i.test(line) || /^(?:\*\*)?Задание\s+\d+/i.test(line)) {
         if (currentQuestion && questionStarted) {
           questionTexts.push(currentQuestion);
         }
@@ -758,8 +939,8 @@ export function parseBazaFile(content: string): ParsedTest[] {
         "сложный": "advanced",
       };
       const levelKey = levelMap[metadata.level.toLowerCase()] || "base";
-      const testNum = tests.length + 1;
-      const testId = `cocktail-${levelKey}-${testNum}`;
+      const testNum = testNumber || tests.length + 1;
+      const testId = `mixology-${levelKey}-${testNum}`;
       
       tests.push({
         id: testId,

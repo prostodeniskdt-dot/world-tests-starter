@@ -122,13 +122,16 @@ function generatePublicFile(test: ParsedTest): string {
     })
     .join(",\n");
 
+  // Определяем категорию по префиксу ID
+  const category = test.id.startsWith("mixology-") ? "миксология" : "коктейль";
+  
   return `import type { PublicTest } from "../types";
 
 export const ${testName}_PUBLIC: PublicTest = {
   id: "${test.id}",
   title: ${JSON.stringify(test.title)},
   description: ${JSON.stringify(`${test.level} • ${test.questions.length} вопросов`)},
-  category: "коктейль",
+  category: "${category}",
   difficultyLevel: ${test.level.toLowerCase().includes("простой") || test.level.toLowerCase().includes("базов") ? 1 : test.level.toLowerCase().includes("сложный") || test.level.toLowerCase().includes("продвинут") ? 3 : 2},
   questions: [
 ${questionsCode}
