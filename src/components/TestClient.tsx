@@ -329,10 +329,37 @@ export function TestClient({ test }: { test: PublicTest }) {
                               endTime,
                             }),
                           });
-                          const json = (await res.json()) as SubmitResponse;
+
+                          // Проверяем, что ответ получен
+                          if (!res) {
+                            throw new Error("Нет ответа от сервера");
+                          }
+
+                          // Пытаемся распарсить JSON, даже если статус не OK
+                          let json: SubmitResponse;
+                          try {
+                            const text = await res.text();
+                            if (!text) {
+                              throw new Error("Пустой ответ от сервера");
+                            }
+                            json = JSON.parse(text) as SubmitResponse;
+                          } catch (parseError) {
+                            // Если не удалось распарсить JSON, создаем ошибку на основе статуса
+                            const statusText = res.statusText || "Неизвестная ошибка";
+                            const statusCode = res.status || 0;
+                            throw new Error(
+                              statusCode >= 500
+                                ? "Сервер временно недоступен. Попробуйте позже."
+                                : statusCode === 0
+                                ? "Сеть/сервер недоступны. Проверьте подключение к интернету."
+                                : `Ошибка сервера (${statusCode}): ${statusText}`
+                            );
+                          }
+
                           setResult(json);
-                          setSubmitted(true);
+                          
                           if (json.ok) {
+                            setSubmitted(true);
                             // Проверяем все ответы и показываем справки после отправки
                             const checkAllAnswers = async () => {
                               const hints: Record<string, boolean> = {};
@@ -354,10 +381,13 @@ export function TestClient({ test }: { test: PublicTest }) {
                             await checkAllAnswers();
                             addToast("Тест успешно отправлен!", "success");
                           } else {
+                            // Сервер вернул ошибку в формате JSON
                             addToast(json.error || "Ошибка отправки теста", "error");
                           }
                         } catch (e) {
-                          const errorMsg = "Сеть/сервер недоступны. Попробуй ещё раз.";
+                          // Обработка сетевых ошибок и ошибок парсинга
+                          const error = e instanceof Error ? e : new Error("Неизвестная ошибка");
+                          const errorMsg = error.message || "Сеть/сервер недоступны. Попробуй ещё раз.";
                           setResult({
                             ok: false,
                             error: errorMsg,
