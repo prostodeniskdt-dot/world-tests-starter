@@ -585,8 +585,15 @@ function parseQuestion(
     mechanic = detectMechanic(lines[0]);
   }
   
-  // Убираем механику из текста вопроса
+  // Убираем механику из текста вопроса (со звездочками и без)
   questionTextLine = questionTextLine.replace(/\*\([^)]+\)\*/g, "").trim();
+  // Также убираем формат без звездочек, но сохраняем для определения механики
+  const mechanicMatch = questionTextLine.match(/\(([^)]+)\)/);
+  if (mechanicMatch && (mechanicMatch[1].includes("grid") || mechanicMatch[1].includes("matrix"))) {
+    // Не убираем, так как это нужно для определения механики
+  } else {
+    questionTextLine = questionTextLine.replace(/\([^)]+\)/g, "").trim();
+  }
   
   const question: ParsedQuestion = {
     id: `q${questionNumber}`,
@@ -879,7 +886,13 @@ function parseQuestion(
       if (inStep1) {
         // Если еще нет вопроса step1, пытаемся извлечь из строки
         if (!step1Question && line && !line.match(/^([A-Z])\)/)) {
-          step1Question = line.trim();
+          // Извлекаем вопрос из строки вида "Выберите наиболее корректное действие:"
+          const questionMatch = line.match(/^(.+):\s*$/);
+          if (questionMatch) {
+            step1Question = questionMatch[1].trim();
+          } else if (line.trim() && !line.match(/^Задание/i)) {
+            step1Question = line.trim();
+          }
         } else {
           const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
           if (optMatch) {
@@ -890,7 +903,13 @@ function parseQuestion(
       if (inStep2) {
         // Если еще нет вопроса step2, пытаемся извлечь из строки
         if (!step2Question && line && !line.match(/^([A-Z])\)/)) {
-          step2Question = line.trim();
+          // Извлекаем вопрос из строки вида "Выберите объяснение к выбранному действию:"
+          const questionMatch = line.match(/^(.+):\s*$/);
+          if (questionMatch) {
+            step2Question = questionMatch[1].trim();
+          } else if (line.trim() && !line.match(/^Задание/i)) {
+            step2Question = line.trim();
+          }
         } else {
           const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
           if (optMatch) {
