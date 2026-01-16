@@ -138,8 +138,27 @@ export async function POST(req: Request) {
       ? 0
       : Math.round((correctCount / totalQuestions) * 100);
 
-  // Формула очков: каждый правильный ответ = 10 очков
-  const pointsAwarded = correctCount * 10;
+  // Комбинированная формула очков
+  const basePoints = testSecret.basePoints || 200;
+  
+  // Множитель сложности (1 = Простой, 2 = Средний, 3 = Сложный)
+  const difficultyMultiplier = {
+    1: 1.0,   // Простой (1 барная ложка)
+    2: 1.25,  // Средний (2 барные ложки)
+    3: 1.5,   // Сложный (3 барные ложки)
+  }[testPublic.difficultyLevel] || 1.0;
+  
+  // Бонус за высокий процент правильных ответов
+  const percentageBonus = 
+    scorePercent === 100 ? 1.3 :   // +30% за идеальное прохождение
+    scorePercent >= 90 ? 1.15 :    // +15% за отличное прохождение (90-99%)
+    scorePercent >= 80 ? 1.05 :    // +5% за хорошее прохождение (80-89%)
+    1.0;                           // Базовые очки за < 80%
+  
+  // Итоговые очки с округлением
+  const pointsAwarded = Math.round(
+    (basePoints * scorePercent / 100) * difficultyMultiplier * percentageBonus
+  );
 
   // Проверяем лимит попыток (если указан в тесте)
   if (testSecret.maxAttempts !== null && testSecret.maxAttempts !== undefined) {

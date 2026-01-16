@@ -466,6 +466,13 @@ export function TestClient({ test }: { test: PublicTest }) {
                         <div className="font-bold text-2xl text-primary-600">
                           +{result.result.pointsAwarded}
                         </div>
+                        {result.result.scorePercent >= 80 && (
+                          <div className="mt-1 text-xs text-primary-600 font-medium">
+                            {result.result.scorePercent === 100 ? '🌟 Идеально! +30% бонус' : 
+                             result.result.scorePercent >= 90 ? '⭐ Отлично! +15% бонус' : 
+                             '✨ Хорошо! +5% бонус'}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-green-200">
