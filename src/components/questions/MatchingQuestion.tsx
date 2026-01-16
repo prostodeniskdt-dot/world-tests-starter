@@ -48,32 +48,33 @@ export function MatchingQuestion({
 
   return (
     <div className="space-y-4">
-      <div className="text-sm font-medium text-zinc-700 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        {question.variant === "1-to-1" && "Соедините каждый термин с соответствующим определением"}
-        {question.variant === "1-to-many" && "Соедините термины с примерами (одному термину может соответствовать несколько)"}
-        {question.variant === "extra-right" && "Соедините термины с определениями (один вариант справа не используется)"}
-        {question.variant === "three-columns" && "Соедините термин → определение → пример"}
+      <div className="text-xs sm:text-sm font-medium text-zinc-700 mb-4 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        ℹ️ {question.variant === "1-to-1" && "Соедините каждый элемент слева с соответствующим справа"}
+        {question.variant === "1-to-many" && "Соедините элементы (одному может соответствовать несколько)"}
+        {question.variant === "extra-right" && "Соедините элементы (один вариант справа лишний)"}
+        {question.variant === "three-columns" && "Соедините: элемент → определение → пример"}
       </div>
       
       {/* Показываем созданные пары */}
       {pairs.length > 0 && (
-        <div className="mb-4 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-          <h4 className="font-semibold text-green-900 mb-2 text-sm">Созданные соединения ({pairs.length}):</h4>
+        <div className="mb-4 p-3 sm:p-4 bg-green-50 border-2 border-green-300 rounded-lg">
+          <h4 className="font-semibold text-green-900 mb-2 text-xs sm:text-sm">✓ Созданные соединения ({pairs.length}):</h4>
           <div className="space-y-2">
             {pairs.map(([leftIdx, rightIdx], pairIdx) => (
-              <div key={pairIdx} className="flex items-start gap-3 p-2 bg-white rounded border border-green-200">
-                <div className="flex-1 text-sm text-zinc-700 break-words">
+              <div key={pairIdx} className="flex items-start gap-2 p-2 bg-white rounded border border-green-200 text-xs sm:text-sm">
+                <div className="flex-1 text-zinc-700 break-words leading-snug">
                   <span className="font-medium text-primary-600">{leftIdx + 1}.</span> {question.leftItems[leftIdx]}
                 </div>
-                <div className="flex-shrink-0 text-green-600 font-bold text-lg mt-0.5">→</div>
-                <div className="flex-1 text-sm text-zinc-700 break-words">
+                <div className="flex-shrink-0 text-green-600 font-bold text-base sm:text-lg">→</div>
+                <div className="flex-1 text-zinc-700 break-words leading-snug">
                   <span className="font-medium text-accent-600">{String.fromCharCode(65 + rightIdx)}.</span> {question.rightItems[rightIdx]}
                 </div>
                 <button
                   onClick={() => removePair(leftIdx)}
                   disabled={disabled}
-                  className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded px-2 py-1 transition-colors disabled:opacity-50"
+                  className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded px-2 py-1 transition-colors disabled:opacity-50 min-w-[32px] min-h-[32px]"
                   title="Удалить связь"
+                  aria-label="Удалить соединение"
                 >
                   ✕
                 </button>
@@ -84,9 +85,9 @@ export function MatchingQuestion({
       )}
 
       {/* Мобильная версия: вертикальная компоновка */}
-      <div className="block sm:hidden space-y-6">
+      <div className="block sm:hidden space-y-4">
         <div>
-          <h3 className="font-semibold mb-3 text-zinc-900 flex items-center gap-2">
+          <h3 className="font-semibold mb-2 text-sm text-zinc-900 flex items-center gap-2">
             <span className="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
             Выберите элемент слева:
           </h3>
@@ -99,7 +100,7 @@ export function MatchingQuestion({
                   key={idx}
                   onClick={() => handleLeftClick(idx)}
                   disabled={disabled}
-                  className={`w-full min-h-[44px] px-4 py-3 rounded-lg border-2 text-left touch-manipulation transition-all ${
+                  className={`w-full min-h-[44px] px-3 py-2.5 rounded-lg border-2 text-left touch-manipulation transition-all text-sm ${
                     isSelected
                       ? "border-primary-600 bg-primary-100 ring-2 ring-primary-300"
                       : rightIdx !== null
@@ -109,8 +110,8 @@ export function MatchingQuestion({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2 flex-1">
-                      <span className="font-bold text-primary-600 flex-shrink-0 mt-0.5">{idx + 1}.</span>
-                      <span className="break-words">{item}</span>
+                      <span className="font-bold text-primary-600 flex-shrink-0 mt-0.5 text-sm">{idx + 1}.</span>
+                      <span className="break-words text-sm leading-snug">{item}</span>
                     </div>
                     {rightIdx !== null && (
                       <span className="text-xs bg-green-600 text-white px-2 py-1 rounded font-medium">
@@ -125,9 +126,9 @@ export function MatchingQuestion({
         </div>
 
         <div>
-          <h3 className="font-semibold mb-3 text-zinc-900 flex items-center gap-2">
+          <h3 className="font-semibold mb-2 text-sm text-zinc-900 flex items-center gap-2">
             <span className="bg-accent-100 text-accent-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-            Затем выберите соответствие справа:
+            Выберите соответствие справа:
           </h3>
           <div className="space-y-2">
             {question.rightItems.map((item, idx) => {
@@ -138,7 +139,7 @@ export function MatchingQuestion({
                   key={idx}
                   onClick={() => handleRightClick(idx)}
                   disabled={disabled || !isSelected || isUsed}
-                  className={`w-full min-h-[44px] px-4 py-3 rounded-lg border-2 text-left touch-manipulation transition-all ${
+                  className={`w-full min-h-[44px] px-3 py-2.5 rounded-lg border-2 text-left touch-manipulation transition-all text-sm ${
                     isUsed
                       ? "border-green-500 bg-green-50 opacity-60"
                       : isSelected
@@ -147,8 +148,8 @@ export function MatchingQuestion({
                   } ${disabled || !isSelected || isUsed ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className="flex items-start gap-2">
-                    <span className="font-bold text-accent-600 flex-shrink-0 mt-0.5">{String.fromCharCode(65 + idx)}.</span>
-                    <span className="break-words flex-1">{item}</span>
+                    <span className="font-bold text-accent-600 flex-shrink-0 mt-0.5 text-sm">{String.fromCharCode(65 + idx)}.</span>
+                    <span className="break-words flex-1 text-sm leading-snug">{item}</span>
                     {isUsed && <span className="flex-shrink-0 text-xs bg-green-600 text-white px-2 py-1 rounded mt-0.5">✓</span>}
                   </div>
                 </button>

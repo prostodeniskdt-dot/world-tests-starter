@@ -15,10 +15,10 @@ export function ClozeDropdownQuestion({
   onChange,
   disabled = false,
 }: ClozeDropdownQuestionProps) {
-  const selectedIndices = (answer as number[] | null) || question.gaps.map(() => 0);
+  const selectedIndices = (answer as number[] | null) || question.gaps.map(() => -1);
   
-  // Подсчет заполненных пропусков (0 = не выбрано)
-  const filledGaps = selectedIndices.filter(idx => idx > 0).length;
+  // Подсчет заполненных пропусков (-1 = не выбрано)
+  const filledGaps = selectedIndices.filter(idx => idx >= 0).length;
   const totalGaps = question.gaps.length;
 
   const handleGapChange = (gapIndex: number, optionIndex: number) => {
@@ -49,7 +49,7 @@ export function ClozeDropdownQuestion({
       const gapIndex = match[1] ? parseInt(match[1], 10) : currentIndex;
       const gap = question.gaps[gapIndex];
       if (gap) {
-        const isFilled = selectedIndices[gapIndex] > 0;
+        const isFilled = selectedIndices[gapIndex] >= 0;
         parts.push(
           <select
             key={`gap-${gapIndex}`}
@@ -63,11 +63,11 @@ export function ClozeDropdownQuestion({
             } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:scale-105"}`}
             style={{ minWidth: "150px" }}
           >
-            <option value={0} disabled>
+            <option value={-1} disabled>
               {isFilled ? "✓ Выбрано" : "❓ Выберите..."}
             </option>
             {gap.options.map((opt, optIdx) => (
-              <option key={optIdx} value={optIdx + 1}>
+              <option key={optIdx} value={optIdx}>
                 {opt}
               </option>
             ))}

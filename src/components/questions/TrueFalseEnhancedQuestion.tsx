@@ -37,11 +37,16 @@ export function TrueFalseEnhancedQuestion({
 
   return (
     <div className="space-y-4">
+      {/* Инструкция */}
+      <div className="text-xs sm:text-sm font-medium text-zinc-700 mb-3 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        ℹ️ Сначала выберите "Верно" или "Неверно", затем укажите причину
+      </div>
+      
       {/* Улучшенный степпер с прогрессом */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-zinc-700">Прогресс ответа</span>
-          <span className="text-sm font-bold text-primary-600">Шаг {step} из 2</span>
+          <span className="text-xs sm:text-sm font-medium text-zinc-700">Прогресс ответа</span>
+          <span className="text-xs sm:text-sm font-bold text-primary-600">Шаг {step} из 2</span>
         </div>
         <div className="flex items-center gap-2">
           <div className={`flex-1 h-3 rounded-full transition-all ${
@@ -68,10 +73,10 @@ export function TrueFalseEnhancedQuestion({
       {/* Шаг 1: Верно/Неверно */}
       {step === 1 && (
         <div className="space-y-4">
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-300 mb-4">
-            <p className="text-base sm:text-lg font-semibold text-zinc-900">{question.statement}</p>
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-300 mb-3 sm:mb-4">
+            <p className="text-sm sm:text-base md:text-lg font-semibold text-zinc-900 leading-snug">{question.statement}</p>
           </div>
-          <div className="text-sm font-medium text-zinc-700 mb-3 text-center">
+          <div className="text-xs sm:text-sm font-medium text-zinc-700 mb-3 text-center">
             Это утверждение верно или неверно?
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -84,10 +89,10 @@ export function TrueFalseEnhancedQuestion({
                   : "border-zinc-300 bg-white hover:border-green-400 hover:bg-green-50 hover:scale-102"
               } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
             >
-              <CheckCircle2 className={`h-10 w-10 sm:h-12 sm:w-12 ${
+              <CheckCircle2 className={`h-8 w-8 sm:h-10 sm:w-10 ${
                 currentAnswer.answer === true ? "text-green-600" : "text-green-500"
               }`} />
-              <span className={`font-bold text-lg sm:text-xl ${
+              <span className={`font-bold text-base sm:text-lg ${
                 currentAnswer.answer === true ? "text-green-700" : "text-zinc-700"
               }`}>
                 ✓ Верно
@@ -96,16 +101,16 @@ export function TrueFalseEnhancedQuestion({
             <button
               onClick={() => handleAnswer(false)}
               disabled={disabled}
-              className={`min-h-[80px] sm:min-h-[100px] rounded-xl border-3 flex flex-col items-center justify-center gap-3 touch-manipulation transition-all ${
+              className={`min-h-[70px] sm:min-h-[80px] rounded-xl border-3 flex flex-col items-center justify-center gap-2 touch-manipulation transition-all ${
                 currentAnswer.answer === false
                   ? "border-red-600 bg-gradient-to-br from-red-50 to-red-100 shadow-lg scale-105 ring-2 ring-red-300"
                   : "border-zinc-300 bg-white hover:border-red-400 hover:bg-red-50 hover:scale-102"
               } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
             >
-              <X className={`h-10 w-10 sm:h-12 sm:w-12 ${
+              <X className={`h-8 w-8 sm:h-10 sm:w-10 ${
                 currentAnswer.answer === false ? "text-red-600" : "text-red-500"
               }`} />
-              <span className={`font-bold text-lg sm:text-xl ${
+              <span className={`font-bold text-base sm:text-lg ${
                 currentAnswer.answer === false ? "text-red-700" : "text-zinc-700"
               }`}>
                 ✗ Неверно

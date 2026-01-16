@@ -68,19 +68,18 @@ export function OrderingQuestion({
 
   return (
     <div className="space-y-4">
-      {question.instruction && (
-        <div className="text-sm font-medium text-zinc-700 mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          ℹ️ {question.instruction}
-        </div>
-      )}
+      {/* Инструкция для механики */}
+      <div className="text-xs sm:text-sm font-medium text-zinc-700 mb-3 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        ℹ️ {question.instruction || "Расставьте элементы в правильном порядке"}
+      </div>
       
       {/* Адаптивная подсказка */}
-      <div className="p-3 rounded-lg border-2">
-        <div className="hidden md:block text-sm font-medium text-indigo-700 bg-indigo-50 border-indigo-300 p-2 rounded">
+      <div className="p-2.5 sm:p-3 rounded-lg border-2 border-indigo-200">
+        <div className="hidden md:block text-xs sm:text-sm font-medium text-indigo-700 bg-indigo-50 p-2 rounded">
           🖱️ <span className="font-bold">Десктоп:</span> Перетаскивайте элементы мышью
         </div>
-        <div className="block md:hidden text-sm font-medium text-purple-700 bg-purple-50 border-purple-300 p-2 rounded">
-          👆 <span className="font-bold">Мобильный:</span> Используйте кнопки со стрелками ↑ ↓ справа
+        <div className="block md:hidden text-xs font-medium text-purple-700 bg-purple-50 p-2 rounded">
+          👆 <span className="font-bold">Мобильный:</span> Используйте кнопки ↑ ↓ справа для перестановки
         </div>
       </div>
       <div className="space-y-2">
@@ -98,7 +97,7 @@ export function OrderingQuestion({
               onDragOver={(e) => handleDragOver(e, displayIndex)}
               onDragEnd={handleDragEnd}
               onDrop={(e) => handleDrop(e, displayIndex)}
-              className={`flex items-center gap-3 p-3 sm:p-4 rounded-lg border-2 min-h-[44px] transition-all ${
+              className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-4 rounded-lg border-2 min-h-[44px] transition-all text-sm ${
                 isDragging
                   ? "opacity-50 scale-95 border-primary-400 bg-primary-50"
                   : isDragOver
@@ -113,10 +112,10 @@ export function OrderingQuestion({
                   <GripVertical className="h-5 w-5" />
                 </div>
               )}
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm">
+              <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-xs sm:text-sm">
                 {displayIndex + 1}
               </div>
-              <div className="flex-1 text-base sm:text-sm text-zinc-700 break-words leading-relaxed">{item}</div>
+              <div className="flex-1 text-sm sm:text-base text-zinc-700 break-words leading-snug sm:leading-relaxed">{item}</div>
               {isExtra && (
                 <span className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded font-medium">
                   Лишний

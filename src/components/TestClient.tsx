@@ -38,7 +38,10 @@ export function TestClient({ test }: { test: PublicTest }) {
     return Object.values(answers).every((v) => {
       if (v === null) return false;
       // Проверяем, что ответ не пустой массив или пустой объект
-      if (Array.isArray(v)) return v.length > 0;
+      if (Array.isArray(v)) {
+        // Для cloze-dropdown проверяем, что нет -1 (не выбрано)
+        return v.length > 0 && v.every(idx => idx >= 0);
+      }
       if (typeof v === "object") {
         return Object.keys(v).length > 0;
       }
@@ -223,12 +226,12 @@ export function TestClient({ test }: { test: PublicTest }) {
                 const isCorrect = hintResults[q.id];
                 
                 return (
-                  <div key={q.id} id={`question-${idx}`} className="pt-6 first:pt-0">
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm">
+                  <div key={q.id} id={`question-${idx}`} className="pt-4 sm:pt-6 first:pt-0">
+                    <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-xs sm:text-sm">
                         {idx + 1}
                       </div>
-                      <div className="font-semibold text-base sm:text-lg text-zinc-900 leading-relaxed flex-1">
+                      <div className="font-semibold text-sm sm:text-base md:text-lg text-zinc-900 leading-snug sm:leading-relaxed flex-1">
                         {q.text}
                       </div>
                     </div>
