@@ -14,7 +14,7 @@ export const COCKTAIL_ADVANCED_3_SECRET = {
   answerKey: {
     q1: null,
     q2: [3,5],
-    q3: 0,
+    q3: [4,6],
     q4: null,
     q5: 0,
     q6: [0,3,1,2],
@@ -22,7 +22,7 @@ export const COCKTAIL_ADVANCED_3_SECRET = {
     q8: null,
     q9: 0,
     q10: [1,4],
-    q11: 0,
+    q11: [2,5],
     q12: null,
     q13: null,
     q14: 0,

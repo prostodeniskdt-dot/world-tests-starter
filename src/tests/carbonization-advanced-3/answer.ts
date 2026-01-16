@@ -14,7 +14,7 @@ export const CARBONIZATION_ADVANCED_3_SECRET = {
   answerKey: {
     q1: null,
     q2: {"step1":0,"step2":0}, // "Часть CO₂ выходит" -> "Падение давления вызывает..."
-    q3: null,
+    q3: [1,4],
     q4: null,
     q5: null,
     q6: null,

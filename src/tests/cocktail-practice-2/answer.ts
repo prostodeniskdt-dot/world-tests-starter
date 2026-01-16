@@ -17,7 +17,7 @@ export const COCKTAIL_PRACTICE_2_SECRET = {
     q3: null,
     q4: null,
     q5: null,
-    q6: [2,4],
+    q6: [3,5],
     q7: null,
     q8: null,
     q9: [1,0,2,3],

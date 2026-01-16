@@ -21,7 +21,7 @@ export const COCKTAIL_BASE_1_SECRET = {
     q7: null,
     q8: 0,
     q9: 0,
-    q10: [1,4],
+    q10: [2,5],
     q11: 0,
     q12: 0,
     q13: null,
