@@ -25,9 +25,9 @@ function main() {
   
   // Удаляем старые тесты коктейлей
   const oldCocktailTests = [
-    "cocktail-foundation-a",
-    "cocktail-practice-b",
-    "cocktail-analysis-c",
+    "cocktail-base-1",
+    "cocktail-practice-2",
+    "cocktail-advanced-3",
   ];
   
   console.log("\nУдаление старых тестов коктейлей...");

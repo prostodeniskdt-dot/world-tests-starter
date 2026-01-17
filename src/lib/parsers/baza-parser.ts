@@ -544,9 +544,79 @@ function parseQuestion(
   let questionLine = "";
   let questionTextLine = "";
   let mechanic: QuestionMechanic = "multiple-choice";
+
+  const detectMechanicFromHeaderLabel = (label: string): QuestionMechanic | null => {
+    const normalized = label.toLowerCase();
+    if (normalized.includes("multiple-select") || normalized.includes("multiple select")) {
+      return "multiple-select";
+    }
+    if (
+      normalized.includes("multiple-choice") ||
+      normalized.includes("multiple choice") ||
+      normalized.includes("single-select") ||
+      normalized.includes("single select")
+    ) {
+      return "multiple-choice";
+    }
+    if (
+      normalized.includes("true-false") ||
+      normalized.includes("true/false") ||
+      normalized.includes("reason")
+    ) {
+      return "true-false-enhanced";
+    }
+    if (normalized.includes("cloze") || normalized.includes("dropdown")) {
+      return "cloze-dropdown";
+    }
+    if (normalized.includes("select-errors") || normalized.includes("select errors")) {
+      return "select-errors";
+    }
+    if (normalized.includes("ordering")) {
+      return "ordering";
+    }
+    if (normalized.includes("matching")) {
+      return "matching";
+    }
+    if (normalized.includes("grouping") || normalized.includes("classification")) {
+      return "grouping";
+    }
+    if (normalized.includes("two-step") || normalized.includes("two step") || normalized.includes("branching")) {
+      return "two-step";
+    }
+    if (normalized.includes("grid") || normalized.includes("matrix")) {
+      return "matrix";
+    }
+    if (
+      normalized.includes("best example") ||
+      normalized.includes("best-example") ||
+      normalized.includes("best paraphrase")
+    ) {
+      return "best-example";
+    }
+    if (
+      normalized.includes("scenario") ||
+      normalized.includes("mini-case") ||
+      normalized.includes("ситуация") ||
+      normalized.includes("кейс")
+    ) {
+      return "scenario";
+    }
+    return null;
+  };
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const numericHeaderMatch = line.match(/^(?:\*\*)?\d+\)\s*(.+?)(?:\*\*)?$/i);
+    if (numericHeaderMatch) {
+      const headerLabel = numericHeaderMatch[1].trim();
+      const headerMechanic = detectMechanicFromHeaderLabel(headerLabel) ?? detectMechanic(headerLabel);
+      mechanic = headerMechanic;
+      if (i + 1 < lines.length) {
+        questionTextLine = lines[i + 1].trim();
+      }
+      questionLine = line;
+      break;
+    }
     // Поддерживаем оба формата: с ** и без
     if (line.match(/^(?:\*\*)?Вопрос\s+\d+[\.\)]/i) || line.match(/^(?:\*\*)?Задание\s+\d+/i)) {
       // Извлекаем текст вопроса и механику
@@ -593,6 +663,18 @@ function parseQuestion(
     // Не убираем, так как это нужно для определения механики
   } else {
     questionTextLine = questionTextLine.replace(/\([^)]+\)/g, "").trim();
+  }
+  
+  const hasReasonBlock = lines.some(
+    (line) => /^Выберите причину:/i.test(line) || /^2\.\s*Выберите причину:/i.test(line)
+  );
+  const hasLetterOptions = lines.some((line) => /^[A-Z]\)\s*/.test(line));
+  const hasNumberedParts = lines.some((line) => /^\[\d+\]\s*/.test(line));
+  if (mechanic === "select-errors" && hasLetterOptions && !hasNumberedParts) {
+    mechanic = "multiple-select";
+  }
+  if (mechanic === "true-false-enhanced" && !hasReasonBlock && hasLetterOptions) {
+    mechanic = "multiple-choice";
   }
   
   const question: ParsedQuestion = {
@@ -651,6 +733,19 @@ function parseQuestion(
       }
     }
     
+    if (leftItems.length === 0 || rightItems.length === 0) {
+      for (const line of lines) {
+        const leftMatch = line.match(/^(\d+)\.\s*(.+)$/);
+        if (leftMatch) {
+          leftItems.push(leftMatch[2].trim());
+        }
+        const rightMatch = line.match(/^([A-Z])\)\s*(.+)$/);
+        if (rightMatch) {
+          rightItems.push(rightMatch[2].trim());
+        }
+      }
+    }
+    
     if (leftItems.length > 0) question.leftItems = leftItems;
     if (rightItems.length > 0) question.rightItems = rightItems;
   } else if (mechanic === "ordering" || mechanic === "grouping") {
@@ -677,6 +772,15 @@ function parseQuestion(
           items.push(itemMatch[2].trim());
         } else if (line && !line.match(/^[A-Z]\)/) && !line.match(/^\d+\./) && !line.match(/^Ответ:/i) && !line.match(/^Пояснение:/i)) {
           items.push(line);
+        }
+      }
+    }
+    
+    if (items.length === 0) {
+      for (const line of lines) {
+        const itemMatch = line.match(/^([A-Z])\)\s*(.+)$/);
+        if (itemMatch) {
+          items.push(itemMatch[2].trim());
         }
       }
     }
@@ -711,6 +815,7 @@ function parseQuestion(
   } else if (mechanic === "cloze-dropdown") {
     const gaps: Array<{ index: number; options: string[] }> = [];
     let clozeText = questionTextLine;
+    let inlineOptionGroups: string[][] = [];
     
     // Ищем строку "Текст:" для извлечения полного текста
     for (const line of lines) {
@@ -731,11 +836,35 @@ function parseQuestion(
       }
     }
     
+    for (const line of lines) {
+      if (/^Варианты/i.test(line)) {
+        const lineWithOptions = line.includes(":") ? line.split(":").slice(1).join(":") : line;
+        const groups = Array.from(lineWithOptions.matchAll(/\(([^)]+)\)/g)).map((match) =>
+          match[1]
+            .split("/")
+            .map((option) => option.trim())
+            .filter(Boolean)
+        );
+        if (groups.length > 0) {
+          inlineOptionGroups = groups;
+        }
+      }
+    }
+    
     // Ищем пропуски вида [1: ___] в тексте
     const gapMatches = clozeText.matchAll(/\[(\d+):\s*___\]/g);
     const gapIndices: number[] = [];
     for (const gapMatch of gapMatches) {
       gapIndices.push(parseInt(gapMatch[1], 10));
+    }
+    
+    if (gapIndices.length === 0) {
+      const underscoreMatches = clozeText.match(/_{3,}/g);
+      if (underscoreMatches) {
+        for (let i = 0; i < underscoreMatches.length; i++) {
+          gapIndices.push(i + 1);
+        }
+      }
     }
     
     // Для каждого пропуска ищем варианты
@@ -759,6 +888,14 @@ function parseQuestion(
             // Конец вариантов для этого пропуска
             break;
           }
+        }
+      }
+      
+      if (!foundGapOptions && inlineOptionGroups.length > 0) {
+        const group = inlineOptionGroups[gapIndex - 1];
+        if (group && group.length > 0) {
+          options.push(...group);
+          foundGapOptions = true;
         }
       }
       
@@ -833,10 +970,17 @@ function parseQuestion(
       
       // Ищем начало Части 1
       const step1Match = line.match(/^Задание\s+\d+\s*\(Часть\s+1\)[\.\)]\s*(.+)/i);
+      const step1ShortMatch = line.match(/^Шаг\s*1\.\s*(.+)/i);
       if (step1Match) {
         inStep1 = true;
         inStep2 = false;
         step1Question = step1Match[1].trim();
+        continue;
+      }
+      if (step1ShortMatch) {
+        inStep1 = true;
+        inStep2 = false;
+        step1Question = step1ShortMatch[1].trim();
         continue;
       }
       if (/^Задание\s+\d+\s*\(Часть\s+1\)/i.test(line)) {
@@ -857,10 +1001,17 @@ function parseQuestion(
       
       // Ищем начало Части 2
       const step2Match = line.match(/^Задание\s+\d+\s*\(Часть\s+2\)[\.\)]\s*(.+)/i);
+      const step2ShortMatch = line.match(/^Шаг\s*2\.\s*(.+)/i);
       if (step2Match) {
         inStep2 = true;
         inStep1 = false;
         step2Question = step2Match[1].trim();
+        continue;
+      }
+      if (step2ShortMatch) {
+        inStep2 = true;
+        inStep1 = false;
+        step2Question = step2ShortMatch[1].trim();
         continue;
       }
       if (/^Задание\s+\d+\s*\(Часть\s+2\)/i.test(line)) {
@@ -885,7 +1036,7 @@ function parseQuestion(
       
       if (inStep1) {
         // Если еще нет вопроса step1, пытаемся извлечь из строки
-        if (!step1Question && line && !line.match(/^([A-Z])\)/)) {
+        if (!step1Question && line && !line.match(/^([A-Z])\)/) && !line.match(/^\d+\./)) {
           // Извлекаем вопрос из строки вида "Выберите наиболее корректное действие:"
           const questionMatch = line.match(/^(.+):\s*$/);
           if (questionMatch) {
@@ -895,14 +1046,17 @@ function parseQuestion(
           }
         } else {
           const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
+          const optMatchNumber = line.match(/^(\d+)\.\s*(.+)$/);
           if (optMatch) {
             step1Options.push(optMatch[2].trim());
+          } else if (optMatchNumber) {
+            step1Options.push(optMatchNumber[2].trim());
           }
         }
       }
       if (inStep2) {
         // Если еще нет вопроса step2, пытаемся извлечь из строки
-        if (!step2Question && line && !line.match(/^([A-Z])\)/)) {
+        if (!step2Question && line && !line.match(/^([A-Z])\)/) && !line.match(/^\d+\./)) {
           // Извлекаем вопрос из строки вида "Выберите объяснение к выбранному действию:"
           const questionMatch = line.match(/^(.+):\s*$/);
           if (questionMatch) {
@@ -912,8 +1066,11 @@ function parseQuestion(
           }
         } else {
           const optMatch = line.match(/^([A-Z])\)\s*(.+)$/);
+          const optMatchNumber = line.match(/^(\d+)\.\s*(.+)$/);
           if (optMatch) {
             step2Options.push(optMatch[2].trim());
+          } else if (optMatchNumber) {
+            step2Options.push(optMatchNumber[2].trim());
           }
         }
       }
@@ -945,12 +1102,12 @@ function parseQuestion(
         continue;
       }
       
-      if (/^Объекты:/i.test(line)) {
+      if (/^Объекты:/i.test(line) || /^Цели:/i.test(line)) {
         inObjects = true;
         inCharacteristics = false;
         continue;
       }
-      if (/^Характеристики:/i.test(line)) {
+      if (/^Характеристики:/i.test(line) || /^Методы:/i.test(line)) {
         inCharacteristics = true;
         inObjects = false;
         continue;
@@ -1011,6 +1168,118 @@ function parseQuestion(
     
     if (markedParts.length > 0) question.markedParts = markedParts;
   }
+
+  const inlineAnswerLine = lines.find((line) => /^\*{0,2}Ответ:/i.test(line));
+  const inlineAnswerText = inlineAnswerLine
+    ? inlineAnswerLine.replace(/^\*{0,2}Ответ:\*{0,2}\s*/i, "").trim()
+    : "";
+
+  if ((question.correctAnswer === null || question.correctAnswer === undefined) && inlineAnswerText) {
+    const toIndexFromLetter = (letter: string) => letter.toUpperCase().charCodeAt(0) - 65;
+    const extractLetters = (text: string) => (text.match(/[A-Z]/gi) || []).map(toIndexFromLetter);
+
+    if (question.type === "multiple-choice") {
+      const letterMatch = inlineAnswerText.match(/[A-Z]/i);
+      if (letterMatch) {
+        question.correctAnswer = toIndexFromLetter(letterMatch[0]);
+      }
+    } else if (question.type === "multiple-select") {
+      const indices = Array.from(new Set(extractLetters(inlineAnswerText)));
+      if (indices.length > 0) {
+        question.correctAnswer = indices;
+      }
+    } else if (question.type === "ordering") {
+      const orderParts = inlineAnswerText.split(/→|->/).map((part) => part.trim()).filter(Boolean);
+      const order = orderParts
+        .map((part) => {
+          const letterMatch = part.match(/[A-Z]/i);
+          return letterMatch ? toIndexFromLetter(letterMatch[0]) : -1;
+        })
+        .filter((idx) => idx >= 0);
+      if (order.length > 0) {
+        question.correctAnswer = order;
+      }
+    } else if (question.type === "matching") {
+      const pairs: [number, number][] = [];
+      const pairMatches = inlineAnswerText.matchAll(/(\d+)\s*[–-]\s*([A-Z])/g);
+      for (const pairMatch of pairMatches) {
+        const leftIdx = parseInt(pairMatch[1], 10) - 1;
+        const rightIdx = toIndexFromLetter(pairMatch[2]);
+        pairs.push([leftIdx, rightIdx]);
+      }
+      if (pairs.length > 0) {
+        question.correctAnswer = pairs;
+      }
+    } else if (question.type === "matrix") {
+      const matrixAnswer: Record<number, number> = {};
+      const pairMatches = inlineAnswerText.matchAll(/(\d+)\s*[–-]\s*([A-Z])/g);
+      for (const pairMatch of pairMatches) {
+        const rowIdx = parseInt(pairMatch[1], 10) - 1;
+        const colIdx = toIndexFromLetter(pairMatch[2]);
+        matrixAnswer[rowIdx] = colIdx;
+      }
+      if (Object.keys(matrixAnswer).length > 0) {
+        question.correctAnswer = matrixAnswer;
+      }
+    } else if (question.type === "cloze-dropdown") {
+      const answerGroups = Array.from(inlineAnswerText.matchAll(/\(([^)]+)\)/g))
+        .map((match) => match[1].trim())
+        .filter(Boolean);
+      const tokens =
+        answerGroups.length > 0
+          ? answerGroups
+          : inlineAnswerText
+              .split(",")
+              .map((part) => part.trim())
+              .filter(Boolean);
+      if (question.gaps && question.gaps.length > 0) {
+        const answerMap: Record<number, number> = {};
+        question.gaps.forEach((gap, idx) => {
+          const token = tokens[idx];
+          if (!token) return;
+          const tokenLetterMatch = token.match(/^[A-Z]$/i);
+          if (tokenLetterMatch) {
+            answerMap[gap.index] = toIndexFromLetter(tokenLetterMatch[0]);
+            return;
+          }
+          const optionIndex = gap.options.findIndex(
+            (option) => option.toLowerCase() === token.toLowerCase()
+          );
+          if (optionIndex >= 0) {
+            answerMap[gap.index] = optionIndex;
+          }
+        });
+        if (Object.keys(answerMap).length > 0) {
+          question.correctAnswer = answerMap;
+        }
+      }
+    } else if (question.type === "two-step") {
+      const step1Token =
+        inlineAnswerText.match(/Шаг\s*1[:\s]*([A-Z0-9]+)/i)?.[1] ||
+        inlineAnswerText.match(/Ч1[:=\s]*([A-Z0-9]+)/i)?.[1];
+      const step2Token =
+        inlineAnswerText.match(/Шаг\s*2[:\s]*([A-Z0-9]+)/i)?.[1] ||
+        inlineAnswerText.match(/Ч2[:=\s]*([A-Z0-9]+)/i)?.[1];
+      const tokenToIndex = (token?: string) => {
+        if (!token) return null;
+        if (/^\d+$/.test(token)) {
+          return parseInt(token, 10) - 1;
+        }
+        return toIndexFromLetter(token[0]);
+      };
+      const step1Idx = tokenToIndex(step1Token);
+      const step2Idx = tokenToIndex(step2Token);
+      if (step1Idx !== null && step2Idx !== null) {
+        question.correctAnswer = { step1: step1Idx, step2: step2Idx };
+      }
+    } else if (question.type === "select-errors") {
+      const numberMatches = inlineAnswerText.match(/\d+/g);
+      if (numberMatches && numberMatches.length > 0) {
+        const indices = numberMatches.map((num) => parseInt(num, 10) - 1);
+        question.correctAnswer = indices;
+      }
+    }
+  }
   
   return question;
 }
@@ -1037,16 +1306,38 @@ function parseHints(text: string): Record<number, string> {
       if (hintText && currentQuestionNum > 0) {
         hints[currentQuestionNum] = hintText;
       }
-    } else if (/^(?:\*\*)?Вопрос\s+(\d+)[\.\)]/i.test(line) || /^(?:\*\*)?Задание\s+(\d+)/i.test(line)) {
-      const match = line.match(/^(?:\*\*)?Вопрос\s+(\d+)[\.\)]/i) || line.match(/^(?:\*\*)?Задание\s+(\d+)/i);
+    } else if (
+      /^(?:\*\*)?Вопрос\s+(\d+)[\.\)]/i.test(line) ||
+      /^(?:\*\*)?Задание\s+(\d+)/i.test(line) ||
+      /^(?:\*\*)?(\d+)\)/i.test(line)
+    ) {
+      const match =
+        line.match(/^(?:\*\*)?Вопрос\s+(\d+)[\.\)]/i) ||
+        line.match(/^(?:\*\*)?Задание\s+(\d+)/i) ||
+        line.match(/^(?:\*\*)?(\d+)\)/i);
       if (match) {
         currentQuestionNum = parseInt(match[1], 10);
       }
     }
     
     // Продолжение пояснения на следующей строке
-    if (currentQuestionNum > 0 && hints[currentQuestionNum] && line && !line.match(/^(?:\*\*)?Вопрос/i) && !line.match(/^(?:\*\*)?Задание/i) && !line.match(/^[A-Z]\)/) && !line.match(/^\d+\./)) {
-      if (!line.match(/^Пояснение:/i) && !line.match(/^Ключ/i) && !line.match(/^---/) && !line.match(/^Правильный ответ:/i)) {
+    if (
+      currentQuestionNum > 0 &&
+      hints[currentQuestionNum] &&
+      line &&
+      !line.match(/^(?:\*\*)?Вопрос/i) &&
+      !line.match(/^(?:\*\*)?Задание/i) &&
+      !line.match(/^(?:\*\*)?\d+\)/) &&
+      !line.match(/^[A-Z]\)/) &&
+      !line.match(/^\d+\./)
+    ) {
+      if (
+        !line.match(/^Пояснение:/i) &&
+        !line.match(/^\*\*Пояснение:/i) &&
+        !line.match(/^Ключ/i) &&
+        !line.match(/^---/) &&
+        !line.match(/^Правильный ответ:/i)
+      ) {
         hints[currentQuestionNum] += " " + line;
       }
     }
@@ -1134,7 +1425,11 @@ export function parseBazaFile(content: string): ParsedTest[] {
       }
       
       // Начало нового вопроса (поддерживаем оба формата: с ** и без)
-      if (/^(?:\*\*)?Вопрос\s+\d+[\.\)]/i.test(line) || /^(?:\*\*)?Задание\s+\d+/i.test(line)) {
+      if (
+        /^(?:\*\*)?Вопрос\s+\d+[\.\)]/i.test(line) ||
+        /^(?:\*\*)?Задание\s+\d+/i.test(line) ||
+        /^(?:\*\*)?\d+\)\s*/i.test(line)
+      ) {
         // Проверяем, не является ли это частью two-step (Часть 1 или Часть 2)
         if (!isTwoStepPart) {
           if (currentQuestion && questionStarted) {
@@ -1189,7 +1484,7 @@ export function parseBazaFile(content: string): ParsedTest[] {
       };
       const levelKey = levelMap[metadata.level.toLowerCase()] || "base";
       const testNum = testNumber || tests.length + 1;
-      const testId = `mixology-${levelKey}-${testNum}`;
+      const testId = `cocktail-${levelKey}-${testNum}`;
       
       tests.push({
         id: testId,
