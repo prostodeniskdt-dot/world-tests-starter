@@ -4,7 +4,15 @@ export type QuestionMechanic =
   | "multiple-select"
   | "true-false-enhanced"
   | "cloze-dropdown"
-  | "select-errors";
+  | "select-errors"
+  | "matching"
+  | "ordering"
+  | "grouping"
+  | "two-step"
+  | "matrix"
+  | "best-example"
+  | "scenario"
+  | "construct";
 
 // Базовый интерфейс для всех вопросов
 export interface BaseQuestion {
@@ -59,13 +67,88 @@ export interface SelectErrorsQuestion extends BaseQuestion {
   allowMultiple: boolean; // Можно выбрать несколько или одно
 }
 
+// Matching
+export interface MatchingQuestion extends BaseQuestion {
+  type: "matching";
+  leftItems: string[];
+  rightItems: string[];
+  correctPairs?: [number, number][];
+  variant?: "1-to-1";
+}
+
+// Ordering
+export interface OrderingQuestion extends BaseQuestion {
+  type: "ordering";
+  items: string[];
+  correctOrder?: number[];
+  instruction?: string;
+}
+
+// Grouping
+export interface GroupingQuestion extends BaseQuestion {
+  type: "grouping";
+  items: string[];
+  categories: string[];
+}
+
+// Two-step
+export interface TwoStepQuestion extends BaseQuestion {
+  type: "two-step";
+  step1: {
+    question: string;
+    options: string[];
+  };
+  step2: {
+    question: string;
+    options: string[];
+  };
+}
+
+// Matrix
+export interface MatrixQuestion extends BaseQuestion {
+  type: "matrix";
+  rows: string[];
+  columns: string[];
+  matrixType: "single-select" | "multiple-select";
+}
+
+// Best Example
+export interface BestExampleQuestion extends BaseQuestion {
+  type: "best-example";
+  options: string[];
+}
+
+// Scenario
+export interface ScenarioQuestion extends BaseQuestion {
+  type: "scenario";
+  situation: string;
+  question: string;
+  actionType: "select" | "matching";
+  actions: string[];
+}
+
+// Construct
+export interface ConstructQuestion extends BaseQuestion {
+  type: "construct";
+  blocks: string[];
+  question: "blocks" | "order" | "both";
+}
+
 // Union тип для всех вопросов
 export type PublicTestQuestion =
   | MultipleChoiceQuestion
   | MultipleSelectQuestion
   | TrueFalseEnhancedQuestion
   | ClozeDropdownQuestion
-  | SelectErrorsQuestion;
+  | SelectErrorsQuestion
+  | MatchingQuestion
+  | OrderingQuestion
+  | GroupingQuestion
+  | TwoStepQuestion
+  | MatrixQuestion
+  | BestExampleQuestion
+  | ScenarioQuestion
+  | ConstructQuestion;
 
 // Типы ответов для разных механик
 export type QuestionAnswer =
