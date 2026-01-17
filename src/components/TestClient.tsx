@@ -74,8 +74,6 @@ export function TestClient({ test }: { test: PublicTest }) {
     max: number | null;
   } | null>(null);
   const { user: currentUser } = useLocalUser();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showNavigation, setShowNavigation] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const answeredCount = useMemo(() => {
@@ -83,24 +81,6 @@ export function TestClient({ test }: { test: PublicTest }) {
   }, [answers]);
 
   const progressPercent = (answeredCount / test.questions.length) * 100;
-
-  const goToQuestion = (index: number) => {
-    setCurrentQuestionIndex(index);
-    const element = document.getElementById(`question-${index}`);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestionIndex < test.questions.length - 1) {
-      goToQuestion(currentQuestionIndex + 1);
-    }
-  };
-
-  const prevQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      goToQuestion(currentQuestionIndex - 1);
-    }
-  };
 
   // Функция для проверки ответа на клиенте (для показа справки)
   const checkAnswerLocally = async (questionId: string, answer: QuestionAnswer) => {
@@ -184,43 +164,6 @@ export function TestClient({ test }: { test: PublicTest }) {
         </div>
       </div>
 
-      {/* Навигация по вопросам */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-zinc-700">Навигация по вопросам</span>
-          <button
-            onClick={() => setShowNavigation(!showNavigation)}
-            className="text-xs text-primary-600 hover:text-zinc-600 transition-colors"
-          >
-            {showNavigation ? 'Скрыть' : 'Показать'}
-          </button>
-        </div>
-        {showNavigation && (
-          <div className="flex flex-wrap gap-2">
-            {test.questions.map((q, idx) => {
-              const isAnswered = answers[q.id] !== null;
-              const isCurrent = idx === currentQuestionIndex;
-              return (
-                <button
-                  key={q.id}
-                  onClick={() => goToQuestion(idx)}
-                  className={`w-12 h-12 sm:w-10 sm:h-10 rounded-lg text-sm font-semibold transition-all ${
-                    isCurrent
-                      ? 'bg-primary-600 text-white ring-2 ring-primary-300'
-                      : isAnswered
-                      ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
-                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                  }`}
-                  aria-label={`Вопрос ${idx + 1}${isAnswered ? ', отвечен' : ', не отвечен'}`}
-                >
-                  {idx + 1}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       <UserGate title="Для прохождения теста необходима регистрация">
         {(user) => (
           <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
@@ -263,24 +206,6 @@ export function TestClient({ test }: { test: PublicTest }) {
                         showHint={!!showHint}
                         isCorrect={isCorrect}
                       />
-                    </div>
-                    <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 mt-4 pt-4 border-t border-zinc-200">
-                      <button
-                        onClick={prevQuestion}
-                        disabled={idx === 0}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium min-h-[44px] sm:min-h-0"
-                        aria-label="Предыдущий вопрос"
-                      >
-                        ← Предыдущий
-                      </button>
-                      <button
-                        onClick={nextQuestion}
-                        disabled={idx === test.questions.length - 1}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-primary-300 bg-white text-primary-600 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium min-h-[44px] sm:min-h-0"
-                        aria-label="Следующий вопрос"
-                      >
-                        Следующий →
-                      </button>
                     </div>
                   </div>
                 );

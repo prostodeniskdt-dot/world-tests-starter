@@ -16,7 +16,7 @@ export const MIXOLOGY_ADVANCED_3_SECRET = {
     q2: [0,2],
     q3: {step1: 0, step2Mapping: {0: 0, 1: 1, 2: 2, 3: 3}},
     q4: {answer: false, reason: 0},
-    q5: [0,2],
+    q5: [1,2], // Ошибки по id: id=1 и id=2 (по hint о сладости и биттере)
     q6: [[0,0],[1,1],[2,2],[3,3]],
     q7: [0,2,1,3],
     q8: 0,

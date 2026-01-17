@@ -12,9 +12,9 @@ export const COCKTAIL_ADVANCED_3_SECRET = {
   difficulty: 2,
   maxAttempts: null as number | null,
   answerKey: {
-    q1: {step1: 0, step2Mapping: {0: 0, 1: 1, 2: 2, 3: 3}},
-    q2: [3,5],
-    q3: 0,
+    q1: 0, // multiple-choice: "Меньше разбавления — меньше таяния льда — выше температура"
+    q2: [3,5], // multiple-select: Blended очень разбавленный + сладость притупляется на холоде
+    q3: [4,6], // select-errors: id=4 "blended меньше разбавлен" и id=6 "сладость сильнее на холоде"
     q4: [[0,3],[1,1],[2,0],[3,2]],
     q5: [0,2],
     q6: [0,3,1,2],
@@ -22,7 +22,7 @@ export const COCKTAIL_ADVANCED_3_SECRET = {
     q8: {answer: false, reason: 0},
     q9: 0,
     q10: [1,4],
-    q11: [0,1,3],
+    q11: [2,5], // select-errors: id=2 "стекло легче" и id=5 "металл много энергии"
     q12: {"Безопасность":[0,1,4], "Качество":[2,3]},
     q13: {0:0, 1:0, 2:2},
     q14: 0,
@@ -32,6 +32,5 @@ export const COCKTAIL_ADVANCED_3_SECRET = {
     q18: [1,0,3,2],
     q19: {0:1, 1:0, 2:2},
     q20: 0,
-    q21: null,
   } as Record<string, any>,
 };

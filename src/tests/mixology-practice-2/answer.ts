@@ -19,7 +19,7 @@ export const MIXOLOGY_PRACTICE_2_SECRET = {
     q5: [0,0],
     q6: [0,3],
     q7: [0,1,2,3],
-    q8: [0,2],
+    q8: [1,3], // Ошибки: id=1 "больше биттера = гармоничнее" и id=3 "сахар только ради сладости"
     q9: 0,
     q10: {step1: 0, step2Mapping: {0: 0, 1: 1, 2: 2, 3: 3}},
     q11: {answer: true, reason: 0},

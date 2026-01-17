@@ -22,7 +22,7 @@ export const CARBONIZATION_BASE_1_SECRET = {
     q8: 0,
     q9: [0,3],
     q10: [1,2,3,0],
-    q11: [1], // "быстрее" (index 0 в options + 1 для select value)
+    q11: [0], // "быстрее" (index 0 в options)
     q12: 0,
     q13: [[0,2],[1,0],[2,3],[3,1]],
     q14: 0,
