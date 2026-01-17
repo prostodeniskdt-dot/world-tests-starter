@@ -14,11 +14,7 @@
 
 #### 2️⃣ Запусти автоматический парсинг
 ```bash
-# Для baza.txt
 npx ts-node scripts/parse-baza.ts
-
-# Для baza1.txt
-npx ts-node scripts/parse-baza1.ts
 ```
 
 #### 3️⃣ Проверь результаты

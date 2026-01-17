@@ -505,7 +505,7 @@ function parseTestHeader(header: string, testNumber: number): { title: string; l
     };
   }
   
-  // Формат baza1.txt: ТЕСТ 1 — «Три штриха баланса» или ТЕСТ 3 (Сложный) — «Инженерия вкуса»
+  // Формат: ТЕСТ 1 — «Три штриха баланса» или ТЕСТ 3 (Сложный) — «Инженерия вкуса»
   // Используем Unicode для em dash (—) и en dash (–)
   const match2 = header.match(/ТЕСТ\s+\d+\s*(?:\(([^)]+)\)\s*)?[—–\-]\s*[«"]?([^»"]+)[»"]?/i);
   if (match2) {
