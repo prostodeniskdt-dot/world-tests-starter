@@ -33,8 +33,8 @@ export function ClozeDropdownQuestion({
     let currentIndex = 0;
     const parts: React.ReactNode[] = [];
     const text = question.text;
-    // Поддержка форматов: ___, {0}, [1] (все форматы с номерами или без)
-    const gapPattern = /___|\[(\d+)\]|\{(\d+)\}/g;
+    // Поддержка форматов: ___, {0}, [1], [1: ___] (все форматы с номерами или без)
+    const gapPattern = /___|\[(\d+)(?::\s*___)?\]|\{(\d+)\}/g;
     let lastIndex = 0;
     let match;
 
@@ -47,7 +47,33 @@ export function ClozeDropdownQuestion({
       }
 
       // Пропуск - извлекаем индекс из [1] или {0}, или используем currentIndex для ___
-      const gapIndex = match[1] ? parseInt(match[1], 10) : (match[2] ? parseInt(match[2], 10) : currentIndex);
+      // [1], [2] - 1-based формат в тексте, может использоваться как index в gap или индекс массива
+      // {0}, {1} - уже 0-based формат для индекса массива
+      // ___ - используем currentIndex (последовательный индекс массива)
+      let gapIndex: number;
+      let gapNumberFromText: number | null = null;
+      
+      if (match[1]) {
+        // Формат [1], [2], [1: ___] - извлекаем число (1-based в тексте)
+        gapNumberFromText = parseInt(match[1], 10);
+        // Пробуем найти gap по полю index (если в данных используется 1-based индексация)
+        let gapByIndex = question.gaps.find(g => g.index === gapNumberFromText);
+        if (gapByIndex) {
+          // Используем позицию найденного gap в массиве
+          gapIndex = question.gaps.indexOf(gapByIndex);
+        } else {
+          // Если не найден по полю index, предполагаем 0-based индексацию массива
+          gapIndex = gapNumberFromText - 1;
+        }
+      } else if (match[2]) {
+        // Формат {0}, {1} - уже 0-based формат для индекса массива
+        gapIndex = parseInt(match[2], 10);
+      } else {
+        // Формат ___ - используем currentIndex (последовательный индекс массива)
+        gapIndex = currentIndex;
+      }
+      
+      // Получаем gap по индексу массива
       const gap = question.gaps[gapIndex];
       if (gap) {
         const isFilled = selectedIndices[gapIndex] >= 0;
