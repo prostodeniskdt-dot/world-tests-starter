@@ -123,7 +123,7 @@ export interface ScenarioQuestion extends BaseQuestion {
   type: "scenario";
   situation: string;
   question: string;
-  actionType: "select" | "matching";
+  actionType: "select" | "order" | "match";
   actions: string[];
 }
 
