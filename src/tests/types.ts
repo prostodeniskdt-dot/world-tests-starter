@@ -168,7 +168,8 @@ export type QuestionAnswer =
   | ScenarioAnswer; // scenario (зависит от actionType)
 
 export type ScenarioAnswer =
-  | number[] // actionType: "select" или "order"
+  | number // actionType: "select" (один выбор)
+  | number[] // actionType: "order"
   | [number, number][]; // actionType: "match"
 
 export type PublicTest = {

@@ -189,17 +189,16 @@ function checkBestExample(
  * Проверяет ответ для вопроса типа scenario
  */
 function checkScenario(
-  userAnswer: number[] | [number, number][],
-  correctAnswer: number[] | [number, number][],
+  userAnswer: number | number[] | [number, number][],
+  correctAnswer: number | number[] | [number, number][],
   actionType: "select" | "order" | "match"
 ): boolean {
-  if (actionType === "select" || actionType === "order") {
+  if (actionType === "select") {
+    // Для select используется один выбор (как multiple-choice)
+    return checkMultipleChoice(userAnswer as number, correctAnswer as number);
+  } else if (actionType === "order") {
     if (!Array.isArray(userAnswer) || !Array.isArray(correctAnswer)) return false;
-    if (actionType === "order") {
-      return arraysEqual(userAnswer as number[], correctAnswer as number[]);
-    } else {
-      return arraysEqualUnordered(userAnswer as number[], correctAnswer as number[]);
-    }
+    return arraysEqual(userAnswer as number[], correctAnswer as number[]);
   } else {
     // match
     return checkMatchingPairs(

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ScenarioQuestion as ScenarioQuestionType, QuestionAnswer } from "@/tests/types";
-import { MultipleSelectQuestion } from "./MultipleSelectQuestion";
+import { MultipleChoiceQuestion } from "./MultipleChoiceQuestion";
 import { OrderingQuestion } from "./OrderingQuestion";
 import { MatchingQuestion } from "./MatchingQuestion";
 
@@ -28,12 +28,11 @@ export function ScenarioQuestion({
         <div className="p-3 bg-zinc-50 rounded-lg border border-zinc-200 mb-4">
           <p className="text-sm sm:text-base text-zinc-700">{question.question}</p>
         </div>
-        <MultipleSelectQuestion
+        <MultipleChoiceQuestion
           question={{
             ...question,
-            type: "multiple-select",
+            type: "multiple-choice",
             options: question.actions,
-            instruction: "Выберите все правильные действия",
           }}
           answer={answer}
           onChange={onChange}
