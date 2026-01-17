@@ -37,47 +37,12 @@ export function TrueFalseEnhancedQuestion({
 
   return (
     <div className="space-y-4">
-      {/* Инструкция */}
-      <div className="text-xs sm:text-sm font-medium text-zinc-700 mb-3 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        ℹ️ Сначала выберите &quot;Верно&quot; или &quot;Неверно&quot;, затем укажите причину
-      </div>
-      
-      {/* Улучшенный степпер с прогрессом */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs sm:text-sm font-medium text-zinc-700">Прогресс ответа</span>
-          <span className="text-xs sm:text-sm font-bold text-primary-600">Шаг {step} из 2</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className={`flex-1 h-3 rounded-full transition-all ${
-            step >= 1 ? "bg-gradient-to-r from-primary-500 to-primary-600" : "bg-zinc-200"
-          }`}>
-            <div className="flex items-center justify-center h-full text-white text-xs font-bold">
-              {step >= 1 && "✓"}
-            </div>
-          </div>
-          <div className={`flex-1 h-3 rounded-full transition-all ${
-            step >= 2 ? "bg-gradient-to-r from-accent-500 to-accent-600" : "bg-zinc-200"
-          }`}>
-            <div className="flex items-center justify-center h-full text-white text-xs font-bold">
-              {step >= 2 && "✓"}
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-xs text-zinc-500">Утверждение</span>
-          <span className="text-xs text-zinc-500">Объяснение</span>
-        </div>
-      </div>
 
       {/* Шаг 1: Верно/Неверно */}
       {step === 1 && (
         <div className="space-y-4">
-          <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-300 mb-3 sm:mb-4">
-            <p className="text-sm sm:text-base md:text-lg font-semibold text-zinc-900 leading-snug">{question.statement}</p>
-          </div>
-          <div className="text-xs sm:text-sm font-medium text-zinc-700 mb-3 text-center">
-            Это утверждение верно или неверно?
+          <div className="p-4 rounded-lg border border-zinc-200 bg-white mb-4">
+            <p className="text-base font-medium text-zinc-900 leading-relaxed">{question.statement}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -123,41 +88,24 @@ export function TrueFalseEnhancedQuestion({
       {/* Шаг 2: Выбор причины */}
       {step === 2 && currentAnswer.answer !== null && (
         <div className="space-y-4">
-          <div className={`p-4 rounded-xl border-2 ${
-            currentAnswer.answer 
-              ? "bg-gradient-to-r from-green-50 to-green-100 border-green-400" 
-              : "bg-gradient-to-r from-red-50 to-red-100 border-red-400"
-          }`}>
+          <div className="p-3 rounded-lg border border-zinc-200 bg-zinc-50">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 mb-1">Ваш ответ на шаге 1:</p>
-                <p className={`text-lg font-bold flex items-center gap-2 ${
-                  currentAnswer.answer ? "text-green-700" : "text-red-700"
-                }`}>
-                  {currentAnswer.answer ? (
-                    <><CheckCircle2 className="h-5 w-5" /> Верно</>
-                  ) : (
-                    <><X className="h-5 w-5" /> Неверно</>
-                  )}
-                </p>
-              </div>
+              <p className="text-sm font-medium text-zinc-700">
+                Ваш ответ: {currentAnswer.answer ? "Верно" : "Неверно"}
+              </p>
               {!disabled && (
                 <button
                   onClick={() => setStep(1)}
-                  className={`text-sm font-medium px-4 py-2 rounded-lg border-2 transition-colors ${
-                    currentAnswer.answer
-                      ? "border-green-600 text-green-700 hover:bg-green-200"
-                      : "border-red-600 text-red-700 hover:bg-red-200"
-                  }`}
+                  className="text-sm text-zinc-600 hover:text-zinc-900 underline"
                 >
-                  ← Изменить
+                  Изменить
                 </button>
               )}
             </div>
           </div>
           <div>
-            <p className="font-semibold mb-3 text-zinc-900 text-base">
-              💡 Теперь выберите объяснение вашего ответа:
+            <p className="font-medium mb-3 text-zinc-900 text-sm">
+              Выберите объяснение:
             </p>
             <div className="space-y-2">
               {question.reasons.map((reason, idx) => {

@@ -20,9 +20,6 @@ export function MultipleChoiceQuestion({
 
   return (
     <div className="space-y-2">
-      <div className="text-sm font-medium text-zinc-700 mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-        📋 Выберите один правильный ответ
-      </div>
       {question.options.map((opt, optIdx) => {
         const checked = selectedIndex === optIdx;
         const letter = String.fromCharCode(65 + optIdx); // A, B, C, D...

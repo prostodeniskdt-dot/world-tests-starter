@@ -27,62 +27,7 @@ export function MultipleSelectQuestion({
   };
 
   return (
-    <div className="space-y-4">
-      {question.instruction && (
-        <div className="text-sm font-medium text-zinc-700 mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          ℹ️ {question.instruction}
-        </div>
-      )}
-      
-      {/* Визуальный счетчик и прогресс */}
-      <div className="p-3 bg-gradient-to-r from-primary-50 to-accent-50 border-2 border-primary-200 rounded-lg">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-zinc-700">
-            ✓ Выбрано вариантов:
-          </span>
-          <span className="text-lg font-bold text-primary-600">
-            {selectedIndices.length}
-          </span>
-        </div>
-        {selectedIndices.length > 0 && (
-          <div className="text-xs text-zinc-600">
-            Выбранные: {selectedIndices.map(idx => question.options[idx]).join(", ")}
-          </div>
-        )}
-      </div>
-
-      {/* Выбранные варианты (если есть) */}
-      {selectedIndices.length > 0 && (
-        <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-          <h4 className="font-semibold text-green-900 mb-2 text-sm flex items-center gap-2">
-            <CheckSquare className="h-4 w-4" />
-            Ваш выбор ({selectedIndices.length}):
-          </h4>
-          <div className="space-y-2">
-            {selectedIndices.sort((a, b) => a - b).map((idx) => (
-              <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded border border-green-200">
-                <span className="flex-shrink-0 bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
-                  {idx + 1}
-                </span>
-                <span className="flex-1 text-sm text-zinc-700">{question.options[idx]}</span>
-                {!disabled && (
-                  <button
-                    onClick={() => toggleOption(idx)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded px-2 py-1 text-xs transition-colors"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="text-sm font-medium text-zinc-700 mb-2">
-        Все варианты ответов:
-      </div>
-      <div className="space-y-2">
+    <div className="space-y-2">
         {question.options.map((opt, optIdx) => {
           const checked = selectedIndices.includes(optIdx);
           return (

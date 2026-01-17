@@ -6,17 +6,9 @@ import type { QuestionMechanic } from "@/tests/types";
 export const QUESTION_MECHANICS: QuestionMechanic[] = [
   "multiple-choice",
   "multiple-select",
-  "matching",
-  "ordering",
-  "grouping",
   "true-false-enhanced",
   "cloze-dropdown",
   "select-errors",
-  "two-step",
-  "matrix",
-  "best-example",
-  "scenario",
-  "construct",
 ];
 
 /**
@@ -25,17 +17,9 @@ export const QUESTION_MECHANICS: QuestionMechanic[] = [
 export const MECHANIC_NAMES: Record<QuestionMechanic, string> = {
   "multiple-choice": "Выбор одного ответа",
   "multiple-select": "Выбор нескольких ответов",
-  "matching": "Соответствия",
-  "ordering": "Упорядочивание",
-  "grouping": "Группировка",
   "true-false-enhanced": "Верно/Неверно с причиной",
   "cloze-dropdown": "Заполнение пропусков",
   "select-errors": "Найди ошибки",
-  "two-step": "Двухступенчатый вопрос",
-  "matrix": "Матрица",
-  "best-example": "Лучший пример",
-  "scenario": "Мини-кейс",
-  "construct": "Собери из блоков",
 };
 
 /**

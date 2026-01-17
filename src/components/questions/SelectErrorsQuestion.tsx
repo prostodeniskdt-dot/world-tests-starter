@@ -59,14 +59,14 @@ export function SelectErrorsQuestion({
           <span
             key={`part-${part.id}`}
             onClick={() => togglePart(part.id)}
-            className={`inline-flex items-center gap-1 px-2 py-1 mx-1 rounded-lg cursor-pointer touch-manipulation min-h-[32px] transition-all ${
+            className={`inline-flex items-center gap-1 px-2 py-1 mx-1 rounded-lg cursor-pointer touch-manipulation min-h-[32px] transition-all border-2 ${
               isSelected
-                ? "bg-red-100 border-2 border-red-500 shadow-md font-medium"
-                : "bg-yellow-50 border-2 border-yellow-400 hover:border-yellow-500 hover:bg-yellow-100 hover:shadow"
+                ? "bg-primary-50 border-primary-500 shadow-md font-medium"
+                : "bg-zinc-50 border-zinc-300 hover:border-primary-400 hover:bg-zinc-100"
             } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
           >
             <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-              isSelected ? "bg-red-600 text-white" : "bg-yellow-600 text-white"
+              isSelected ? "bg-primary-600 text-white" : "bg-zinc-400 text-white"
             }`}>
               {partNumber}
             </span>
@@ -85,75 +85,7 @@ export function SelectErrorsQuestion({
 
   return (
     <div className="space-y-4">
-      <div className="text-sm font-medium text-zinc-700 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-        <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
-        <span>
-          {question.allowMultiple
-            ? `Найдите все ошибки${expectedErrors ? ` (${expectedErrors} шт.)` : " (может быть несколько)"}`
-            : "Найдите ошибку"}
-        </span>
-      </div>
-
-      {/* Счетчик выбранных ошибок */}
-      <div className={`p-3 rounded-lg border-2 transition-all ${
-        expectedErrors && selectedIds.length === parseInt(expectedErrors)
-          ? "bg-green-50 border-green-400"
-          : selectedIds.length > 0
-          ? "bg-amber-50 border-amber-400"
-          : "bg-zinc-50 border-zinc-300"
-      }`}>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-zinc-700">
-            {selectedIds.length > 0 ? "🔍 Найдено ошибок:" : "❓ Ошибки не выбраны"}
-          </span>
-          <span className={`text-xl font-bold ${
-            expectedErrors && selectedIds.length === parseInt(expectedErrors)
-              ? "text-green-600"
-              : selectedIds.length > 0
-              ? "text-amber-600"
-              : "text-zinc-400"
-          }`}>
-            {selectedIds.length}{expectedErrors ? ` / ${expectedErrors}` : ""}
-          </span>
-        </div>
-      </div>
-
-      {/* Список выбранных ошибок */}
-      {selectedIds.length > 0 && (
-        <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-          <h4 className="font-semibold text-red-900 mb-3 text-sm flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            Выбранные ошибки:
-          </h4>
-          <div className="space-y-2">
-            {selectedIds.map((partId) => {
-              const part = question.markedParts.find(p => p.id === partId);
-              if (!part) return null;
-              return (
-                <div key={partId} className="flex items-start gap-2 p-2 bg-white rounded border border-red-200">
-                  <span className="flex-shrink-0 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
-                    {getPartNumber(partId)}
-                  </span>
-                  <span className="flex-1 text-sm text-zinc-700">{part.text}</span>
-                  {!disabled && (
-                    <button
-                      onClick={() => togglePart(partId)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded px-2 py-1 text-xs transition-colors"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div className="text-sm font-medium text-zinc-700 mb-2">
-        Нажмите на выделенные фрагменты, чтобы отметить ошибки:
-      </div>
-      <div className="p-4 bg-zinc-50 rounded-lg border-2 border-zinc-300">
+      <div className="p-4 bg-white rounded-lg border border-zinc-200">
         <div className="text-sm sm:text-base leading-relaxed flex flex-wrap gap-1 items-center">{renderContent()}</div>
       </div>
     </div>
