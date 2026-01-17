@@ -68,7 +68,6 @@ export function MultipleSelectQuestion({
             </label>
           );
         })}
-      </div>
     </div>
   );
 }
