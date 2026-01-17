@@ -47,7 +47,7 @@ export function ClozeDropdownQuestion({
       }
 
       // Пропуск - извлекаем индекс из [1] или {0}, или используем currentIndex для ___
-      // [1], [2] - 1-based формат в тексте, может использоваться как index в gap или индекс массива
+      // [1], [2] - 1-based формат в тексте, всегда преобразуем в 0-based индекс массива
       // {0}, {1} - уже 0-based формат для индекса массива
       // ___ - используем currentIndex (последовательный индекс массива)
       let gapIndex: number;
@@ -55,16 +55,9 @@ export function ClozeDropdownQuestion({
       if (match[1]) {
         // Формат [1], [2], [1: ___] - извлекаем число (1-based в тексте)
         const gapNumberFromText = parseInt(match[1], 10);
-        // Пробуем найти gap по полю index (если в данных используется 1-based индексация)
-        const gapByIndex = question.gaps.find(g => g.index === gapNumberFromText);
-        if (gapByIndex) {
-          // Используем позицию найденного gap в массиве
-          gapIndex = question.gaps.indexOf(gapByIndex);
-        } else {
-          // Если не найден по полю index, предполагаем 0-based индексацию массива
-          // [1] -> index 0, [2] -> index 1, и т.д.
-          gapIndex = gapNumberFromText - 1;
-        }
+        // Всегда преобразуем в 0-based индекс массива: [1] -> 0, [2] -> 1, [3] -> 2 и т.д.
+        // Это гарантирует, что каждый пропуск в тексте соответствует своему gap в массиве по порядку
+        gapIndex = gapNumberFromText - 1;
       } else if (match[2]) {
         // Формат {0}, {1} - уже 0-based формат для индекса массива
         gapIndex = parseInt(match[2], 10);
