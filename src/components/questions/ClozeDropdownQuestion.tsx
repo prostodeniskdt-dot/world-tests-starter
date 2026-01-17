@@ -33,7 +33,8 @@ export function ClozeDropdownQuestion({
     let currentIndex = 0;
     const parts: React.ReactNode[] = [];
     const text = question.text;
-    const gapPattern = /___|\{(\d+)\}/g;
+    // Поддержка форматов: ___, {0}, [1] (все форматы с номерами или без)
+    const gapPattern = /___|\[(\d+)\]|\{(\d+)\}/g;
     let lastIndex = 0;
     let match;
 
@@ -45,8 +46,8 @@ export function ClozeDropdownQuestion({
         );
       }
 
-      // Пропуск
-      const gapIndex = match[1] ? parseInt(match[1], 10) : currentIndex;
+      // Пропуск - извлекаем индекс из [1] или {0}, или используем currentIndex для ___
+      const gapIndex = match[1] ? parseInt(match[1], 10) : (match[2] ? parseInt(match[2], 10) : currentIndex);
       const gap = question.gaps[gapIndex];
       if (gap) {
         const isFilled = selectedIndices[gapIndex] >= 0;

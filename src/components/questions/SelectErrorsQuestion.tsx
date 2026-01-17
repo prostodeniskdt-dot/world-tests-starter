@@ -154,7 +154,7 @@ export function SelectErrorsQuestion({
         Нажмите на выделенные фрагменты, чтобы отметить ошибки:
       </div>
       <div className="p-4 bg-zinc-50 rounded-lg border-2 border-zinc-300">
-        <div className="text-sm sm:text-base leading-relaxed">{renderContent()}</div>
+        <div className="text-sm sm:text-base leading-relaxed flex flex-wrap gap-1 items-center">{renderContent()}</div>
       </div>
     </div>
   );
