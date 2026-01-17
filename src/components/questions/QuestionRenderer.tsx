@@ -9,6 +9,10 @@ import { MultipleSelectQuestion } from "./MultipleSelectQuestion";
 import { TrueFalseEnhancedQuestion } from "./TrueFalseEnhancedQuestion";
 import { ClozeDropdownQuestion } from "./ClozeDropdownQuestion";
 import { SelectErrorsQuestion } from "./SelectErrorsQuestion";
+import { MatchingQuestion } from "./MatchingQuestion";
+import { OrderingQuestion } from "./OrderingQuestion";
+import { TwoStepQuestion } from "./TwoStepQuestion";
+import { MatrixQuestion } from "./MatrixQuestion";
 
 interface QuestionRendererProps {
   question: PublicTestQuestion;
@@ -57,6 +61,18 @@ export function QuestionRenderer({
       )}
       {question.type === "select-errors" && (
         <SelectErrorsQuestion {...commonProps} question={question as import("@/tests/types").SelectErrorsQuestion} />
+      )}
+      {question.type === "matching" && (
+        <MatchingQuestion {...commonProps} question={question as import("@/tests/types").MatchingQuestion} />
+      )}
+      {question.type === "ordering" && (
+        <OrderingQuestion {...commonProps} question={question as import("@/tests/types").OrderingQuestion} />
+      )}
+      {question.type === "two-step" && (
+        <TwoStepQuestion {...commonProps} question={question as import("@/tests/types").TwoStepQuestion} />
+      )}
+      {question.type === "matrix" && (
+        <MatrixQuestion {...commonProps} question={question as import("@/tests/types").MatrixQuestion} />
       )}
 
       {/* Подсказка */}

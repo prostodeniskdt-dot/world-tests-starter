@@ -12,7 +12,7 @@ export const COCKTAIL_ADVANCED_3_SECRET = {
   difficulty: 2,
   maxAttempts: null as number | null,
   answerKey: {
-    q1: {"step1":0,"step2":0},
+    q1: {"step1":0,"step2Mapping":{"0":0}},
     q2: 0,
     q3: {"0":0,"1":1,"2":1},
     q4: 0,
@@ -21,7 +21,7 @@ export const COCKTAIL_ADVANCED_3_SECRET = {
     q7: 0,
     q8: 0,
     q9: 0,
-    q10: {"1":0},
+    q10: [0],
     q11: 0,
     q12: [0,1,3],
     q13: [1],

@@ -14,7 +14,7 @@ export const COCKTAIL_BASE_1_SECRET = {
   answerKey: {
     q1: 0,
     q2: 2,
-    q3: {"1":0,"2":0},
+    q3: [0,0],
     q4: 0,
     q5: 0,
     q6: [0,1],
@@ -27,8 +27,8 @@ export const COCKTAIL_BASE_1_SECRET = {
     q13: 1,
     q14: [0,1],
     q15: 0,
-    q16: {"step1":0,"step2":0},
+    q16: {"step1":0,"step2Mapping":{"0":0}},
     q17: 0,
-    q18: {"1":0,"2":0},
+    q18: [0,0],
   } as Record<string, any>,
 };

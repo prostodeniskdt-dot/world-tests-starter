@@ -288,7 +288,9 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       const gapIdx = parseInt(clozeMatch1[2], 10);
       const letter = clozeMatch1[3].toUpperCase();
       const answerIndex = letter.charCodeAt(0) - 65;
-      answers[qNum] = { [gapIdx]: answerIndex };
+      const answerArray = Array.isArray(answers[qNum]) ? (answers[qNum] as number[]) : [];
+      answerArray[gapIdx - 1] = answerIndex;
+      answers[qNum] = answerArray;
       continue;
     }
     
@@ -299,7 +301,9 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       const gapIdx = parseInt(clozeMatchCompact[2], 10);
       const letter = clozeMatchCompact[3].toUpperCase();
       const answerIndex = letter.charCodeAt(0) - 65;
-      answers[qNum] = { [gapIdx]: answerIndex };
+      const answerArray = Array.isArray(answers[qNum]) ? (answers[qNum] as number[]) : [];
+      answerArray[gapIdx - 1] = answerIndex;
+      answers[qNum] = answerArray;
       continue;
     }
     
@@ -311,7 +315,9 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       const gapIdx = parseInt(clozeMatch2[2], 10);
       const letter = clozeMatch2[3].toUpperCase();
       const answerIndex = letter.charCodeAt(0) - 65;
-      answers[qNum] = { [gapIdx]: answerIndex };
+      const answerArray = Array.isArray(answers[qNum]) ? (answers[qNum] as number[]) : [];
+      answerArray[gapIdx - 1] = answerIndex;
+      answers[qNum] = answerArray;
       continue;
     }
     
@@ -324,7 +330,7 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       const step2Letter = twoStepMatch1[3].toUpperCase();
       const step1Idx = step1Letter.charCodeAt(0) - 65;
       const step2Idx = step2Letter.charCodeAt(0) - 65;
-      answers[qNum] = { step1: step1Idx, step2: step2Idx };
+      answers[qNum] = { step1: step1Idx, step2Mapping: { [step1Idx]: step2Idx } };
       continue;
     }
     
@@ -336,7 +342,7 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       const step2Letter = twoStepMatch2[3].toUpperCase();
       const step1Idx = step1Letter.charCodeAt(0) - 65;
       const step2Idx = step2Letter.charCodeAt(0) - 65;
-      answers[qNum] = { step1: step1Idx, step2: step2Idx };
+      answers[qNum] = { step1: step1Idx, step2Mapping: { [step1Idx]: step2Idx } };
       continue;
     }
     
@@ -348,7 +354,7 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       const step2Letter = twoStepMatch3[3].toUpperCase();
       const step1Idx = step1Letter.charCodeAt(0) - 65;
       const step2Idx = step2Letter.charCodeAt(0) - 65;
-      answers[qNum] = { step1: step1Idx, step2: step2Idx };
+      answers[qNum] = { step1: step1Idx, step2Mapping: { [step1Idx]: step2Idx } };
       continue;
     }
     
@@ -1102,12 +1108,12 @@ function parseQuestion(
         continue;
       }
       
-      if (/^Объекты:/i.test(line) || /^Цели:/i.test(line)) {
+      if (/^Объекты:/i.test(line) || /^Цели:/i.test(line) || /^Продукты:/i.test(line)) {
         inObjects = true;
         inCharacteristics = false;
         continue;
       }
-      if (/^Характеристики:/i.test(line) || /^Методы:/i.test(line)) {
+      if (/^Характеристики:/i.test(line) || /^Методы:/i.test(line) || /^Варианты:/i.test(line)) {
         inCharacteristics = true;
         inObjects = false;
         continue;
@@ -1233,24 +1239,24 @@ function parseQuestion(
               .map((part) => part.trim())
               .filter(Boolean);
       if (question.gaps && question.gaps.length > 0) {
-        const answerMap: Record<number, number> = {};
+        const answerArray: number[] = Array.from({ length: question.gaps.length }, () => -1);
         question.gaps.forEach((gap, idx) => {
           const token = tokens[idx];
           if (!token) return;
           const tokenLetterMatch = token.match(/^[A-Z]$/i);
           if (tokenLetterMatch) {
-            answerMap[gap.index] = toIndexFromLetter(tokenLetterMatch[0]);
+            answerArray[idx] = toIndexFromLetter(tokenLetterMatch[0]);
             return;
           }
           const optionIndex = gap.options.findIndex(
             (option) => option.toLowerCase() === token.toLowerCase()
           );
           if (optionIndex >= 0) {
-            answerMap[gap.index] = optionIndex;
+            answerArray[idx] = optionIndex;
           }
         });
-        if (Object.keys(answerMap).length > 0) {
-          question.correctAnswer = answerMap;
+        if (answerArray.some((value) => value >= 0)) {
+          question.correctAnswer = answerArray;
         }
       }
     } else if (question.type === "two-step") {
@@ -1270,7 +1276,7 @@ function parseQuestion(
       const step1Idx = tokenToIndex(step1Token);
       const step2Idx = tokenToIndex(step2Token);
       if (step1Idx !== null && step2Idx !== null) {
-        question.correctAnswer = { step1: step1Idx, step2: step2Idx };
+        question.correctAnswer = { step1: step1Idx, step2Mapping: { [step1Idx]: step2Idx } };
       }
     } else if (question.type === "select-errors") {
       const numberMatches = inlineAnswerText.match(/\d+/g);
@@ -1335,6 +1341,7 @@ function parseHints(text: string): Record<number, string> {
         !line.match(/^Пояснение:/i) &&
         !line.match(/^\*\*Пояснение:/i) &&
         !line.match(/^Ключ/i) &&
+        !line.match(/^\*\*Ключ/i) &&
         !line.match(/^---/) &&
         !line.match(/^Правильный ответ:/i)
       ) {
