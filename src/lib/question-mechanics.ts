@@ -9,6 +9,14 @@ export const QUESTION_MECHANICS: QuestionMechanic[] = [
   "true-false-enhanced",
   "cloze-dropdown",
   "select-errors",
+  "matching",
+  "ordering",
+  "grouping",
+  "two-step",
+  "matrix",
+  "best-example",
+  "scenario",
+  "construct",
 ];
 
 /**
@@ -20,6 +28,14 @@ export const MECHANIC_NAMES: Record<QuestionMechanic, string> = {
   "true-false-enhanced": "Верно/Неверно с причиной",
   "cloze-dropdown": "Заполнение пропусков",
   "select-errors": "Найди ошибки",
+  matching: "Сопоставление",
+  ordering: "Упорядочивание",
+  grouping: "Группировка",
+  "two-step": "Двухшаговый вопрос",
+  matrix: "Матрица",
+  "best-example": "Лучший пример",
+  scenario: "Сценарий",
+  construct: "Конструктор",
 };
 
 /**
