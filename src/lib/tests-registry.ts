@@ -13,8 +13,6 @@ import { CARBONIZATION_PRACTICE_2_SECRET } from "@/tests/carbonization-practice-
 import { CARBONIZATION_ADVANCED_3_PUBLIC } from "@/tests/carbonization-advanced-3/public";
 import { CARBONIZATION_ADVANCED_3_SECRET } from "@/tests/carbonization-advanced-3/answer";
 
-import { MIXOLOGY_BASE_1_PUBLIC } from "@/tests/mixology-base-1/public";
-import { MIXOLOGY_BASE_1_SECRET } from "@/tests/mixology-base-1/answer";
 import { MIXOLOGY_PRACTICE_2_PUBLIC } from "@/tests/mixology-practice-2/public";
 import { MIXOLOGY_PRACTICE_2_SECRET } from "@/tests/mixology-practice-2/answer";
 import { MIXOLOGY_ADVANCED_3_PUBLIC } from "@/tests/mixology-advanced-3/public";
@@ -31,7 +29,6 @@ export const PUBLIC_TESTS = [
   CARBONIZATION_BASE_1_PUBLIC,
   CARBONIZATION_PRACTICE_2_PUBLIC,
   CARBONIZATION_ADVANCED_3_PUBLIC,
-  MIXOLOGY_BASE_1_PUBLIC,
   MIXOLOGY_PRACTICE_2_PUBLIC,
   MIXOLOGY_ADVANCED_3_PUBLIC,
 ] as const;
@@ -44,7 +41,6 @@ export const SECRET_TESTS = [
   CARBONIZATION_BASE_1_SECRET,
   CARBONIZATION_PRACTICE_2_SECRET,
   CARBONIZATION_ADVANCED_3_SECRET,
-  MIXOLOGY_BASE_1_SECRET,
   MIXOLOGY_PRACTICE_2_SECRET,
   MIXOLOGY_ADVANCED_3_SECRET,
 ] as const;

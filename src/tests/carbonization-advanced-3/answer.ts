@@ -12,23 +12,23 @@ export const CARBONIZATION_ADVANCED_3_SECRET = {
   difficulty: 3,
   maxAttempts: null as number | null,
   answerKey: {
-    q1: null,
-    q2: null,
-    q3: null,
-    q4: null,
-    q5: null,
-    q6: null,
-    q7: null,
-    q8: null,
-    q9: null,
-    q10: null,
-    q11: null,
-    q12: null,
-    q13: null,
-    q14: null,
-    q15: null,
-    q16: null,
-    q17: null,
-    q18: null,
+    q1: 0, // A
+    q2: 0, // A
+    q3: [0,1], // [1]=A, [2]=B
+    q4: 0, // A
+    q5: [[0,0],[1,1],[2,2],[3,3]], // 1–A, 2–B, 3–C, 4–D
+    q6: 0, // A (False)
+    q7: {0: 0, 1: 0, 2: 1, 3: 1}, // Matrix: 1Да,2Да,3Нет,4Нет
+    q8: [0,1,2], // A, B, C
+    q9: 0, // A
+    q10: 0, // A (1 и 2)
+    q11: [0,1,2,3], // A→B→C→D
+    q12: 0, // A
+    q13: {step1: 1, step2Mapping: {1: 0}}, // Шаг 1 — B; Шаг 2 — A
+    q14: {"Группа 1 — в первую очередь влияет на удержание CO₂": [0,1,4], "Группа 2 — в первую очередь влияет на сенсорную текстуру": [2,3]}, // Г1:абд; Г2:вг
+    q15: 0, // A
+    q16: 0, // A
+    q17: [0,1], // [1]=A, [2]=B
+    q18: [0,1,3] // A, B, D
   } as Record<string, any>,
 };

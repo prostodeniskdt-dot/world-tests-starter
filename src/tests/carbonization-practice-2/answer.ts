@@ -12,23 +12,23 @@ export const CARBONIZATION_PRACTICE_2_SECRET = {
   difficulty: 2,
   maxAttempts: null as number | null,
   answerKey: {
-    q1: null,
-    q2: null,
-    q3: null,
-    q4: null,
-    q5: null,
-    q6: null,
-    q7: null,
-    q8: null,
-    q9: null,
-    q10: null,
-    q11: null,
-    q12: null,
-    q13: null,
-    q14: null,
-    q15: null,
-    q16: null,
-    q17: null,
-    q18: null,
+    q1: 1, // B
+    q2: 0, // A
+    q3: [0,2], // [1]=A, [2]=C
+    q4: [0,1,2], // A, B, C
+    q5: [[0,1],[1,2],[2,0],[3,3]], // 1–B, 2–C, 3–A, 4–D
+    q6: 0, // A (False)
+    q7: {0: 0, 1: 0, 2: 0, 3: 1}, // Matrix: 1Да,2Да,3Да,4Нет
+    q8: [0,3], // A, D
+    q9: 0, // A
+    q10: 1, // B (1 и 2)
+    q11: [0,2,1,3], // A→C→B→D
+    q12: 0, // A
+    q13: {step1: 1, step2Mapping: {1: 0}}, // Шаг 1 — B; Шаг 2 — A
+    q14: {"Группа 1 — разрушить пену быстрее (антипена)": [0], "Группа 2 — снизить пеностабилизаторы в составе": [1,2]}, // Г1:а; Г2:бв
+    q15: 0, // A
+    q16: 0, // A
+    q17: [0,1], // [1]=A, [2]=B
+    q18: [0,1,2] // A, B, C
   } as Record<string, any>,
 };
