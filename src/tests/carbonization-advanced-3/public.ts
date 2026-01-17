@@ -144,7 +144,7 @@ export const CARBONIZATION_ADVANCED_3_PUBLIC: PublicTest = {
     {
       id: "q17",
       type: "cloze-dropdown",
-      text: "Заполните: "CO₂ может покидать жидкость двумя путями: через **[1]** и напрямую с **[2]**."",
+      text: "Заполните: \"CO₂ может покидать жидкость двумя путями: через **[1]** и напрямую с **[2]**.\"",
       gaps: [
         {
           index: 0,
