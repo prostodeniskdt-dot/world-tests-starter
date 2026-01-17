@@ -69,9 +69,16 @@ export type PublicTestQuestion =
 
 // Типы ответов для разных механик
 export type QuestionAnswer =
-  | number // multiple-choice
-  | number[] // multiple-select, cloze-dropdown (индексы для каждого пропуска), select-errors
-  | { answer: boolean; reason: number }; // true-false-enhanced
+  | number // multiple-choice, best-example
+  | number[] // multiple-select, ordering, cloze-dropdown (индексы для каждого пропуска), select-errors
+  | [number, number][] // matching, scenario (matching mode)
+  | Record<string, number[]> // grouping
+  | { answer: boolean; reason: number } // true-false-enhanced
+  | { step1: number; step2: number } // two-step
+  | Record<number, number> // matrix single-select
+  | Record<number, number[]> // matrix multiple-select
+  | { blocks: number[]; order: number[] } // construct
+  | null; // для опциональных значений
 
 export type PublicTest = {
   id: string;
