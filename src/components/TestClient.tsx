@@ -190,7 +190,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                       <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-xs sm:text-sm">
                         {idx + 1}
                       </div>
-                      <div className="font-semibold text-sm sm:text-base md:text-lg text-zinc-900 leading-snug sm:leading-relaxed flex-1">
+                      <div className="font-semibold text-xs sm:text-sm md:text-base text-zinc-900 leading-tight sm:leading-snug md:leading-relaxed flex-1">
                         {q.text}
                       </div>
                     </div>
