@@ -21,12 +21,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Проверяем токен при монтировании
+    // Проверяем токен при монтировании (с таймаутом, чтобы не зависнуть при проблемах с API)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/auth/verify");
+        const response = await fetch("/api/auth/verify", {
+          signal: controller.signal,
+          credentials: "same-origin",
+        });
         const result = await response.json();
-        
+
         if (result.ok && result.authenticated && result.user) {
           setUserState(result.user);
         } else {
@@ -35,6 +41,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       } catch {
         setUserState(null);
       } finally {
+        clearTimeout(timeoutId);
         setIsLoading(false);
       }
     };

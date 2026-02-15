@@ -9,11 +9,6 @@ import { Trophy } from "lucide-react";
 export const metadata: Metadata = {
   title: "King of the Bar",
   description: "Тесты + мировой рейтинг на Next.js + PostgreSQL",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-  },
 };
 
 export default function RootLayout({
