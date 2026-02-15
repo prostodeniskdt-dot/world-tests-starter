@@ -15,6 +15,8 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Next.js ожидает public; если в репозитории его нет — создаём пустую папку
+RUN mkdir -p public
 RUN npm run build
 
 # Продакшен-образ
