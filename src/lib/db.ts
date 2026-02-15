@@ -11,9 +11,19 @@ function required(name: string): string {
   return v;
 }
 
-const pool = new Pool({
-  connectionString: required("DATABASE_URL"),
-  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
-});
+let pool: Pool | null = null;
 
-export { pool as db };
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: required("DATABASE_URL"),
+      ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
+    });
+  }
+  return pool;
+}
+
+/** Пул подключений к БД. Инициализация отложена до первого запроса — сборка Next.js не требует DATABASE_URL. */
+export const db = {
+  query: (...args: Parameters<Pool["query"]>) => getPool().query(...args),
+};
