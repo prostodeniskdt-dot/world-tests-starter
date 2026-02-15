@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -7,29 +7,35 @@ export async function GET(req: Request) {
   const limit = parseInt(searchParams.get("limit") || "50", 10);
   const offset = (page - 1) * limit;
 
-  const { data, error, count } = await supabaseAdmin
-    .from("leaderboard")
-    .select("*", { count: "exact" })
-    .order("rank", { ascending: true })
-    .range(offset, offset + limit - 1);
+  try {
+    // Получаем данные и общее количество за один запрос не получится красиво,
+    // поэтому делаем два запроса
+    const [dataResult, countResult] = await Promise.all([
+      db.query(
+        `SELECT * FROM leaderboard ORDER BY rank ASC LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      ),
+      db.query(`SELECT COUNT(*) AS count FROM leaderboard`),
+    ]);
 
-  if (error) {
+    const data = dataResult.rows;
+    const count = parseInt(countResult.rows[0]?.count || "0", 10);
+    const totalPages = count ? Math.ceil(count / limit) : 1;
+
+    return NextResponse.json({
+      ok: true,
+      rows: data ?? [],
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+      },
+    });
+  } catch (err: any) {
     return NextResponse.json(
-      { ok: false, error: error.message },
+      { ok: false, error: err.message || String(err) },
       { status: 500 }
     );
   }
-
-  const totalPages = count ? Math.ceil(count / limit) : 1;
-
-  return NextResponse.json({
-    ok: true,
-    rows: data ?? [],
-    pagination: {
-      page,
-      limit,
-      total: count || 0,
-      totalPages,
-    },
-  });
 }

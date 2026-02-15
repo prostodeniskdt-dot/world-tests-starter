@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { PUBLIC_TESTS_MAP } from "@/lib/tests-registry";
+import { getPublicTest } from "@/lib/tests-registry";
 
 export async function GET(
   req: Request,
   { params }: { params: { testId: string } }
 ) {
   const { testId } = params;
-  const test = PUBLIC_TESTS_MAP[testId];
+  const test = await getPublicTest(testId);
 
   if (!test) {
     return NextResponse.json(

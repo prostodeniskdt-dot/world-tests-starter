@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { SECRET_TESTS_MAP, PUBLIC_TESTS_MAP, type PublicTestQuestion } from "@/lib/tests-registry";
+import { getSecretTest, getPublicTest } from "@/lib/tests-registry";
+import type { PublicTestQuestion } from "@/tests/types";
 import { checkAnswer } from "@/lib/answer-checkers";
 import type { QuestionAnswer } from "@/tests/types";
 
@@ -28,8 +29,10 @@ export async function POST(
     );
   }
   
-  const testSecret = SECRET_TESTS_MAP[testId];
-  const testPublic = PUBLIC_TESTS_MAP[testId];
+  const [testSecret, testPublic] = await Promise.all([
+    getSecretTest(testId),
+    getPublicTest(testId),
+  ]);
   
   if (!testSecret || !testPublic) {
     return NextResponse.json(

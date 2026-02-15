@@ -1,10 +1,10 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { Trophy, Award, Calendar, ExternalLink } from "lucide-react";
-import { PUBLIC_TESTS_MAP } from "@/lib/tests-registry";
+import { getPublicTests } from "@/lib/tests-registry";
 
 export const revalidate = 10;
 
@@ -48,34 +48,35 @@ export default async function ProfilePage({
     notFound();
   }
 
-  const { data: user, error: userError } = await supabaseAdmin
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  const { rows: userRows } = await db.query(
+    `SELECT * FROM users WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
+  const user = userRows[0];
 
-  if (userError || !user) {
+  if (!user) {
     notFound();
   }
 
-  const { data: stats } = await supabaseAdmin
-    .from("user_stats")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
+  const { rows: statsRows } = await db.query(
+    `SELECT * FROM user_stats WHERE user_id = $1 LIMIT 1`,
+    [userId]
+  );
+  const stats = statsRows[0] || null;
 
-  const { data: attempts } = await supabaseAdmin
-    .from("attempts")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const { rows: attemptRows } = await db.query(
+    `SELECT * FROM attempts WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
+    [userId]
+  );
+  const attemptsList = (attemptRows || []) as Attempt[];
 
-  const attemptsList = (attempts || []) as Attempt[];
+  // Загружаем тесты для получения названий
+  const allTests = await getPublicTests();
+  const testsMap = Object.fromEntries(allTests.map(t => [t.id, t]));
 
   // Функция для получения названия теста
   const getTestTitle = (testId: string): string => {
-    const test = PUBLIC_TESTS_MAP[testId];
+    const test = testsMap[testId];
     return test?.title || testId;
   };
 

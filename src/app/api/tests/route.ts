@@ -1,17 +1,27 @@
 import { NextResponse } from "next/server";
-import { PUBLIC_TESTS, getCategories } from "@/lib/tests-registry";
+import { getPublicTests, getCategories } from "@/lib/tests-registry";
 
 export async function GET() {
-  // Возвращаем только метаданные тестов (без вопросов)
-  const tests = PUBLIC_TESTS.map((test) => ({
-    id: test.id,
-    title: test.title,
-    description: test.description,
-    category: test.category,
-    difficultyLevel: test.difficultyLevel,
-  }));
+  try {
+    const [allTests, categories] = await Promise.all([
+      getPublicTests(),
+      getCategories(),
+    ]);
 
-  const categories = getCategories();
+    // Возвращаем только метаданные тестов (без вопросов)
+    const tests = allTests.map((test) => ({
+      id: test.id,
+      title: test.title,
+      description: test.description,
+      category: test.category,
+      difficultyLevel: test.difficultyLevel,
+    }));
 
-  return NextResponse.json({ ok: true, tests, categories });
+    return NextResponse.json({ ok: true, tests, categories });
+  } catch (err: any) {
+    return NextResponse.json(
+      { ok: false, error: err.message || "Ошибка загрузки тестов" },
+      { status: 500 }
+    );
+  }
 }

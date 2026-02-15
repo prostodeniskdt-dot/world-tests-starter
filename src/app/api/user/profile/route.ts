@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-middleware";
 
 export async function GET(req: Request) {
@@ -12,13 +12,13 @@ export async function GET(req: Request) {
   const { userId } = authResult;
 
   // Получаем профиль пользователя (только свой профиль)
-  const { data: user, error: userError } = await supabaseAdmin
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  const { rows: userRows } = await db.query(
+    `SELECT * FROM users WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
 
-  if (userError || !user) {
+  const user = userRows[0];
+  if (!user) {
     return NextResponse.json(
       { ok: false, error: "Пользователь не найден" },
       { status: 404 }
@@ -26,11 +26,12 @@ export async function GET(req: Request) {
   }
 
   // Получаем статистику пользователя
-  const { data: stats, error: statsError } = await supabaseAdmin
-    .from("user_stats")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
+  const { rows: statsRows } = await db.query(
+    `SELECT * FROM user_stats WHERE user_id = $1 LIMIT 1`,
+    [userId]
+  );
+
+  const stats = statsRows[0] || null;
 
   return NextResponse.json({
     ok: true,

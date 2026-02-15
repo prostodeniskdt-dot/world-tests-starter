@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-middleware";
 
 export async function GET(req: Request) {
@@ -12,22 +12,20 @@ export async function GET(req: Request) {
   const { userId } = authResult;
 
   // Получаем все попытки пользователя (только свои попытки)
-  const { data: attempts, error } = await supabaseAdmin
-    .from("attempts")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(100);
+  try {
+    const { rows: attempts } = await db.query(
+      `SELECT * FROM attempts WHERE user_id = $1 ORDER BY created_at DESC LIMIT 100`,
+      [userId]
+    );
 
-  if (error) {
+    return NextResponse.json({
+      ok: true,
+      attempts: attempts || [],
+    });
+  } catch (err: any) {
     return NextResponse.json(
-      { ok: false, error: "Ошибка базы данных: " + error.message },
+      { ok: false, error: "Ошибка базы данных: " + (err.message || String(err)) },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({
-    ok: true,
-    attempts: attempts || [],
-  });
 }

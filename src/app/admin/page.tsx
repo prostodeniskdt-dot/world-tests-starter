@@ -2,8 +2,9 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyToken } from "@/lib/jwt";
 import { AdminUsersTable } from "@/components/AdminUsersTable";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { Shield, Users } from "lucide-react";
+import { db } from "@/lib/db";
+import { Shield, Users, FileText } from "lucide-react";
+import Link from "next/link";
 
 export default async function AdminPage() {
   // Проверяем авторизацию и админские права
@@ -20,30 +21,32 @@ export default async function AdminPage() {
   }
 
   // Получаем начальные данные пользователей
-  const { data: initialUsers, error } = await supabaseAdmin
-    .from("users")
-    .select("id, email, first_name, last_name, telegram_username, is_admin, is_banned, banned_until, created_at")
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  // Получаем статистику
-  const userIds = (initialUsers || []).map((u) => u.id);
-  const { data: stats } = await supabaseAdmin
-    .from("user_stats")
-    .select("user_id, total_points, tests_completed")
-    .in("user_id", userIds);
-
-  const statsMap = new Map(
-    (stats || []).map((s) => [
-      s.user_id,
-      {
-        totalPoints: s.total_points,
-        testsCompleted: s.tests_completed,
-      },
-    ])
+  const { rows: initialUsers } = await db.query(
+    `SELECT id, email, first_name, last_name, telegram_username, is_admin, is_banned, banned_until, created_at
+     FROM users ORDER BY created_at DESC LIMIT 50`
   );
 
-  const usersWithStats = (initialUsers || []).map((user) => ({
+  // Получаем статистику
+  const userIds = initialUsers.map((u: any) => u.id);
+  let statsMap = new Map<string, { totalPoints: number; testsCompleted: number }>();
+
+  if (userIds.length > 0) {
+    const { rows: stats } = await db.query(
+      `SELECT user_id, total_points, tests_completed FROM user_stats WHERE user_id = ANY($1)`,
+      [userIds]
+    );
+    statsMap = new Map(
+      stats.map((s: any) => [
+        s.user_id,
+        {
+          totalPoints: s.total_points,
+          testsCompleted: s.tests_completed,
+        },
+      ])
+    );
+  }
+
+  const usersWithStats = initialUsers.map((user: any) => ({
     id: user.id,
     email: user.email,
     firstName: user.first_name,
@@ -59,15 +62,16 @@ export default async function AdminPage() {
     },
   }));
 
-  const { count: totalCount } = await supabaseAdmin
-    .from("users")
-    .select("*", { count: "exact", head: true });
+  const { rows: countRows } = await db.query(
+    `SELECT COUNT(*) AS count FROM users`
+  );
+  const totalCount = parseInt(countRows[0]?.count || "0", 10);
 
   const initialPagination = {
     page: 1,
     limit: 50,
-    total: totalCount || 0,
-    totalPages: Math.ceil((totalCount || 0) / 50),
+    total: totalCount,
+    totalPages: Math.ceil(totalCount / 50),
   };
 
   return (
@@ -81,6 +85,27 @@ export default async function AdminPage() {
           <p className="text-zinc-600">
             Управление пользователями и модерация системы
           </p>
+        </div>
+
+        {/* Быстрые ссылки */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <Link
+            href="/admin/tests"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <FileText className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Управление тестами</div>
+              <div className="text-sm text-zinc-500">Импорт, редактирование, публикация</div>
+            </div>
+          </Link>
+          <div className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
+            <Users className="h-8 w-8 text-zinc-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Пользователи</div>
+              <div className="text-sm text-zinc-500">Управление и модерация</div>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-6">

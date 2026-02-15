@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { submitSchema } from "@/lib/validators";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { checkRateLimit, submitRateLimiter } from "@/lib/rateLimit";
-import { PUBLIC_TESTS_MAP, SECRET_TESTS_MAP, type PublicTestQuestion } from "@/lib/tests-registry";
+import { getPublicTest, getSecretTest } from "@/lib/tests-registry";
+import type { PublicTestQuestion } from "@/tests/types";
 import { requireAuth } from "@/lib/auth-middleware";
 import { checkAnswer } from "@/lib/answer-checkers";
 
@@ -50,25 +51,26 @@ export async function POST(req: Request) {
   }
 
   const { userId } = authResult;
-  const { testId, answers, startTime, endTime } = parsed.data;
+  const { testId, answers } = parsed.data;
 
   // Дополнительная проверка в БД (на случай если бан был установлен после создания токена)
-  const { data: user } = await supabaseAdmin
-    .from("users")
-    .select("is_banned")
-    .eq("id", userId)
-    .single();
+  const { rows: userRows } = await db.query(
+    `SELECT is_banned FROM users WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
 
-  if (user?.is_banned) {
+  if (userRows[0]?.is_banned) {
     return NextResponse.json(
       { ok: false, error: "Ваш аккаунт заблокирован. Вы не можете проходить тесты." },
       { status: 403 }
     );
   }
 
-  // Получаем тест из файлов
-  const testSecret = SECRET_TESTS_MAP[testId];
-  const testPublic = PUBLIC_TESTS_MAP[testId];
+  // Получаем тест из БД
+  const [testPublic, testSecret] = await Promise.all([
+    getPublicTest(testId),
+    getSecretTest(testId),
+  ]);
 
   if (!testSecret || !testPublic) {
     return NextResponse.json(
@@ -78,15 +80,12 @@ export async function POST(req: Request) {
   }
 
   // Проверка на слишком частые попытки
-  const { data: recentAttempts } = await supabaseAdmin
-    .from("attempts")
-    .select("created_at")
-    .eq("user_id", userId)
-    .eq("test_id", testId)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  const { rows: recentAttempts } = await db.query(
+    `SELECT created_at FROM attempts WHERE user_id = $1 AND test_id = $2 ORDER BY created_at DESC LIMIT 1`,
+    [userId, testId]
+  );
 
-  if (recentAttempts && recentAttempts.length > 0) {
+  if (recentAttempts.length > 0) {
     const lastAttempt = new Date(recentAttempts[0].created_at);
     const timeSinceLastAttempt = Date.now() - lastAttempt.getTime();
     
@@ -102,8 +101,6 @@ export async function POST(req: Request) {
     }
   }
 
-
-
   // Получаем ID всех вопросов из теста
   const questionIds = testPublic.questions.map((q: PublicTestQuestion) => q.id);
 
@@ -118,7 +115,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // Проверяем ответы используя answerKey из файла и checkAnswer для всех механик
+  // Проверяем ответы
   const totalQuestions = questionIds.length;
   let correctCount = 0;
   for (const qId of questionIds) {
@@ -141,46 +138,34 @@ export async function POST(req: Request) {
   // Комбинированная формула очков
   const basePoints = testSecret.basePoints || 200;
   
-  // Множитель сложности (1 = Простой, 2 = Средний, 3 = Сложный)
   const difficultyMultiplier = {
-    1: 1.0,   // Простой (1 барная ложка)
-    2: 1.25,  // Средний (2 барные ложки)
-    3: 1.5,   // Сложный (3 барные ложки)
+    1: 1.0,
+    2: 1.25,
+    3: 1.5,
   }[testPublic.difficultyLevel] || 1.0;
   
-  // Бонус за высокий процент правильных ответов
   const percentageBonus = 
-    scorePercent === 100 ? 1.3 :   // +30% за идеальное прохождение
-    scorePercent >= 90 ? 1.15 :    // +15% за отличное прохождение (90-99%)
-    scorePercent >= 80 ? 1.05 :    // +5% за хорошее прохождение (80-89%)
-    1.0;                           // Базовые очки за < 80%
+    scorePercent === 100 ? 1.3 :
+    scorePercent >= 90 ? 1.15 :
+    scorePercent >= 80 ? 1.05 :
+    1.0;
   
-  // Итоговые очки с округлением
   const pointsAwarded = Math.round(
     (basePoints * scorePercent / 100) * difficultyMultiplier * percentageBonus
   );
 
-  // Проверяем лимит попыток (если указан в тесте)
+  // Проверяем лимит попыток
   if (testSecret.maxAttempts !== null && testSecret.maxAttempts !== undefined) {
-    const { data: userAttempts, error: attemptsError } = await supabaseAdmin
-      .from("attempts")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("test_id", testId);
+    const { rows: userAttempts } = await db.query(
+      `SELECT id FROM attempts WHERE user_id = $1 AND test_id = $2`,
+      [userId, testId]
+    );
 
-    if (attemptsError) {
-      return NextResponse.json(
-        { ok: false, error: "Ошибка проверки попыток" },
-        { status: 500 }
-      );
-    }
-
-    const attemptsCount = (userAttempts || []).length;
-    if (attemptsCount >= testSecret.maxAttempts) {
+    if (userAttempts.length >= testSecret.maxAttempts) {
       return NextResponse.json(
         {
           ok: false,
-          error: `Достигнут лимит попыток (${testSecret.maxAttempts}). Вы уже проходили этот тест максимальное количество раз.`,
+          error: `Достигнут лимит попыток (${testSecret.maxAttempts}).`,
         },
         { status: 403 }
       );
@@ -188,13 +173,12 @@ export async function POST(req: Request) {
   }
 
   // Проверяем, что пользователь существует
-  const { data: userExists } = await supabaseAdmin
-    .from("users")
-    .select("id")
-    .eq("id", userId)
-    .single();
+  const { rows: userExistsRows } = await db.query(
+    `SELECT id FROM users WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
 
-  if (!userExists) {
+  if (userExistsRows.length === 0) {
     return NextResponse.json(
       {
         ok: false,
@@ -204,36 +188,34 @@ export async function POST(req: Request) {
     );
   }
 
-  // Записываем в БД через RPC (атомарно обновляет user_stats)
-  const { data, error } = await supabaseAdmin.rpc("record_attempt", {
-    p_user_id: userId,
-    p_test_id: testId,
-    p_score_percent: scorePercent,
-    p_points_awarded: pointsAwarded,
-  });
+  // Записываем в БД
+  try {
+    const { rows: data } = await db.query(
+      `SELECT * FROM record_attempt($1, $2, $3, $4)`,
+      [userId, testId, scorePercent, pointsAwarded]
+    );
 
-  if (error) {
+    const row = data[0];
+
+    return NextResponse.json({
+      ok: true,
+      result: {
+        testId,
+        correctCount,
+        totalQuestions,
+        scorePercent,
+        pointsAwarded,
+        totalPoints: row?.total_points ?? pointsAwarded,
+        testsCompleted: row?.tests_completed ?? 1,
+      },
+    });
+  } catch (err: any) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Ошибка базы данных. " + error.message,
+        error: "Ошибка базы данных. " + (err.message || String(err)),
       },
       { status: 500 }
     );
   }
-
-  const row = Array.isArray(data) ? data[0] : data;
-
-  return NextResponse.json({
-    ok: true,
-    result: {
-      testId,
-      correctCount,
-      totalQuestions,
-      scorePercent,
-      pointsAwarded,
-      totalPoints: row?.total_points ?? pointsAwarded,
-      testsCompleted: row?.tests_completed ?? 1,
-    },
-  });
 }

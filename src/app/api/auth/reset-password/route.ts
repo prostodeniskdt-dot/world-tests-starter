@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { validatePasswordResetToken, markTokenAsUsed } from "@/lib/passwordReset";
 import { hashPassword, validatePasswordStrength } from "@/lib/password";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 
 const schema = z.object({
   token: z.string(),
@@ -34,10 +34,10 @@ export async function POST(req: Request) {
 
     // Обновление пароля
     const passwordHash = await hashPassword(password);
-    await supabaseAdmin
-      .from("users")
-      .update({ password_hash: passwordHash })
-      .eq("id", userId);
+    await db.query(
+      `UPDATE users SET password_hash = $1 WHERE id = $2`,
+      [passwordHash, userId]
+    );
 
     // Помечаем токен как использованный
     await markTokenAsUsed(token);

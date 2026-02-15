@@ -17,9 +17,10 @@ function main() {
   }
   
   const content = fs.readFileSync(bazaPath, "utf-8");
-  const parsedTests = parseBazaFile(content);
+  console.log("Включено подробное логирование парсинга...\n");
+  const parsedTests = parseBazaFile(content, true); // Включаем логирование
   
-  console.log(`Найдено тестов: ${parsedTests.length}`);
+  console.log(`\n✓ Найдено тестов: ${parsedTests.length}`);
   
   const testsDir = path.join(__dirname, "../src/tests");
   

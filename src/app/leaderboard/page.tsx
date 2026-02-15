@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { LeaderboardTable, type LeaderboardRow } from "@/components/LeaderboardTable";
 import { LeaderboardPagination } from "@/components/LeaderboardPagination";
 import { Trophy } from "lucide-react";
@@ -23,17 +23,16 @@ export default async function LeaderboardPage({
     const limit = 50;
     const offset = (page - 1) * limit;
 
-    const { data, error: dbError, count } = await supabaseAdmin
-      .from("leaderboard")
-      .select("*", { count: "exact" })
-      .order("rank", { ascending: true })
-      .range(offset, offset + limit - 1);
+    const [dataResult, countResult] = await Promise.all([
+      db.query(
+        `SELECT * FROM leaderboard ORDER BY rank ASC LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      ),
+      db.query(`SELECT COUNT(*) AS count FROM leaderboard`),
+    ]);
 
-    if (dbError) {
-      error = new Error(dbError.message);
-    }
-
-    rows = (data ?? []) as unknown as LeaderboardRow[];
+    rows = dataResult.rows as unknown as LeaderboardRow[];
+    const count = parseInt(countResult.rows[0]?.count || "0", 10);
     totalPages = count ? Math.ceil(count / limit) : 1;
   } catch (e) {
     error = e instanceof Error ? e : new Error("Неизвестная ошибка при загрузке рейтинга");

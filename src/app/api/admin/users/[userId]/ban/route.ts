@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-middleware";
 import { z } from "zod";
 
@@ -41,13 +41,13 @@ export async function POST(
   const { banned, bannedUntil } = parsed.data;
 
   // Проверяем, что пользователь существует
-  const { data: user, error: userError } = await supabaseAdmin
-    .from("users")
-    .select("id, email, is_admin")
-    .eq("id", userId)
-    .single();
+  const { rows: userRows } = await db.query(
+    `SELECT id, email, is_admin FROM users WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
 
-  if (userError || !user) {
+  const user = userRows[0];
+  if (!user) {
     return NextResponse.json(
       { ok: false, error: "Пользователь не найден" },
       { status: 404 }
@@ -63,40 +63,30 @@ export async function POST(
   }
 
   // Обновляем статус бана
-  const updateData: {
-    is_banned: boolean;
-    banned_until?: string | null;
-  } = {
-    is_banned: banned,
-  };
+  const bannedUntilValue = banned ? (bannedUntil || null) : null;
 
-  if (banned) {
-    updateData.banned_until = bannedUntil || null;
-  } else {
-    updateData.banned_until = null;
-  }
+  try {
+    const { rows: updatedRows } = await db.query(
+      `UPDATE users SET is_banned = $1, banned_until = $2 WHERE id = $3
+       RETURNING id, email, is_banned, banned_until`,
+      [banned, bannedUntilValue, userId]
+    );
 
-  const { data: updatedUser, error: updateError } = await supabaseAdmin
-    .from("users")
-    .update(updateData)
-    .eq("id", userId)
-    .select()
-    .single();
+    const updatedUser = updatedRows[0];
 
-  if (updateError) {
+    return NextResponse.json({
+      ok: true,
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        isBanned: updatedUser.is_banned,
+        bannedUntil: updatedUser.banned_until,
+      },
+    });
+  } catch (err: any) {
     return NextResponse.json(
-      { ok: false, error: "Ошибка обновления: " + updateError.message },
+      { ok: false, error: "Ошибка обновления: " + (err.message || String(err)) },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({
-    ok: true,
-    user: {
-      id: updatedUser.id,
-      email: updatedUser.email,
-      isBanned: updatedUser.is_banned,
-      bannedUntil: updatedUser.banned_until,
-    },
-  });
 }

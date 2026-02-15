@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { createPasswordResetToken } from "@/lib/passwordReset";
 
 const schema = z.object({
@@ -12,11 +12,12 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email } = schema.parse(body);
 
-    const { data: user } = await supabaseAdmin
-      .from("users")
-      .select("id, email, first_name")
-      .eq("email", email.toLowerCase().trim())
-      .single();
+    const { rows } = await db.query(
+      `SELECT id, email, first_name FROM users WHERE email = $1 LIMIT 1`,
+      [email.toLowerCase().trim()]
+    );
+
+    const user = rows[0];
 
     // Всегда возвращаем успех (security best practice)
     if (!user) {

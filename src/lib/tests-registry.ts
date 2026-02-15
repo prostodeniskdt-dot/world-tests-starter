@@ -1,76 +1,89 @@
 import "server-only";
-import { COCKTAIL_BASE_1_PUBLIC } from "@/tests/cocktail-base-1/public";
-import { COCKTAIL_BASE_1_SECRET } from "@/tests/cocktail-base-1/answer";
-import { COCKTAIL_PRACTICE_2_PUBLIC } from "@/tests/cocktail-practice-2/public";
-import { COCKTAIL_PRACTICE_2_SECRET } from "@/tests/cocktail-practice-2/answer";
-import { COCKTAIL_ADVANCED_3_PUBLIC } from "@/tests/cocktail-advanced-3/public";
-import { COCKTAIL_ADVANCED_3_SECRET } from "@/tests/cocktail-advanced-3/answer";
+import { db } from "@/lib/db";
+import type { PublicTest, PublicTestQuestion } from "@/tests/types";
 
-import { CARBONIZATION_BASE_1_PUBLIC } from "@/tests/carbonization-base-1/public";
-import { CARBONIZATION_BASE_1_SECRET } from "@/tests/carbonization-base-1/answer";
-import { CARBONIZATION_PRACTICE_2_PUBLIC } from "@/tests/carbonization-practice-2/public";
-import { CARBONIZATION_PRACTICE_2_SECRET } from "@/tests/carbonization-practice-2/answer";
-import { CARBONIZATION_ADVANCED_3_PUBLIC } from "@/tests/carbonization-advanced-3/public";
-import { CARBONIZATION_ADVANCED_3_SECRET } from "@/tests/carbonization-advanced-3/answer";
-
-import { MIXOLOGY_PRACTICE_2_PUBLIC } from "@/tests/mixology-practice-2/public";
-import { MIXOLOGY_PRACTICE_2_SECRET } from "@/tests/mixology-practice-2/answer";
-import { MIXOLOGY_ADVANCED_3_PUBLIC } from "@/tests/mixology-advanced-3/public";
-import { MIXOLOGY_ADVANCED_3_SECRET } from "@/tests/mixology-advanced-3/answer";
-
-// Типы (экспортируем для использования в других файлах)
+// Экспортируем типы
 export type { PublicTest, PublicTestQuestion } from "@/tests/types";
 
-// Реестр всех публичных тестов (без правильных ответов)
-export const PUBLIC_TESTS = [
-  COCKTAIL_BASE_1_PUBLIC,
-  COCKTAIL_PRACTICE_2_PUBLIC,
-  COCKTAIL_ADVANCED_3_PUBLIC,
-  CARBONIZATION_BASE_1_PUBLIC,
-  CARBONIZATION_PRACTICE_2_PUBLIC,
-  CARBONIZATION_ADVANCED_3_PUBLIC,
-  MIXOLOGY_PRACTICE_2_PUBLIC,
-  MIXOLOGY_ADVANCED_3_PUBLIC,
-] as const;
+// Тип секретного теста
+export type SecretTest = {
+  id: string;
+  basePoints: number;
+  difficulty: number;
+  maxAttempts: number | null;
+  answerKey: Record<string, any>;
+};
 
-// Реестр всех секретных тестов (с правильными ответами)
-export const SECRET_TESTS = [
-  COCKTAIL_BASE_1_SECRET,
-  COCKTAIL_PRACTICE_2_SECRET,
-  COCKTAIL_ADVANCED_3_SECRET,
-  CARBONIZATION_BASE_1_SECRET,
-  CARBONIZATION_PRACTICE_2_SECRET,
-  CARBONIZATION_ADVANCED_3_SECRET,
-  MIXOLOGY_PRACTICE_2_SECRET,
-  MIXOLOGY_ADVANCED_3_SECRET,
-] as const;
+// === Функции загрузки из БД ===
 
-// Мапы для быстрого доступа по ID
-export const PUBLIC_TESTS_MAP: Record<string, typeof COCKTAIL_BASE_1_PUBLIC> = Object.fromEntries(
-  PUBLIC_TESTS.map((test) => [test.id, test])
-);
+/** Получить все опубликованные тесты (публичная часть, без ответов) */
+export async function getPublicTests(): Promise<PublicTest[]> {
+  const { rows } = await db.query(
+    `SELECT id, title, description, category, difficulty_level, questions
+     FROM tests WHERE is_published = true ORDER BY category, difficulty_level`
+  );
+  return rows.map((r: any) => ({
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    category: r.category,
+    difficultyLevel: r.difficulty_level,
+    questions: r.questions as PublicTestQuestion[],
+  }));
+}
 
-export const SECRET_TESTS_MAP: Record<string, typeof COCKTAIL_BASE_1_SECRET> = Object.fromEntries(
-  SECRET_TESTS.map((test) => [test.id, test])
-);
+/** Получить публичный тест по ID */
+export async function getPublicTest(testId: string): Promise<PublicTest | null> {
+  const { rows } = await db.query(
+    `SELECT id, title, description, category, difficulty_level, questions
+     FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
+    [testId]
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    category: r.category,
+    difficultyLevel: r.difficulty_level,
+    questions: r.questions as PublicTestQuestion[],
+  };
+}
 
-// Функции для работы с категориями
-export function getTestsByCategory() {
-  const categories = new Set(PUBLIC_TESTS.map(t => t.category));
-  const result: Record<string, typeof PUBLIC_TESTS[number][]> = {};
-  
-  for (const category of categories) {
-    result[category] = PUBLIC_TESTS.filter(t => t.category === category);
+/** Получить секретный тест по ID (с ответами) */
+export async function getSecretTest(testId: string): Promise<SecretTest | null> {
+  const { rows } = await db.query(
+    `SELECT id, base_points, difficulty_level, max_attempts, answer_key
+     FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
+    [testId]
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    id: r.id,
+    basePoints: r.base_points,
+    difficulty: r.difficulty_level,
+    maxAttempts: r.max_attempts,
+    answerKey: r.answer_key as Record<string, any>,
+  };
+}
+
+/** Получить категории */
+export async function getCategories(): Promise<string[]> {
+  const { rows } = await db.query(
+    `SELECT DISTINCT category FROM tests WHERE is_published = true ORDER BY category`
+  );
+  return rows.map((r: any) => r.category);
+}
+
+/** Получить тесты по категориям */
+export async function getTestsByCategory(): Promise<Record<string, PublicTest[]>> {
+  const tests = await getPublicTests();
+  const result: Record<string, PublicTest[]> = {};
+  for (const test of tests) {
+    if (!result[test.category]) result[test.category] = [];
+    result[test.category].push(test);
   }
-  
   return result;
-}
-
-export function getCategories() {
-  return Array.from(new Set(PUBLIC_TESTS.map(t => t.category))).sort();
-}
-
-// Валидация структуры тестов
-if (PUBLIC_TESTS.some(t => !t.category)) {
-  throw new Error("Some tests are missing category field");
 }

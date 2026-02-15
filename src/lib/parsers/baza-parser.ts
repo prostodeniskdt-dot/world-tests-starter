@@ -33,10 +33,16 @@ export interface ParsedQuestion {
 /**
  * Парсит ключ ответов из формата "1A, 2(1B2D3A4C), 3(B→D→A→C), ..."
  */
-function parseAnswerKey(keyText: string): Record<number, any> {
+function parseAnswerKey(keyText: string, testNumber?: number, enableLogging = false): Record<number, any> {
   const answers: Record<number, any> = {};
   
+  if (enableLogging && testNumber) {
+    console.log(`[parseAnswerKey] Парсинг ключа для теста ${testNumber}`);
+    console.log(`[parseAnswerKey] Исходный текст ключа: "${keyText.substring(0, 200)}${keyText.length > 200 ? '...' : ''}"`);
+  }
+  
   // Убираем "Ключ (Тест X):" если есть
+  const originalKeyText = keyText;
   keyText = keyText.replace(/^.*?:\s*/, "").trim();
   
   // Разбиваем по запятым, но учитываем скобки и multiple-select формат
@@ -79,16 +85,37 @@ function parseAnswerKey(keyText: string): Record<number, any> {
   for (const part of parts) {
     let trimmedPart = part.trim();
     // Убираем завершающую точку если есть
-    trimmedPart = trimmedPart.replace(/\.$/, "");
+    trimmedPart = trimmedPart.replace(/\.$/, "").trim();
     
-    // Multiple select без скобок: "8A,C" или "2A,D,F" (проверяем ПЕРЕД простым ответом)
-    const multiSelectNoBrackets = trimmedPart.match(/^(\d+)([A-Z](?:,\s*[A-Z])+)$/);
-    if (multiSelectNoBrackets) {
-      const qNum = parseInt(multiSelectNoBrackets[1], 10);
-      const letters = multiSelectNoBrackets[2].split(",").map(s => s.trim());
+    // Multiple select без скобок: "8A,C" или "2A,D,F" или "6 A,B" (проверяем ПЕРЕД простым ответом)
+    // Также поддерживаем формат с пробелами: "6 A, B"
+    const multiSelectNoBrackets1 = trimmedPart.match(/^(\d+)([A-Z](?:\s*,\s*[A-Z])+)$/);
+    if (multiSelectNoBrackets1) {
+      const qNum = parseInt(multiSelectNoBrackets1[1], 10);
+      const letters = multiSelectNoBrackets1[2].split(",").map(s => s.trim()).filter(Boolean);
       const indices = letters.map(letter => letter.toUpperCase().charCodeAt(0) - 65);
-      answers[qNum] = indices;
-      continue;
+      if (indices.length > 0) {
+        answers[qNum] = indices;
+        if (enableLogging) {
+          console.log(`[parseAnswerKey] Вопрос ${qNum}: multiple-select без скобок -> ${letters.join(',')} (индексы ${indices.join(',')})`);
+        }
+        continue;
+      }
+    }
+    
+    // Формат с пробелом: "6 A,B" или "6 A, B"
+    const multiSelectNoBrackets2 = trimmedPart.match(/^(\d+)\s+([A-Z](?:\s*,\s*[A-Z])+)$/);
+    if (multiSelectNoBrackets2) {
+      const qNum = parseInt(multiSelectNoBrackets2[1], 10);
+      const letters = multiSelectNoBrackets2[2].split(",").map(s => s.trim()).filter(Boolean);
+      const indices = letters.map(letter => letter.toUpperCase().charCodeAt(0) - 65);
+      if (indices.length > 0) {
+        answers[qNum] = indices;
+        if (enableLogging) {
+          console.log(`[parseAnswerKey] Вопрос ${qNum}: multiple-select с пробелом -> ${letters.join(',')} (индексы ${indices.join(',')})`);
+        }
+        continue;
+      }
     }
     
     // Простой ответ: "1B" или "1A" или " 1A " (с пробелами) или "20A."
@@ -99,6 +126,9 @@ function parseAnswerKey(keyText: string): Record<number, any> {
       const letter = simpleMatch[2].toUpperCase();
       const answerIndex = letter.charCodeAt(0) - 65; // A=0, B=1, C=2, ...
       answers[qNum] = answerIndex;
+      if (enableLogging) {
+        console.log(`[parseAnswerKey] Вопрос ${qNum}: простое совпадение -> ${letter} (индекс ${answerIndex})`);
+      }
       continue;
     }
     
@@ -129,7 +159,24 @@ function parseAnswerKey(keyText: string): Record<number, any> {
     
     // Если не простой ответ, проверяем сложные форматы
     if (!trimmedPart.includes("(")) {
-      // Если нет скобок и не простой ответ, пропускаем
+      // Если нет скобок и не простой ответ, пытаемся распарсить как простой (с возможными пробелами)
+      // Попытка извлечь последнюю букву из строки: "1 A" или "1A " или " 1A"
+      const looseMatch = trimmedPart.match(/(\d+)\s*([A-Z])\s*$/);
+      if (looseMatch) {
+        const qNum = parseInt(looseMatch[1], 10);
+        const letter = looseMatch[2].toUpperCase();
+        const answerIndex = letter.charCodeAt(0) - 65;
+        answers[qNum] = answerIndex;
+        if (enableLogging) {
+          console.log(`[parseAnswerKey] Вопрос ${qNum}: свободный формат -> ${letter} (индекс ${answerIndex})`);
+        }
+        continue;
+      }
+      
+      // Если не удалось распарсить, логируем предупреждение
+      if (enableLogging) {
+        console.warn(`[parseAnswerKey] ⚠ Не удалось распарсить часть ключа: "${trimmedPart}"`);
+      }
       continue;
     }
     
@@ -492,6 +539,26 @@ function parseAnswerKey(keyText: string): Record<number, any> {
     }
   }
   
+  if (enableLogging) {
+    const parsedCount = Object.keys(answers).length;
+    const missingAnswers: number[] = [];
+    const maxQuestionNum = Math.max(...Object.keys(answers).map(k => parseInt(k, 10)), 0);
+    for (let i = 1; i <= maxQuestionNum; i++) {
+      if (!answers[i]) {
+        missingAnswers.push(i);
+      }
+    }
+    
+    console.log(`[parseAnswerKey] Парсинг завершен: найдено ${parsedCount} ответов`);
+    if (missingAnswers.length > 0) {
+      console.warn(`[parseAnswerKey] ⚠ ВНИМАНИЕ: Не найдены ответы для вопросов: ${missingAnswers.join(', ')}`);
+    }
+    if (parsedCount === 0) {
+      console.error(`[parseAnswerKey] ❌ ОШИБКА: Не удалось распарсить ни одного ответа!`);
+      console.error(`[parseAnswerKey] Исходный текст: "${originalKeyText.substring(0, 500)}"`);
+    }
+  }
+  
   return answers;
 }
 
@@ -583,30 +650,32 @@ function parseQuestion(
     if (normalized.includes("matching")) {
       return "matching";
     }
-    if (normalized.includes("grouping") || normalized.includes("classification")) {
-      return "grouping";
-    }
+    // УДАЛЕНО: grouping не используется в тестах
+    // if (normalized.includes("grouping") || normalized.includes("classification")) {
+    //   return "grouping";
+    // }
     if (normalized.includes("two-step") || normalized.includes("two step") || normalized.includes("branching")) {
       return "two-step";
     }
     if (normalized.includes("grid") || normalized.includes("matrix")) {
       return "matrix";
     }
-    if (
-      normalized.includes("best example") ||
-      normalized.includes("best-example") ||
-      normalized.includes("best paraphrase")
-    ) {
-      return "best-example";
-    }
-    if (
-      normalized.includes("scenario") ||
-      normalized.includes("mini-case") ||
-      normalized.includes("ситуация") ||
-      normalized.includes("кейс")
-    ) {
-      return "scenario";
-    }
+    // УДАЛЕНО: best-example и scenario не используются в тестах
+    // if (
+    //   normalized.includes("best example") ||
+    //   normalized.includes("best-example") ||
+    //   normalized.includes("best paraphrase")
+    // ) {
+    //   return "best-example";
+    // }
+    // if (
+    //   normalized.includes("scenario") ||
+    //   normalized.includes("mini-case") ||
+    //   normalized.includes("ситуация") ||
+    //   normalized.includes("кейс")
+    // ) {
+    //   return "scenario";
+    // }
     return null;
   };
   
@@ -1356,8 +1425,12 @@ function parseHints(text: string): Record<number, string> {
 /**
  * Основная функция парсинга файла baza.txt
  */
-export function parseBazaFile(content: string): ParsedTest[] {
+export function parseBazaFile(content: string, enableLogging = false): ParsedTest[] {
   const tests: ParsedTest[] = [];
+  
+  if (enableLogging) {
+    console.log(`[parseBazaFile] Начало парсинга файла baza.txt (размер: ${content.length} символов)`);
+  }
   
   // СНАЧАЛА извлекаем все ключи ответов из файла
   const allKeys: Record<number, string> = {};
@@ -1368,10 +1441,20 @@ export function parseBazaFile(content: string): ParsedTest[] {
     const testNum = parseInt(keyMatch[1], 10);
     const keyText = keyMatch[2].trim();
     allKeys[testNum] = keyText;
+    if (enableLogging) {
+      console.log(`[parseBazaFile] Найден ключ для теста ${testNum} (длина: ${keyText.length} символов)`);
+    }
+  }
+  
+  if (enableLogging) {
+    console.log(`[parseBazaFile] Всего найдено ключей: ${Object.keys(allKeys).length}`);
   }
   
   // Разделяем на тесты по заголовкам "## ТЕСТ X" или "ТЕСТ X"
   const testSections = content.split(/(?=(?:##\s+)?ТЕСТ\s+\d+)/i);
+  
+  // Передаем enableLogging во внутреннюю область
+  const shouldLog = enableLogging;
   
   for (const section of testSections) {
     if (!section.trim()) continue;
@@ -1405,7 +1488,10 @@ export function parseBazaFile(content: string): ParsedTest[] {
     
     const answerKeyText = allKeys[testNumber];
     if (answerKeyText) {
-      answerKey = parseAnswerKey(answerKeyText);
+      answerKey = parseAnswerKey(answerKeyText, testNumber, true);
+      console.log(`[parseBazaFile] Тест ${testNumber} "${metadata.title}": найдено ${Object.keys(answerKey).length} ответов в ключе`);
+    } else {
+      console.warn(`[parseBazaFile] ⚠ Тест ${testNumber} "${metadata.title}": ключ ответов не найден!`);
     }
     
     // Извлекаем пояснения
@@ -1476,9 +1562,21 @@ export function parseBazaFile(content: string): ParsedTest[] {
     for (const questionText of questionTexts) {
       const question = parseQuestion(questionText, questionNumber, answerKey, hints);
       if (question) {
+        // Проверяем наличие ответа
+        if (question.correctAnswer === null || question.correctAnswer === undefined) {
+          console.warn(`[parseBazaFile] ⚠ Тест ${testNumber}, вопрос ${questionNumber}: ответ не найден в ключе`);
+        } else if (shouldLog) {
+          console.log(`[parseBazaFile] Тест ${testNumber}, вопрос ${questionNumber} (${question.type}): ответ найден`);
+        }
         questions.push(question);
         questionNumber++;
+      } else {
+        console.error(`[parseBazaFile] ❌ Тест ${testNumber}, вопрос ${questionNumber}: не удалось распарсить вопрос`);
       }
+    }
+    
+    if (shouldLog) {
+      console.log(`[parseBazaFile] Тест ${testNumber}: распарсено ${questions.length} вопросов`);
     }
     
     // Создаем тест

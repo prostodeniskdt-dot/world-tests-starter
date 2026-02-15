@@ -8,7 +8,7 @@ import { Trophy } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "King of the Bar",
-  description: "Один тест + мировой рейтинг на Next.js + Supabase",
+  description: "Тесты + мировой рейтинг на Next.js + PostgreSQL",
   viewport: {
     width: 'device-width',
     initialScale: 1,
@@ -40,7 +40,7 @@ export default function RootLayout({
                   <Trophy className="h-4 w-4 text-primary-600" />
                   <span className="font-semibold text-zinc-900">King of the Bar</span>
                 </div>
-                <div>Next.js + Supabase • {new Date().getFullYear()}</div>
+                <div>Next.js + PostgreSQL • {new Date().getFullYear()}</div>
               </div>
             </footer>
             <ToastContainer />

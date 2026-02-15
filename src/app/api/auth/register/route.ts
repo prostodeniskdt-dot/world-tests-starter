@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import { z } from "zod";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { hashPassword, validatePasswordStrength } from "@/lib/password";
 import { signToken } from "@/lib/jwt";
 import { checkRateLimit, registerRateLimiter } from "@/lib/rateLimit";
@@ -76,26 +76,27 @@ export async function POST(req: Request) {
 
   const userId = crypto.randomUUID();
 
-  // Регистрируем пользователя в БД через RPC функцию
-  // Функция register_user имеет security definer и обходит RLS
-  const { data: resultUserId, error } = await supabaseAdmin.rpc(
-    "register_user",
-    {
-      p_user_id: userId,
-      p_email: email.toLowerCase().trim(),
-      p_first_name: firstName.trim(),
-      p_last_name: lastName.trim(),
-      p_telegram_username: normalizedTelegramUsername,
-      p_password_hash: passwordHash,
-    }
-  );
-
-  if (error) {
+  // Регистрируем пользователя в БД через SQL функцию
+  let resultUserId: string | null = null;
+  try {
+    const { rows } = await db.query(
+      `SELECT register_user($1, $2, $3, $4, $5, $6) AS user_id`,
+      [
+        userId,
+        email.toLowerCase().trim(),
+        firstName.trim(),
+        lastName.trim(),
+        normalizedTelegramUsername,
+        passwordHash,
+      ]
+    );
+    resultUserId = rows[0]?.user_id || null;
+  } catch (err: any) {
     // Если ошибка уникальности - email уже существует
     if (
-      error.message.includes("unique") ||
-      error.message.includes("duplicate") ||
-      error.code === "23505"
+      err.message?.includes("unique") ||
+      err.message?.includes("duplicate") ||
+      err.code === "23505"
     ) {
       return NextResponse.json(
         {
@@ -106,12 +107,12 @@ export async function POST(req: Request) {
       );
     }
 
-    console.error("Error registering user:", error);
+    console.error("Error registering user:", err);
     
     // Более информативное сообщение для ошибок схемы
-    let errorMessage = error.message;
-    if (error.message.includes("schema cache") || error.message.includes("not found")) {
-      errorMessage = "Ошибка базы данных: функция или таблица не найдены. Убедитесь, что выполнили supabase/schema.sql в SQL Editor Supabase.";
+    let errorMessage = err.message || String(err);
+    if (err.message?.includes("schema cache") || err.message?.includes("not found")) {
+      errorMessage = "Ошибка базы данных: функция или таблица не найдены. Убедитесь, что выполнили init.sql в PostgreSQL.";
     }
     
     return NextResponse.json(
@@ -129,14 +130,20 @@ export async function POST(req: Request) {
   const normalizedLastName = lastName.trim();
 
   // Получаем данные пользователя с is_admin и is_banned
-  const { data: userData, error: userError } = await supabaseAdmin
-    .from("users")
-    .select("is_admin, is_banned")
-    .eq("id", finalUserId)
-    .single();
-
-  const isAdmin = userData?.is_admin || false;
-  const isBanned = userData?.is_banned || false;
+  let isAdmin = false;
+  let isBanned = false;
+  try {
+    const { rows } = await db.query(
+      `SELECT is_admin, is_banned FROM users WHERE id = $1 LIMIT 1`,
+      [finalUserId]
+    );
+    if (rows[0]) {
+      isAdmin = rows[0].is_admin || false;
+      isBanned = rows[0].is_banned || false;
+    }
+  } catch {
+    // Игнорируем ошибку, используем дефолтные значения
+  }
 
   const user = {
     userId: finalUserId,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { db } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { signToken } from "@/lib/jwt";
 import { checkRateLimit, loginRateLimiter } from "@/lib/rateLimit";
@@ -55,38 +55,26 @@ export async function POST(req: Request) {
   const normalizedEmail = email.toLowerCase().trim();
 
   // Получаем пользователя с паролем
-  const { data: user, error } = await supabaseAdmin
-    .from("users")
-    .select("id, email, first_name, last_name, telegram_username, password_hash, is_admin, is_banned")
-    .eq("email", normalizedEmail)
-    .single();
-
-  // Обработка ошибок
-  if (error) {
-    // PGRST116 - это код ошибки "not found" в Supabase
-    if (error.code === "PGRST116") {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Неверный email или пароль",
-        },
-        { status: 401 }
-      );
-    }
-
-    // Другие ошибки БД
-    console.error("Error finding user:", error);
-    const errorMessage = error.message || String(error);
+  let user: any;
+  try {
+    const { rows } = await db.query(
+      `SELECT id, email, first_name, last_name, telegram_username, password_hash, is_admin, is_banned
+       FROM users WHERE email = $1 LIMIT 1`,
+      [normalizedEmail]
+    );
+    user = rows[0] || null;
+  } catch (err: any) {
+    console.error("Error finding user:", err);
     return NextResponse.json(
       {
         ok: false,
-        error: "Ошибка базы данных: " + errorMessage,
+        error: "Ошибка базы данных: " + (err.message || String(err)),
       },
       { status: 500 }
     );
   }
 
-  // Если пользователь не найден (нет ошибки, но и нет данных)
+  // Если пользователь не найден
   if (!user) {
     return NextResponse.json(
       {

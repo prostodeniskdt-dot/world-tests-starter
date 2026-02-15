@@ -29,9 +29,10 @@ function extractMechanicFromParentheses(text: string): QuestionMechanic | null {
   if (mechanicText.includes("ordering")) {
     return "ordering";
   }
-  if (mechanicText.includes("grouping") || mechanicText.includes("classification")) {
-    return "grouping";
-  }
+  // УДАЛЕНО: grouping не используется в тестах
+  // if (mechanicText.includes("grouping") || mechanicText.includes("classification")) {
+  //   return "grouping";
+  // }
   if (mechanicText.includes("dropdown cloze") || mechanicText.includes("cloze")) {
     return "cloze-dropdown";
   }
@@ -47,12 +48,13 @@ function extractMechanicFromParentheses(text: string): QuestionMechanic | null {
   if (mechanicText.includes("grid") || mechanicText.includes("matrix")) {
     return "matrix";
   }
-  if (mechanicText.includes("best example") || mechanicText.includes("best-example") || mechanicText.includes("best paraphrase")) {
-    return "best-example";
-  }
-  if (mechanicText.includes("mini-case") || mechanicText.includes("scenario")) {
-    return "scenario";
-  }
+  // УДАЛЕНО: best-example и scenario не используются в тестах
+  // if (mechanicText.includes("best example") || mechanicText.includes("best-example") || mechanicText.includes("best paraphrase")) {
+  //   return "best-example";
+  // }
+  // if (mechanicText.includes("mini-case") || mechanicText.includes("scenario")) {
+  //   return "scenario";
+  // }
   
   return null;
 }
@@ -99,13 +101,14 @@ export function detectMechanic(text: string): QuestionMechanic {
     return "multiple-select";
   }
 
+  // УДАЛЕНО: grouping не используется в тестах
   // Grouping: "разнесите", "классифицируйте", "группы", "категории"
-  if (
-    /разнес|классифицир|групп|категори|раздели.*на/i.test(text) ||
-    /подходит.*не подходит/i.test(text)
-  ) {
-    return "grouping";
-  }
+  // if (
+  //   /разнес|классифицир|групп|категори|раздели.*на/i.test(text) ||
+  //   /подходит.*не подходит/i.test(text)
+  // ) {
+  //   return "grouping";
+  // }
 
   // Cloze: "заполните пропуски", "___", "..."
   if (
@@ -149,31 +152,32 @@ export function detectMechanic(text: string): QuestionMechanic {
     return "matrix";
   }
 
+  // УДАЛЕНО: best-example, scenario и construct не используются в тестах
   // Best example: "лучший пример", "лучшее перефразирование", "правильно применено"
-  if (
-    /лучший пример|лучшее перефразирование|правильно применено|корректно применено/i.test(text) ||
-    /лучший заголовок|правильный вывод/i.test(text)
-  ) {
-    return "best-example";
-  }
+  // if (
+  //   /лучший пример|лучшее перефразирование|правильно применено|корректно применено/i.test(text) ||
+  //   /лучший заголовок|правильный вывод/i.test(text)
+  // ) {
+  //   return "best-example";
+  // }
 
   // Scenario: "ситуация", "кейс", "выберите шаги", "приоритеты"
   // Проверяем ПЕРЕД ordering, чтобы не перехватить вопросы с "расставьте"
-  if (
-    /ситуация|кейс|сценарий|выберите.*шаг|приоритет/i.test(text) ||
-    /проблема.*действие/i.test(text) ||
-    (/ситуация/i.test(text) && /что выбрать|что сделать/i.test(text))
-  ) {
-    return "scenario";
-  }
+  // if (
+  //   /ситуация|кейс|сценарий|выберите.*шаг|приоритет/i.test(text) ||
+  //   /проблема.*действие/i.test(text) ||
+  //   (/ситуация/i.test(text) && /что выбрать|что сделать/i.test(text))
+  // ) {
+  //   return "scenario";
+  // }
 
   // Construct: "соберите", "составьте из блоков", "выберите блоки"
-  if (
-    /соберите|составьте из блоков|выберите блоки|собери.*из/i.test(text) ||
-    /блок.*порядок/i.test(text)
-  ) {
-    return "construct";
-  }
+  // if (
+  //   /соберите|составьте из блоков|выберите блоки|собери.*из/i.test(text) ||
+  //   /блок.*порядок/i.test(text)
+  // ) {
+  //   return "construct";
+  // }
 
   // По умолчанию: multiple-choice
   return "multiple-choice";

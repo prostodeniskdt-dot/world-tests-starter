@@ -1,6 +1,6 @@
 -- ============================================
 -- ПОЛНАЯ ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
--- Выполните этот скрипт в Supabase SQL Editor
+-- Выполните этот скрипт в PostgreSQL (psql или pgAdmin)
 -- ============================================
 
 -- 1) Расширения
@@ -20,6 +20,9 @@ create table public.users (
   last_name text not null check (char_length(last_name) between 1 and 50),
   telegram_username text check (telegram_username is null or char_length(telegram_username) between 1 and 32),
   password_hash text,
+  is_admin boolean not null default false,
+  is_banned boolean not null default false,
+  banned_until timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -52,6 +55,12 @@ create index if not exists user_stats_total_points_idx
 create index if not exists users_email_idx
   on public.users(email);
 
+create index if not exists users_is_admin_idx
+  on public.users(is_admin) where is_admin = true;
+
+create index if not exists users_is_banned_idx
+  on public.users(is_banned) where is_banned = true;
+
 -- 4) Функция для автоматического обновления updated_at
 create or replace function public.set_updated_at()
 returns trigger
@@ -76,12 +85,7 @@ before update on public.user_stats
 for each row
 execute function public.set_updated_at();
 
--- 5) RLS (Row Level Security)
-alter table public.users enable row level security;
-alter table public.user_stats enable row level security;
-alter table public.attempts enable row level security;
-
--- 6) Функция для записи попытки прохождения теста
+-- 5) Функция для записи попытки прохождения теста
 create or replace function public.record_attempt(
   p_user_id uuid,
   p_test_id text,
@@ -94,7 +98,6 @@ returns table (
   tests_completed int
 )
 language plpgsql
-security definer
 set search_path = public
 as $$
 declare
@@ -139,7 +142,7 @@ begin
 end;
 $$;
 
--- 7) Функция для регистрации нового пользователя
+-- 6) Функция для регистрации нового пользователя
 create or replace function public.register_user(
   p_user_id uuid,
   p_email text,
@@ -150,7 +153,6 @@ create or replace function public.register_user(
 )
 returns uuid
 language plpgsql
-security definer
 set search_path = public
 as $$
 declare
@@ -224,7 +226,7 @@ exception
 end;
 $$;
 
--- 8) Функция для проверки пароля пользователя
+-- 7) Функция для проверки пароля пользователя
 create or replace function public.verify_user_password(
   p_email text,
   p_password_hash text
@@ -237,7 +239,6 @@ returns table (
   telegram_username text
 )
 language plpgsql
-security definer
 set search_path = public
 as $$
 begin
@@ -249,17 +250,7 @@ begin
 END;
 $$;
 
--- 9) Настройка прав доступа для функций
-revoke execute on function public.register_user(uuid, text, text, text, text, text) from public;
-grant execute on function public.register_user(uuid, text, text, text, text, text) to service_role;
-
-revoke execute on function public.verify_user_password(text, text) from public;
-grant execute on function public.verify_user_password(text, text) to service_role;
-
-revoke execute on function public.record_attempt(uuid, text, int, int) from public;
-grant execute on function public.record_attempt(uuid, text, int, int) to service_role;
-
--- 10) View для рейтинга
+-- 8) View для рейтинга
 create or replace view public.leaderboard as
 select
   us.user_id,
@@ -275,7 +266,7 @@ select
 from public.user_stats us
 join public.users u on u.id = us.user_id;
 
--- 11) Таблица токенов сброса пароля
+-- 9) Таблица токенов сброса пароля
 create table if not exists public.password_reset_tokens (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
@@ -292,7 +283,7 @@ create index if not exists password_reset_tokens_token_idx
 create index if not exists password_reset_tokens_user_id_idx 
   on public.password_reset_tokens(user_id);
 
--- 12) Таблицы для системы управления тестами
+-- 10) Таблицы для системы управления тестами (опционально)
 create table if not exists public.tests (
   id text primary key,
   title text not null,
@@ -329,11 +320,6 @@ create table if not exists public.test_options (
 create index if not exists test_questions_test_id_idx on public.test_questions(test_id);
 create index if not exists test_options_question_id_idx on public.test_options(question_id);
 create index if not exists tests_is_active_idx on public.tests(is_active);
-
--- RLS для тестов
-alter table public.tests enable row level security;
-alter table public.test_questions enable row level security;
-alter table public.test_options enable row level security;
 
 -- Триггер для обновления updated_at в tests
 drop trigger if exists tests_set_updated_at on public.tests;
