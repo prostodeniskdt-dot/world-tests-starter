@@ -1,5 +1,5 @@
 import "server-only";
-import { Pool } from "pg";
+import { Pool, type QueryResult } from "pg";
 
 function required(name: string): string {
   const v = process.env[name];
@@ -25,5 +25,9 @@ function getPool(): Pool {
 
 /** Пул подключений к БД. Инициализация отложена до первого запроса — сборка Next.js не требует DATABASE_URL. */
 export const db = {
-  query: (...args: Parameters<Pool["query"]>) => getPool().query(...args),
+  query(
+    ...args: [queryText: string, values?: unknown[]]
+  ): Promise<QueryResult> {
+    return getPool().query(args[0], args[1]);
+  },
 };
