@@ -808,7 +808,7 @@ export function EditTestForm({
                                 updateQuestion(
                                   idx,
                                   "leftItems",
-                                  e.target.value.split("\n").map((s) => s.trim())
+                                  e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)
                                 )
                               }
                               rows={4}
@@ -825,7 +825,7 @@ export function EditTestForm({
                                 updateQuestion(
                                   idx,
                                   "rightItems",
-                                  e.target.value.split("\n").map((s) => s.trim())
+                                  e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)
                                 )
                               }
                               rows={4}
@@ -865,9 +865,9 @@ export function EditTestForm({
                                     }}
                                     className="border rounded px-2 py-1 text-sm"
                                   >
-                                    {(q.rightItems || []).map((_: string, ri: number) => (
+                                    {(q.rightItems || []).map((r: string, ri: number) => (
                                       <option key={ri} value={ri}>
-                                        {ri + 1}
+                                        {ri + 1}. {(r || "").slice(0, 40)}{(r?.length || 0) > 40 ? "…" : ""}
                                       </option>
                                     ))}
                                   </select>
