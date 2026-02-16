@@ -169,5 +169,7 @@ export type PublicTest = {
   description: string;
   category: string;
   difficultyLevel: 1 | 2 | 3; // Уровень сложности (барные ложки)
+  /** Имя автора теста (по умолчанию показывается «Денис Колодешников») */
+  author?: string;
   questions: PublicTestQuestion[];
 };

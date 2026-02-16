@@ -15,13 +15,9 @@ export type LeaderboardRow = {
 };
 
 function getRankStyle(rank: number) {
-  if (rank === 1) {
-    return "gradient-gold text-primary-600 border-yellow-400";
-  } else if (rank === 2) {
-    return "gradient-silver text-zinc-900 border-zinc-300";
-  } else if (rank === 3) {
-    return "gradient-bronze text-primary-600 border-amber-600";
-  }
+  if (rank === 1) return "rank-1-row text-amber-900 border-yellow-400/50";
+  if (rank === 2) return "rank-2-row text-zinc-900 border-zinc-300";
+  if (rank === 3) return "rank-3-row text-amber-900 border-amber-700/50";
   return "bg-white text-zinc-900 border-zinc-200";
 }
 
@@ -70,7 +66,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
               >
                 <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                   r.rank <= 3 
-                    ? "bg-white/30 text-primary-600 border-2 border-white/50" 
+                    ? "bg-white/80 text-zinc-800 border border-zinc-300/80" 
                     : "bg-zinc-800 text-zinc-700"
                 }`}>
                   {r.first_name?.charAt(0).toUpperCase() || "?"}
@@ -129,7 +125,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                   >
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                       r.rank <= 3 
-                        ? "bg-white/30 text-primary-600 border-2 border-white/50" 
+                        ? "bg-white/80 text-zinc-800 border border-zinc-300/80" 
                         : "bg-zinc-800 text-zinc-700"
                     }`}>
                       {r.first_name?.charAt(0).toUpperCase() || "?"}

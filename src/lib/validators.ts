@@ -63,4 +63,6 @@ export const submitSchema = z.object({
   answers: z.record(z.string(), questionAnswerSchema),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
+  // Ключ идемпотентности: повторная отправка с тем же ключом не создаёт новую попытку
+  idempotencyKey: z.string().uuid().optional(),
 });

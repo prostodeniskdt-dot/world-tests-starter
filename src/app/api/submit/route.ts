@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { submitSchema } from "@/lib/validators";
 import { db } from "@/lib/db";
-import { checkRateLimit, submitRateLimiter } from "@/lib/rateLimit";
+import { checkRateLimit, submitRateLimiter, submitRateLimiterByUser } from "@/lib/rateLimit";
 import { getPublicTest, getSecretTest } from "@/lib/tests-registry";
 import type { PublicTestQuestion } from "@/tests/types";
 import { requireAuth } from "@/lib/auth-middleware";
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       {
         ok: false,
         error: `Слишком много запросов. Попробуйте через ${Math.ceil(
-          (rateLimit.resetTime?.getTime() || Date.now() - Date.now()) / 1000
+          (rateLimit.resetTime ? rateLimit.resetTime.getTime() - Date.now() : 0) / 1000
         )} секунд.`,
       },
       { status: 429 }
@@ -51,7 +51,38 @@ export async function POST(req: Request) {
   }
 
   const { userId } = authResult;
-  const { testId, answers } = parsed.data;
+  const { testId, answers, idempotencyKey } = parsed.data;
+
+  // Лимит по пользователю (в дополнение к лимиту по IP)
+  const userRateLimit = await checkRateLimit(submitRateLimiterByUser, userId);
+  if (!userRateLimit.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `Слишком много отправок. Попробуйте через ${Math.ceil(
+          (userRateLimit.resetTime ? userRateLimit.resetTime.getTime() - Date.now() : 0) / 1000
+        )} секунд.`,
+      },
+      { status: 429 }
+    );
+  }
+
+  // Идемпотентность: повторная отправка с тем же ключом возвращает сохранённый ответ без новой попытки
+  if (idempotencyKey) {
+    const { rows: idemRows } = await db.query(
+      `SELECT response_body FROM submit_idempotency WHERE key = $1 AND user_id = $2`,
+      [idempotencyKey, userId]
+    );
+    if (idemRows.length > 0) {
+      if (idemRows[0].response_body != null) {
+        return NextResponse.json(idemRows[0].response_body as object);
+      }
+      return NextResponse.json(
+        { ok: false, error: "Повторная отправка. Подождите и обновите страницу." },
+        { status: 409 }
+      );
+    }
+  }
 
   // Дополнительная проверка в БД (на случай если бан был установлен после создания токена)
   const { rows: userRows } = await db.query(
@@ -191,14 +222,13 @@ export async function POST(req: Request) {
   // Записываем в БД
   try {
     const { rows: data } = await db.query(
-      `SELECT * FROM record_attempt($1, $2, $3, $4)`,
-      [userId, testId, scorePercent, pointsAwarded]
+      `SELECT * FROM record_attempt($1, $2, $3, $4, $5)`,
+      [userId, testId, scorePercent, pointsAwarded, idempotencyKey ?? null]
     );
 
     const row = data[0];
-
-    return NextResponse.json({
-      ok: true,
+    const responsePayload = {
+      ok: true as const,
       result: {
         testId,
         correctCount,
@@ -208,7 +238,21 @@ export async function POST(req: Request) {
         totalPoints: row?.total_points ?? pointsAwarded,
         testsCompleted: row?.tests_completed ?? 1,
       },
-    });
+    };
+
+    // Сохраняем ответ для идемпотентности (повторный запрос с тем же ключом вернёт этот ответ)
+    if (idempotencyKey) {
+      await db.query(
+        `INSERT INTO submit_idempotency (key, user_id, test_id, response_body, expires_at)
+         VALUES ($1, $2, $3, $4, now() + interval '48 hours')
+         ON CONFLICT (key) DO UPDATE SET
+           response_body = EXCLUDED.response_body,
+           expires_at = EXCLUDED.expires_at`,
+        [idempotencyKey, userId, testId, JSON.stringify(responsePayload)]
+      );
+    }
+
+    return NextResponse.json(responsePayload);
   } catch (err: any) {
     return NextResponse.json(
       {

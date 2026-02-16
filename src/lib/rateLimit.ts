@@ -11,6 +11,12 @@ export const submitRateLimiter = new RateLimiterMemory({
   duration: 60,
 });
 
+// Лимит по пользователю: не более 10 отправок в минуту на одного user_id
+export const submitRateLimiterByUser = new RateLimiterMemory({
+  points: 10,
+  duration: 60,
+});
+
 export const registerRateLimiter = new RateLimiterMemory({
   points: 3,
   duration: 3600, // 1 час

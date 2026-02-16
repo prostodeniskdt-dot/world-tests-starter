@@ -2,12 +2,28 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { UserGate, useLocalUser } from "@/components/UserGate";
-import { ArrowRight, Award } from "lucide-react";
+import { ArrowRight, Award, Send } from "lucide-react";
 import { addToast } from "./Toast";
 import { NavigateToLeaderboard } from "./NavigateToLeaderboard";
 import { QuestionRenderer } from "./questions/QuestionRenderer";
 import type { PublicTest } from "@/lib/tests-registry";
 import type { QuestionAnswer } from "@/tests/types";
+
+const AUTHOR_TELEGRAM_URL = "https://t.me/TomSemm";
+
+function SubscribeAuthorButton() {
+  return (
+    <a
+      href={AUTHOR_TELEGRAM_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-100 hover:border-primary-300 transition-colors"
+    >
+      <Send className="h-4 w-4" aria-hidden />
+      Подписаться на тг автора
+    </a>
+  );
+}
 
 type SubmitResponse =
   | {
@@ -75,6 +91,8 @@ export function TestClient({ test }: { test: PublicTest }) {
   } | null>(null);
   const { user: currentUser } = useLocalUser();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  // Ключ идемпотентности: один на одно нажатие «Завершить тест», чтобы повторная отправка не создавала дубль попытки
+  const [submitIdempotencyKey, setSubmitIdempotencyKey] = useState<string | null>(null);
 
   const answeredCount = useMemo(() => {
     return Object.values(answers).filter(v => v !== null).length;
@@ -128,6 +146,12 @@ export function TestClient({ test }: { test: PublicTest }) {
     }
   }, [test.id, currentUser?.userId]);
 
+  // При открытии модалки подтверждения генерируем ключ идемпотентности для этой отправки
+  const openConfirmModal = () => {
+    setSubmitIdempotencyKey(crypto.randomUUID());
+    setShowConfirmModal(true);
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-4 sm:space-y-6">
       <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
@@ -143,9 +167,15 @@ export function TestClient({ test }: { test: PublicTest }) {
             ))}
           </div>
         </div>
+        <p className="mt-1 text-sm text-zinc-500">
+          Автор: {test.author ?? "Денис Колодешников"}
+        </p>
         {test.description && (
           <p className="mt-2 text-zinc-600 text-sm sm:text-base md:text-lg leading-relaxed">{test.description}</p>
         )}
+        <div className="mt-4">
+          <SubscribeAuthorButton />
+        </div>
       </div>
 
       {/* Прогресс-бар */}
@@ -215,7 +245,7 @@ export function TestClient({ test }: { test: PublicTest }) {
             <div className="mt-6 sm:mt-8 pt-6 border-t border-zinc-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <button
                 disabled={!allAnswered || submitting || submitted}
-                onClick={() => setShowConfirmModal(true)}
+                onClick={openConfirmModal}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all min-h-[44px] sm:min-h-0"
               >
                 {submitting ? "Отправляем..." : submitted ? "Тест отправлен" : "Завершить тест"}
@@ -270,11 +300,11 @@ export function TestClient({ test }: { test: PublicTest }) {
                             headers: { "Content-Type": "application/json" },
                             credentials: "include", // Важно: отправляем cookies для аутентификации
                             body: JSON.stringify({
-                              // userId больше не передается, берется из JWT токена для безопасности
                               testId: test.id,
                               answers,
                               startTime,
                               endTime,
+                              idempotencyKey: submitIdempotencyKey ?? undefined,
                             }),
                           });
 
@@ -332,6 +362,11 @@ export function TestClient({ test }: { test: PublicTest }) {
                           
                           if (json.ok) {
                             setSubmitted(true);
+                            try {
+                              sessionStorage.setItem(`submitted_${test.id}`, Date.now().toString());
+                            } catch {
+                              // sessionStorage недоступен (private mode и т.п.)
+                            }
                             // Проверяем все ответы и показываем справки после отправки
                             const checkAllAnswers = async () => {
                               const hints: Record<string, boolean> = {};
@@ -431,8 +466,9 @@ export function TestClient({ test }: { test: PublicTest }) {
                         </div>
                       </div>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 flex flex-wrap items-center gap-3">
                       <NavigateToLeaderboard />
+                      <SubscribeAuthorButton />
                     </div>
                   </div>
                 ) : (
