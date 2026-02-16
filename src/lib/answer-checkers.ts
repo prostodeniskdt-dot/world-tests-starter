@@ -66,14 +66,18 @@ function normalizeMatchingKey(correctAnswer: unknown): [number, number][] | null
 }
 
 /**
- * Проверяет пары соответствий
+ * Проверяет пары соответствий.
+ * Если передан expectedPairsCount (обычно question.leftItems.length), ключ с другим
+ * количеством пар считается невалидным — так отлавливаются неполные ключи в тестах.
  */
 function checkMatchingPairs(
   userPairs: [number, number][],
-  correctPairs: unknown
+  correctPairs: unknown,
+  expectedPairsCount?: number
 ): boolean {
   const normalizedCorrect = normalizeMatchingKey(correctPairs);
   if (normalizedCorrect === null) return false;
+  if (expectedPairsCount != null && normalizedCorrect.length !== expectedPairsCount) return false;
   if (userPairs.length !== normalizedCorrect.length) return false;
 
   const normalizedUser = userPairs.map((p) => normalizePair(p)).filter((x): x is [number, number] => x !== null);
@@ -88,7 +92,8 @@ function checkMatchingPairs(
     return a[1] - b[1];
   });
 
-  return arraysEqual(sortedUser, sortedCorrect);
+  if (sortedUser.length !== sortedCorrect.length) return false;
+  return sortedUser.every((pair, i) => pair[0] === sortedCorrect[i][0] && pair[1] === sortedCorrect[i][1]);
 }
 
 /**
@@ -116,9 +121,10 @@ function checkMultipleSelect(
  */
 function checkMatching(
   userAnswer: [number, number][],
-  correctAnswer: [number, number][]
+  correctAnswer: [number, number][],
+  expectedPairsCount?: number
 ): boolean {
-  return checkMatchingPairs(userAnswer, correctAnswer);
+  return checkMatchingPairs(userAnswer, correctAnswer, expectedPairsCount);
 }
 
 /**
@@ -302,8 +308,10 @@ export function checkAnswer(
     case "multiple-select":
       return checkMultipleSelect(userAnswer as number[], correctAnswer);
 
-    case "matching":
-      return checkMatching(userAnswer as [number, number][], correctAnswer);
+    case "matching": {
+      const leftCount = (question as import("@/tests/types").MatchingQuestion).leftItems?.length;
+      return checkMatching(userAnswer as [number, number][], correctAnswer, leftCount);
+    }
 
     case "ordering":
       return checkOrdering(userAnswer as number[], correctAnswer);

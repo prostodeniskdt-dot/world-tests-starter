@@ -13,6 +13,8 @@
     "migrate-tests": "tsx scripts/migrate-tests-to-db.ts",
     "export-tests": "tsx scripts/export-tests-from-db.ts",
     "fix-answer-keys-fc2848b9": "tsx scripts/fix-answer-keys-test-fc2848b9.ts",
+    "fix-answer-keys-941e9b55": "tsx scripts/fix-answer-keys-test-941e9b55.ts",
+    "verify-matching": "tsx scripts/verify-matching-keys.ts",
     "run-fix-migration": "tsx scripts/run-fix-migration.ts"
   },
   "dependencies": {
