@@ -743,28 +743,28 @@ export function EditTestForm({
                             {(q.gaps || []).map((gap: { options?: string[] }, gi: number) => (
                               <div key={gi} className="mb-3 p-2 bg-zinc-50 rounded">
                                 <span className="text-xs text-zinc-500">Пропуск {gi + 1}</span>
+                                <label className="block text-xs text-zinc-600 mt-1">
+                                  Варианты для подстановки (каждый с новой строки или через запятую):
+                                </label>
                                 <textarea
                                   value={(gap.options || []).join("\n")}
                                   onChange={(e) => {
+                                    const raw = e.target.value;
+                                    const options = raw
+                                      .split(/\n|[,;]/)
+                                      .map((s) => s.trim().replace(/^["']|["']$/g, ""))
+                                      .filter(Boolean);
                                     const gaps = [...(q.gaps || [])];
                                     gaps[gi] = {
                                       ...gaps[gi],
                                       index: gi,
-                                      options: e.target.value
-                                        .split("\n")
-                                        .map((s) => s.trim())
-                                        .filter(Boolean),
+                                      options: options.length > 0 ? options : [""],
                                     };
-                                    if (
-                                      gaps[gi] &&
-                                      (gaps[gi] as { options: string[] }).options.length === 0
-                                    )
-                                      (gaps[gi] as { options: string[] }).options = [""];
                                     updateQuestion(idx, "gaps", gaps);
                                   }}
-                                  rows={2}
+                                  rows={3}
                                   className="mt-1 w-full border rounded px-2 py-1 text-sm"
-                                  placeholder="Варианты, каждый с новой строки"
+                                  placeholder={'ниже\nзанимает\nувеличивает   или   ниже, занимает, увеличивает'}
                                 />
                                 <label className="mt-1 block text-xs">
                                   Правильный ответ:{" "}

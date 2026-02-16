@@ -64,7 +64,7 @@ export function TwoStepQuestion({
                 }}
                 className="hidden"
               />
-              <span className="flex-1 min-w-0 text-base sm:text-sm break-words">{option}</span>
+              <span className="flex-1 min-w-0 text-sm sm:text-base break-words">{option}</span>
             </label>
           ))}
         </div>
@@ -98,7 +98,7 @@ export function TwoStepQuestion({
                 }}
                 className="hidden"
               />
-              <span className="flex-1 min-w-0 text-base sm:text-sm break-words">{option}</span>
+              <span className="flex-1 min-w-0 text-sm sm:text-base break-words">{option}</span>
             </label>
           ))}
         </div>

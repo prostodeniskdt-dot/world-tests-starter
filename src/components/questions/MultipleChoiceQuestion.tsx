@@ -59,7 +59,7 @@ export function MultipleChoiceQuestion({
               }}
               className="hidden"
             />
-            <span className={`flex-1 min-w-0 text-base sm:text-sm break-words leading-relaxed ${
+            <span className={`flex-1 min-w-0 text-sm sm:text-base break-words leading-relaxed ${
               checked ? "font-medium text-zinc-900" : "text-zinc-700"
             }`}>
               {opt}
