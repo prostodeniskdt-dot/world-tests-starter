@@ -833,7 +833,10 @@ export function EditTestForm({
                             />
                           </div>
                           <div>
-                            <label className={labelClass}>Пары: левый → правый индекс</label>
+                            <label className={labelClass}>Пары: левый → правый</label>
+                            <p className="text-xs text-zinc-500 mb-1">
+                              Ключ «1-A, 2-B, 3-C»: выберите для левого 1 правый вариант A (отображается как 1), для 2 → B (2) и т.д.
+                            </p>
                             <div className="space-y-2">
                               {(q.leftItems || []).map((left: string, li: number) => (
                                 <div key={li} className="flex items-center gap-2">
@@ -896,24 +899,29 @@ export function EditTestForm({
                           </div>
                           <div>
                             <label className={labelClass}>
-                              Правильный порядок (индексы через запятую, с 0)
+                              Правильный порядок
                             </label>
+                            <p className="text-xs text-zinc-500 mb-1">
+                              Ключ «2-1-3-4» → введите <code className="bg-zinc-100 px-1">2, 1, 3, 4</code> (номера с 1), система преобразует в индексы.
+                            </p>
                             <input
                               type="text"
                               value={
                                 Array.isArray(test.answerKey[q.id])
-                                  ? (test.answerKey[q.id] as number[]).join(", ")
-                                  : (q.items || []).map((_: string, i: number) => i).join(", ")
+                                  ? (test.answerKey[q.id] as number[]).map((x) => x + 1).join(", ")
+                                  : (q.items || []).map((_: string, i: number) => i + 1).join(", ")
                               }
                               onChange={(e) => {
-                                const parsed = e.target.value
-                                  .split(",")
-                                  .map((s) => parseInt(s.trim(), 10))
-                                  .filter((n) => !Number.isNaN(n));
+                                const raw = e.target.value.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !Number.isNaN(n));
+                                const n = (q.items || []).length;
+                                const parsed =
+                                  n > 0 && raw.length === n && raw.every((x) => x >= 1 && x <= n)
+                                    ? raw.map((x) => x - 1)
+                                    : raw.filter((x) => x >= 0 && x < n);
                                 updateAnswer(q.id, parsed);
                               }}
                               className={inputClass}
-                              placeholder="0, 1, 2, 3"
+                              placeholder="2, 1, 3, 4  или  1, 0, 2, 3"
                             />
                           </div>
                         </>

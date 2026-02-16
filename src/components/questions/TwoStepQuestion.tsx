@@ -36,13 +36,13 @@ export function TwoStepQuestion({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
+      <div className="rounded-lg border border-zinc-200 bg-white p-3 sm:p-4 space-y-2">
         <div className="text-sm font-semibold text-zinc-900">{question.step1.question}</div>
         <div className="space-y-2">
           {question.step1.options.map((option, idx) => (
             <label
               key={`${question.id}-step1-${idx}`}
-              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+              className={`flex items-center gap-3 rounded-lg border-2 px-3 py-3 sm:px-4 sm:py-3 min-h-[44px] touch-manipulation transition-colors ${
                 disabled
                   ? step1Value === idx
                     ? "border-green-500 bg-green-50"
@@ -64,19 +64,19 @@ export function TwoStepQuestion({
                 }}
                 className="hidden"
               />
-              <span>{option}</span>
+              <span className="flex-1 min-w-0 text-base sm:text-sm break-words">{option}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
+      <div className="rounded-lg border border-zinc-200 bg-white p-3 sm:p-4 space-y-2">
         <div className="text-sm font-semibold text-zinc-900">{question.step2.question}</div>
         <div className="space-y-2">
           {question.step2.options.map((option, idx) => (
             <label
               key={`${question.id}-step2-${idx}`}
-              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+              className={`flex items-center gap-3 rounded-lg border-2 px-3 py-3 sm:px-4 sm:py-3 min-h-[44px] touch-manipulation transition-colors ${
                 disabled
                   ? step2Value === idx
                     ? "border-green-500 bg-green-50"
@@ -98,7 +98,7 @@ export function TwoStepQuestion({
                 }}
                 className="hidden"
               />
-              <span>{option}</span>
+              <span className="flex-1 min-w-0 text-base sm:text-sm break-words">{option}</span>
             </label>
           ))}
         </div>

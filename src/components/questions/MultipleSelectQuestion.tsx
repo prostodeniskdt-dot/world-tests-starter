@@ -57,7 +57,7 @@ export function MultipleSelectQuestion({
                 onChange={() => toggleOption(optIdx)}
                 className="hidden"
               />
-              <span className={`flex-1 text-base sm:text-sm break-words leading-relaxed ${checked ? "font-medium text-zinc-900" : "text-zinc-700"}`}>
+              <span className={`flex-1 min-w-0 text-base sm:text-sm break-words leading-relaxed ${checked ? "font-medium text-zinc-900" : "text-zinc-700"}`}>
                 {opt}
               </span>
               {checked && (

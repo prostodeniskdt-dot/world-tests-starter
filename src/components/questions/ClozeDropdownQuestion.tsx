@@ -69,30 +69,30 @@ export function ClozeDropdownQuestion({
       // Получаем gap по индексу массива
       const gap = question.gaps[gapIndex];
       if (gap && gapIndex >= 0 && gapIndex < question.gaps.length) {
-        // Используем уникальный ключ, включающий позицию в тексте и gapIndex
         const uniqueKey = `gap-${match.index}-${gapIndex}`;
         const currentValue = selectedIndices[gapIndex] ?? -1;
         const isFilled = currentValue >= 0;
-        
+        // value: пустая строка для "не выбрано" — тогда в поле показывается "Выберите...";
+        // при выборе — индекс, чтобы в поле отображался текст выбранного варианта (важно для мобильных).
+        const selectValue = currentValue < 0 ? "" : currentValue;
+
         parts.push(
           <select
             key={uniqueKey}
-            value={currentValue}
+            value={selectValue}
             onChange={(e) => {
-              const newValue = parseInt(e.target.value, 10);
+              const raw = e.target.value;
+              const newValue = raw === "" ? -1 : parseInt(raw, 10);
               handleGapChange(gapIndex, newValue);
             }}
             disabled={disabled}
-            className={`min-h-[44px] text-base font-semibold border-2 rounded-lg px-3 py-2 mx-1 touch-manipulation transition-all ${
+            className={`min-h-[44px] w-full min-w-[140px] max-w-[200px] sm:min-w-[160px] text-base font-semibold border-2 rounded-lg px-3 py-2.5 mx-0.5 touch-manipulation transition-all ${
               isFilled
                 ? "border-primary-500 bg-primary-50 text-zinc-900"
                 : "border-zinc-300 bg-zinc-50 text-zinc-700"
             } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:border-primary-400"}`}
-            style={{ minWidth: "150px" }}
           >
-            <option value={-1} disabled>
-              {isFilled ? "Выбрано" : "Выберите..."}
-            </option>
+            <option value="">Выберите...</option>
             {gap.options.map((opt, optIdx) => (
               <option key={optIdx} value={optIdx}>
                 {opt}
@@ -116,7 +116,7 @@ export function ClozeDropdownQuestion({
 
   return (
     <div className="space-y-4">
-      <div className="text-base sm:text-lg leading-relaxed p-4 bg-white rounded-lg border border-zinc-200">
+      <div className="text-base sm:text-lg leading-relaxed p-4 bg-white rounded-lg border border-zinc-200 flex flex-wrap items-center gap-x-1.5 gap-y-2">
         {renderText()}
       </div>
     </div>

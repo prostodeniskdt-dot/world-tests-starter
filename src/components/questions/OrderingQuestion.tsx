@@ -69,7 +69,7 @@ export function OrderingQuestion({
         >
           <div className="text-sm font-medium text-zinc-900 sm:flex-1">{item}</div>
           <select
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 sm:w-40"
+            className="w-full min-h-[44px] rounded-lg border-2 border-zinc-300 bg-white px-3 py-2.5 text-base sm:text-sm text-zinc-700 touch-manipulation focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 sm:w-40"
             value={positions[itemIdx] >= 0 ? positions[itemIdx] : ""}
             onChange={(event) => handleChange(itemIdx, Number(event.target.value))}
             disabled={disabled}
