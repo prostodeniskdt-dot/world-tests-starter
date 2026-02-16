@@ -29,27 +29,40 @@ function normalizePair(p: unknown): [number, number] | null {
 
 /**
  * Нормализует ключ matching: принимает массив пар [[0,0],[1,2],[2,1]]
- * или объект вида { "0": 0, "1": 2, "2": 1 } (левый индекс → правый индекс).
+ * или объект { "0": 0, "1": 2, "2": 1 }, или 1-based пары [[1,1],[2,3],[3,2]].
+ * Приводит всё к 0-based.
  */
 function normalizeMatchingKey(correctAnswer: unknown): [number, number][] | null {
+  let pairs: [number, number][] | null = null;
+
   if (Array.isArray(correctAnswer)) {
-    const pairs = correctAnswer.map(normalizePair).filter((x): x is [number, number] => x !== null);
-    if (pairs.length !== correctAnswer.length) return null;
-    return pairs;
-  }
-  if (correctAnswer !== null && typeof correctAnswer === "object" && !Array.isArray(correctAnswer)) {
+    const parsed = correctAnswer.map(normalizePair).filter((x): x is [number, number] => x !== null);
+    if (parsed.length !== correctAnswer.length) return null;
+    pairs = parsed;
+  } else if (correctAnswer !== null && typeof correctAnswer === "object" && !Array.isArray(correctAnswer)) {
     const obj = correctAnswer as Record<string, unknown>;
-    const pairs: [number, number][] = [];
     const keys = Object.keys(obj).map((k) => parseInt(k, 10)).filter((n) => !Number.isNaN(n)).sort((a, b) => a - b);
+    pairs = [];
     for (const left of keys) {
       const right = obj[String(left)];
       const r = typeof right === "number" ? right : parseInt(String(right), 10);
       if (Number.isNaN(r)) return null;
       pairs.push([left, r]);
     }
-    return pairs.length ? pairs : null;
+    if (pairs.length === 0) return null;
+  } else {
+    return null;
   }
-  return null;
+
+  if (!pairs || pairs.length === 0) return null;
+
+  // Ключ мог быть сохранён в 1-based формате (1–A, 2–C, 3–B → [1,1],[2,3],[3,2])
+  const minLeft = Math.min(...pairs.map((p) => p[0]));
+  const minRight = Math.min(...pairs.map((p) => p[1]));
+  if (minLeft > 0 || minRight > 0) {
+    pairs = pairs.map(([a, b]) => [a - (minLeft > 0 ? 1 : 0), b - (minRight > 0 ? 1 : 0)]);
+  }
+  return pairs;
 }
 
 /**

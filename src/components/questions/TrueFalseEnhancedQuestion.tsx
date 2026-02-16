@@ -12,6 +12,7 @@ interface TrueFalseEnhancedQuestionProps {
   disabled?: boolean;
   /** После завершения теста — показывать полный текст объяснения; до этого — только «Объяснение 1», «Объяснение 2» */
   showHint?: boolean;
+  isCorrect?: boolean;
 }
 
 export function TrueFalseEnhancedQuestion({
@@ -20,12 +21,13 @@ export function TrueFalseEnhancedQuestion({
   onChange,
   disabled = false,
   showHint = false,
+  isCorrect,
 }: TrueFalseEnhancedQuestionProps) {
   const currentAnswer = (answer as { answer: boolean; reason: number } | null) || {
     answer: null as any,
     reason: null as any,
   };
-  const hasReasons = (question.reasons?.length ?? 0) > 0;
+  const hasReasons = (question.reasons?.length ?? 0) > 1;
   const [step, setStep] = useState<1 | 2>(
     currentAnswer.answer === null || !hasReasons ? 1 : 2
   );
@@ -33,7 +35,8 @@ export function TrueFalseEnhancedQuestion({
   const handleAnswer = (value: boolean) => {
     if (disabled) return;
     onChange({ answer: value, reason: 0 });
-    if (question.reasons?.length) setStep(2);
+    // Шаг 2 «Выберите объяснение» показываем только если вариантов причин больше одного
+    if ((question.reasons?.length ?? 0) > 1) setStep(2);
   };
 
   const handleReason = (reasonIndex: number) => {
@@ -91,8 +94,8 @@ export function TrueFalseEnhancedQuestion({
         </div>
       )}
 
-      {/* Шаг 2: Выбор причины (только если есть варианты причин) */}
-      {step === 2 && currentAnswer.answer !== null && question.reasons?.length > 0 && (
+      {/* Шаг 2: Выбор причины (только если вариантов причин больше одного) */}
+      {step === 2 && currentAnswer.answer !== null && (question.reasons?.length ?? 0) > 1 && (
         <div className="space-y-4">
           <div className="p-3 rounded-lg border border-zinc-200 bg-zinc-50">
             <div className="flex items-center justify-between">
@@ -156,6 +159,24 @@ export function TrueFalseEnhancedQuestion({
               })}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* После отправки: для одного варианта причины показываем пояснение здесь (т.к. question.hint часто пустой) */}
+      {showHint && (question.reasons?.length ?? 0) === 1 && question.reasons![0] && (
+        <div
+          className={`mt-2 p-3 rounded-lg border-2 ${
+            isCorrect !== undefined
+              ? isCorrect
+                ? "bg-green-50 border-green-300 text-green-800"
+                : "bg-red-50 border-red-300 text-red-800"
+              : "bg-blue-50 border-blue-300 text-blue-800"
+          }`}
+        >
+          {isCorrect !== undefined && (
+            <p className="font-semibold mb-2">Ваш ответ: {isCorrect ? "Правильно" : "Неправильно"}</p>
+          )}
+          <strong>Справка:</strong> {question.reasons![0]}
         </div>
       )}
     </div>

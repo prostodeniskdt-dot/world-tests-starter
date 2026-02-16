@@ -55,7 +55,7 @@ export function QuestionRenderer({
         <MultipleSelectQuestion {...commonProps} question={question as import("@/tests/types").MultipleSelectQuestion} />
       )}
       {question.type === "true-false-enhanced" && (
-        <TrueFalseEnhancedQuestion {...commonProps} question={question as import("@/tests/types").TrueFalseEnhancedQuestion} showHint={showHint} />
+        <TrueFalseEnhancedQuestion {...commonProps} question={question as import("@/tests/types").TrueFalseEnhancedQuestion} showHint={showHint} isCorrect={isCorrect} />
       )}
       {question.type === "cloze-dropdown" && (
         <ClozeDropdownQuestion {...commonProps} question={question as import("@/tests/types").ClozeDropdownQuestion} />
