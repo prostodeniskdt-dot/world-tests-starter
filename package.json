@@ -10,7 +10,8 @@
     "lint": "next lint",
     "parse-baza": "tsx scripts/parse-baza.ts",
     "validate-baza": "tsx scripts/validate-baza.ts",
-    "migrate-tests": "tsx scripts/migrate-tests-to-db.ts"
+    "migrate-tests": "tsx scripts/migrate-tests-to-db.ts",
+    "run-fix-migration": "tsx scripts/run-fix-migration.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",

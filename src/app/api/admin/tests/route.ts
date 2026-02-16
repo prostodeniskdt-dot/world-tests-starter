@@ -56,36 +56,26 @@ export async function POST(req: Request) {
 
   const { id, title, description, category, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
 
-  // Валидация
-  if (!title || !questions || !answerKey) {
+  // Валидация (разрешаем пустой тест: questions: [], answerKey: {})
+  if (!title || typeof title !== "string") {
     return NextResponse.json(
-      { ok: false, error: "Обязательные поля: title, questions, answerKey" },
+      { ok: false, error: "Обязательное поле: title (строка)" },
       { status: 400 }
     );
   }
 
-  if (!Array.isArray(questions) || questions.length === 0) {
-    return NextResponse.json(
-      { ok: false, error: "questions должен быть непустым массивом" },
-      { status: 400 }
-    );
-  }
+  const questionsArr = Array.isArray(questions) ? questions : [];
+  const answerKeyObj = typeof answerKey === "object" && !Array.isArray(answerKey) ? answerKey : {};
 
-  if (typeof answerKey !== "object" || Array.isArray(answerKey)) {
-    return NextResponse.json(
-      { ok: false, error: "answerKey должен быть объектом" },
-      { status: 400 }
-    );
-  }
-
-  // Проверяем что для каждого вопроса есть ответ
-  const questionIds = questions.map((q: any) => q.id);
-  const missingAnswers = questionIds.filter((qId: string) => !(qId in answerKey));
-  if (missingAnswers.length > 0) {
-    return NextResponse.json(
-      { ok: false, error: `Отсутствуют ответы для вопросов: ${missingAnswers.join(", ")}` },
-      { status: 400 }
-    );
+  if (questionsArr.length > 0) {
+    const questionIds = questionsArr.map((q: any) => q.id);
+    const missingAnswers = questionIds.filter((qId: string) => !(qId in answerKeyObj));
+    if (missingAnswers.length > 0) {
+      return NextResponse.json(
+        { ok: false, error: `Отсутствуют ответы для вопросов: ${missingAnswers.join(", ")}` },
+        { status: 400 }
+      );
+    }
   }
 
   const testId = id || `test-${crypto.randomUUID().slice(0, 8)}`;
@@ -111,11 +101,11 @@ export async function POST(req: Request) {
         title,
         description || "",
         category || "",
-        difficultyLevel || 1,
-        basePoints || 200,
+        difficultyLevel ?? 1,
+        basePoints ?? 200,
         maxAttempts ?? null,
-        JSON.stringify(questions),
-        JSON.stringify(answerKey),
+        JSON.stringify(questionsArr),
+        JSON.stringify(answerKeyObj),
       ]
     );
 

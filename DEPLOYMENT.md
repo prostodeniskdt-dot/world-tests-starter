@@ -30,8 +30,21 @@
 | 1 | `supabase/init.sql` | Таблицы пользователей, статистики, попыток, рейтинг, сброс пароля, функции |
 | 2 | `supabase/migrations/add-admin-fields.sql` | Поля админки и бана в `users` |
 | 3 | `supabase/migrations/add-tests-v2.sql` | Таблица тестов с JSONB (вместо старых `test_questions` / `test_options`) |
+| 4 | `supabase/migrations/fix-record-attempt-ambiguous.sql` | Исправление ambiguous `user_id` в record_attempt, права админа |
 
 После выполнения приложение будет использовать одну и ту же схему, что и локально (PostgreSQL на Timeweb совместим с этими скриптами).
+
+---
+
+## 2.1. Миграция тестов в БД (один раз)
+
+После создания таблицы `tests` нужно заполнить её тестами из репозитория:
+
+```bash
+npm run migrate-tests
+```
+
+Скрипт читает тесты из `src/tests/` и вставляет их в таблицу. Требуется `DATABASE_URL` в `.env.local` (укажите строку подключения к вашей БД, при необходимости с IP вместо хоста).
 
 ---
 
@@ -85,6 +98,7 @@ docker run -p 8080:8080 \
 
 - [ ] В панели Timeweb создана БД PostgreSQL, скопирована `DATABASE_URL`.
 - [ ] Выполнены скрипты: `init.sql` → `add-admin-fields.sql` → `add-tests-v2.sql`.
+- [ ] Запущена миграция тестов: `npm run migrate-tests` (при необходимости укажите в `.env.local` IP вместо хоста).
 - [ ] Деплой идёт через **Dockerfile**, не через шаблон «Next.js».
 - [ ] Заданы переменные: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET`, `NEXT_PUBLIC_APP_URL`.
 - [ ] `NEXT_PUBLIC_APP_URL` указывает на итоговый HTTPS-адрес сайта (например `https://your-app.twc1.net`).

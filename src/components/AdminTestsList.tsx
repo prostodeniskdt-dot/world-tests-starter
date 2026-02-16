@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus, Eye, Edit, Trash2, ToggleLeft, ToggleRight, Upload } from "lucide-react";
 
@@ -19,8 +20,36 @@ type TestItem = {
 };
 
 export function AdminTestsList({ initialTests }: { initialTests: TestItem[] }) {
+  const router = useRouter();
   const [tests, setTests] = useState(initialTests);
   const [loading, setLoading] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const createTest = async () => {
+    setCreating(true);
+    try {
+      const res = await fetch("/api/admin/tests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Новый тест",
+          description: "",
+          category: "",
+          difficultyLevel: 1,
+          basePoints: 200,
+          maxAttempts: null,
+          questions: [],
+          answerKey: {},
+        }),
+      });
+      const data = await res.json();
+      if (data.ok && data.testId) {
+        router.push(`/admin/tests/${data.testId}/edit`);
+      }
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const togglePublish = async (testId: string, current: boolean) => {
     setLoading(testId);
@@ -69,15 +98,25 @@ export function AdminTestsList({ initialTests }: { initialTests: TestItem[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="text-sm text-zinc-500">{tests.length} тестов</div>
-        <Link
-          href="/admin/tests/import"
-          className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors"
-        >
-          <Upload className="h-4 w-4" />
-          Импорт JSON
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={createTest}
+            disabled={creating}
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" />
+            {creating ? "Создание…" : "Создать тест"}
+          </button>
+          <Link
+            href="/admin/tests/import"
+            className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors"
+          >
+            <Upload className="h-4 w-4" />
+            Импорт JSON
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -154,7 +193,7 @@ export function AdminTestsList({ initialTests }: { initialTests: TestItem[] }) {
 
         {tests.length === 0 && (
           <div className="text-center py-12 text-zinc-500">
-            Нет тестов. Начните с импорта JSON.
+            Нет тестов. Создайте новый тест или импортируйте JSON.
           </div>
         )}
       </div>

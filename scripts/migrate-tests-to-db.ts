@@ -9,6 +9,20 @@
  * 2. Выполнена миграция supabase/migrations/add-tests-v2.sql
  */
 
+// Мок для "server-only" — answer.ts его импортирует, но при tsx модуль не резолвится
+import { createRequire } from "module";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+const require = createRequire(import.meta.url);
+const Module = require("module") as typeof import("module");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const shimPath = require.resolve("./server-only-shim.cjs", { paths: [__dirname] });
+const origResolve = (Module as any)._resolveFilename;
+(Module as any)._resolveFilename = function (request: string, parent: any, isMain: boolean) {
+  if (request === "server-only") return shimPath;
+  return origResolve.apply(this, arguments);
+};
+
 import { Pool } from "pg";
 import * as dotenv from "dotenv";
 import * as path from "path";

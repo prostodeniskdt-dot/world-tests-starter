@@ -108,9 +108,9 @@ begin
   -- Находим предыдущую попытку по этому тесту для этого пользователя
   select points_awarded into v_previous_points
   from public.attempts
-  where user_id = p_user_id
-    and test_id = p_test_id
-  order by created_at desc
+  where attempts.user_id = p_user_id
+    and attempts.test_id = p_test_id
+  order by attempts.created_at desc
   limit 1;
 
   -- Если предыдущей попытки нет, это новый тест
@@ -126,12 +126,12 @@ begin
   insert into public.attempts (user_id, test_id, score_percent, points_awarded)
   values (p_user_id, p_test_id, p_score_percent, p_points_awarded);
 
-  -- Обновляем статистику пользователя
-  insert into public.user_stats as us (user_id, total_points, tests_completed)
+  -- Обновляем статистику пользователя (явно указываем имя таблицы во избежание ambiguous column)
+  insert into public.user_stats (user_id, total_points, tests_completed)
   values (p_user_id, v_points_delta, case when v_is_new_test then 1 else 0 end)
   on conflict on constraint user_stats_pkey do update
-    set total_points = us.total_points + v_points_delta,
-        tests_completed = us.tests_completed + case when v_is_new_test then 1 else 0 end,
+    set total_points = user_stats.total_points + v_points_delta,
+        tests_completed = user_stats.tests_completed + case when v_is_new_test then 1 else 0 end,
         updated_at = now();
 
   -- Возвращаем обновленную статистику
