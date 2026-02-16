@@ -209,3 +209,35 @@ export function validateTestForSave(test: {
 
   return errors;
 }
+
+/**
+ * Нормализует answerKey для matching-вопросов: добавляет недостающие пары [leftIdx, rightIdx].
+ * Если пользователь не менял первый выпадающий (индекс 0), пара [0,0] не попадала в массив — исправляем.
+ */
+export function normalizeAnswerKeyForSave(test: {
+  questions: any[];
+  answerKey: Record<string, any>;
+}): Record<string, any> {
+  const key = { ...test.answerKey };
+  for (const q of test.questions || []) {
+    if (q.type !== "matching" || !q.id || !q.leftItems?.length) continue;
+    const N = q.leftItems.length;
+    const existing = Array.isArray(key[q.id]) ? (key[q.id] as [number, number][]) : [];
+    const byLeft = new Map<number, number>();
+    for (const p of existing) {
+      if (Array.isArray(p) && p.length >= 2 && typeof p[0] === "number" && p[0] >= 0 && p[0] < N) {
+        const r = typeof p[1] === "number" ? p[1] : parseInt(String(p[1]), 10);
+        if (!Number.isNaN(r) && r >= 0) byLeft.set(p[0], r);
+      }
+    }
+    const rightCount = q.rightItems?.length ?? 0;
+    const pairs: [number, number][] = [];
+    for (let i = 0; i < N; i++) {
+      const r = byLeft.has(i) ? byLeft.get(i)! : 0;
+      pairs.push([i, r >= 0 && r < rightCount ? r : 0]);
+    }
+    pairs.sort((a, b) => a[0] - b[0]);
+    key[q.id] = pairs;
+  }
+  return key;
+}

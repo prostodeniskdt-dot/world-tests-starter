@@ -23,6 +23,7 @@ import {
   normalizeQuestionByType,
   createDefaultQuestion,
   validateTestForSave,
+  normalizeAnswerKeyForSave,
 } from "@/lib/test-editor-utils";
 
 type TestData = {
@@ -200,6 +201,7 @@ export function EditTestForm({
     setError(null);
     setSaveMessage(null);
     try {
+      const normalizedAnswerKey = normalizeAnswerKeyForSave(test);
       const res = await fetch(`/api/admin/tests/${testId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -211,7 +213,7 @@ export function EditTestForm({
           basePoints: test.basePoints,
           maxAttempts: test.maxAttempts,
           questions: test.questions,
-          answerKey: test.answerKey,
+          answerKey: normalizedAnswerKey,
         }),
       });
       const data = await res.json();
@@ -854,12 +856,20 @@ export function EditTestForm({
                                         : 0) as number
                                     }
                                     onChange={(e) => {
-                                      const pairs = (
+                                      const existing = (
                                         Array.isArray(test.answerKey[q.id])
                                           ? (test.answerKey[q.id] as [number, number][])
                                           : []
-                                      ).filter((p) => p[0] !== li);
-                                      pairs.push([li, parseInt(e.target.value, 10)]);
+                                      );
+                                      const newRight = parseInt(e.target.value, 10);
+                                      const leftCount = (q.leftItems || []).length;
+                                      const pairs: [number, number][] = [];
+                                      for (let i = 0; i < leftCount; i++) {
+                                        const right = i === li
+                                          ? newRight
+                                          : (existing.find((p) => p[0] === i)?.[1] ?? 0);
+                                        pairs.push([i, right]);
+                                      }
                                       pairs.sort((a, b) => a[0] - b[0]);
                                       updateAnswer(q.id, pairs);
                                     }}

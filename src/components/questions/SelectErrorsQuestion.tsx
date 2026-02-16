@@ -83,8 +83,18 @@ export function SelectErrorsQuestion({
     return parts;
   };
 
+  // Показываем утверждение отдельно, только когда есть markedParts (иначе content уже в renderContent)
+  const statement = (question.markedParts.length > 0 ? (question.content || "").trim() : "");
+
   return (
     <div className="space-y-4">
+      {statement && (
+        <div className="p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+          <p className="text-sm sm:text-base leading-relaxed text-zinc-900">
+            «{statement}»
+          </p>
+        </div>
+      )}
       <div className="p-4 bg-white rounded-lg border border-zinc-200">
         <div className="text-sm sm:text-base leading-relaxed flex flex-wrap gap-1 items-center">{renderContent()}</div>
       </div>

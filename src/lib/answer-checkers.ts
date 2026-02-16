@@ -129,13 +129,27 @@ function checkTrueFalseEnhanced(
 }
 
 /**
- * Проверяет ответ для вопроса типа cloze-dropdown
+ * Проверяет ответ для вопроса типа cloze-dropdown.
+ * Сравнивает по индексам; при расхождении — по тексту выбранной опции (на случай дубликатов или синонимов).
  */
 function checkClozeDropdown(
   userAnswer: number[],
-  correctAnswer: number[]
+  correctAnswer: unknown,
+  question?: { gaps?: Array<{ options?: string[] }> }
 ): boolean {
-  return arraysEqual(userAnswer, correctAnswer);
+  if (!Array.isArray(correctAnswer) || userAnswer.length !== correctAnswer.length) return false;
+
+  const correct = correctAnswer as number[];
+  for (let i = 0; i < userAnswer.length; i++) {
+    if (userAnswer[i] === correct[i]) continue;
+    const gap = question?.gaps?.[i];
+    const opts = gap?.options || [];
+    const userText = (opts[userAnswer[i]] ?? "").trim().toLowerCase();
+    const correctText = (opts[correct[i]] ?? "").trim().toLowerCase();
+    if (userText && correctText && (userText === correctText || correctText.startsWith(userText) || userText.startsWith(correctText))) continue;
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -270,7 +284,7 @@ export function checkAnswer(
       );
 
     case "cloze-dropdown":
-      return checkClozeDropdown(userAnswer as number[], correctAnswer);
+      return checkClozeDropdown(userAnswer as number[], correctAnswer, question);
 
     case "select-errors":
       return checkSelectErrors(userAnswer as number[], correctAnswer);
