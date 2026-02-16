@@ -28,15 +28,39 @@ function normalizePair(p: unknown): [number, number] | null {
 }
 
 /**
+ * Нормализует ключ matching: принимает массив пар [[0,0],[1,2],[2,1]]
+ * или объект вида { "0": 0, "1": 2, "2": 1 } (левый индекс → правый индекс).
+ */
+function normalizeMatchingKey(correctAnswer: unknown): [number, number][] | null {
+  if (Array.isArray(correctAnswer)) {
+    const pairs = correctAnswer.map(normalizePair).filter((x): x is [number, number] => x !== null);
+    if (pairs.length !== correctAnswer.length) return null;
+    return pairs;
+  }
+  if (correctAnswer !== null && typeof correctAnswer === "object" && !Array.isArray(correctAnswer)) {
+    const obj = correctAnswer as Record<string, unknown>;
+    const pairs: [number, number][] = [];
+    const keys = Object.keys(obj).map((k) => parseInt(k, 10)).filter((n) => !Number.isNaN(n)).sort((a, b) => a - b);
+    for (const left of keys) {
+      const right = obj[String(left)];
+      const r = typeof right === "number" ? right : parseInt(String(right), 10);
+      if (Number.isNaN(r)) return null;
+      pairs.push([left, r]);
+    }
+    return pairs.length ? pairs : null;
+  }
+  return null;
+}
+
+/**
  * Проверяет пары соответствий
  */
 function checkMatchingPairs(
   userPairs: [number, number][],
   correctPairs: unknown
 ): boolean {
-  if (!Array.isArray(correctPairs)) return false;
-  const normalizedCorrect = correctPairs.map(normalizePair).filter((x): x is [number, number] => x !== null);
-  if (normalizedCorrect.length !== correctPairs.length) return false;
+  const normalizedCorrect = normalizeMatchingKey(correctPairs);
+  if (normalizedCorrect === null) return false;
   if (userPairs.length !== normalizedCorrect.length) return false;
 
   const normalizedUser = userPairs.map((p) => normalizePair(p)).filter((x): x is [number, number] => x !== null);

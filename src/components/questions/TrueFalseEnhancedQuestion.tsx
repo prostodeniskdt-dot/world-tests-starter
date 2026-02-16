@@ -10,6 +10,8 @@ interface TrueFalseEnhancedQuestionProps {
   answer: QuestionAnswer | null;
   onChange: (answer: QuestionAnswer) => void;
   disabled?: boolean;
+  /** После завершения теста — показывать полный текст объяснения; до этого — только «Объяснение 1», «Объяснение 2» */
+  showHint?: boolean;
 }
 
 export function TrueFalseEnhancedQuestion({
@@ -17,6 +19,7 @@ export function TrueFalseEnhancedQuestion({
   answer,
   onChange,
   disabled = false,
+  showHint = false,
 }: TrueFalseEnhancedQuestionProps) {
   const currentAnswer = (answer as { answer: boolean; reason: number } | null) || {
     answer: null as any,
@@ -141,7 +144,7 @@ export function TrueFalseEnhancedQuestion({
                     <span className={`flex-1 text-base sm:text-sm break-words leading-relaxed ${
                       selected ? "font-medium text-zinc-900" : "text-zinc-700"
                     }`}>
-                      {reason}
+                      {showHint ? reason : `Объяснение ${idx + 1}`}
                     </span>
                     {selected && (
                       <span className="flex-shrink-0 bg-primary-600 text-white text-xs font-bold px-2 py-1 rounded">
