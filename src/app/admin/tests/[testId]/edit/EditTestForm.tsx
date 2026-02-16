@@ -835,7 +835,7 @@ export function EditTestForm({
                           <div>
                             <label className={labelClass}>Пары: левый → правый</label>
                             <p className="text-xs text-zinc-500 mb-1">
-                              Ключ «1-A, 2-B, 3-C»: выберите для левого 1 правый вариант A (отображается как 1), для 2 → B (2) и т.д.
+                              Ключ «1-A, 2-C, 3-B»: левый 1→A(индекс 0), 2→C(индекс 2), 3→B(индекс 1). Сохраняется как [[0,0],[1,2],[2,1]].
                             </p>
                             <div className="space-y-2">
                               {(q.leftItems || []).map((left: string, li: number) => (
@@ -927,6 +927,106 @@ export function EditTestForm({
                         </>
                       )}
 
+                      {q.type === "select-errors" && (
+                        <>
+                          <div>
+                            <label className={labelClass}>Утверждение (content)</label>
+                            <textarea
+                              value={(q.content ?? q.text ?? "").toString()}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                updateQuestion(idx, "content", v);
+                                if (!q.text?.trim()) updateQuestion(idx, "text", "Найди ошибки в утверждении.");
+                              }}
+                              rows={4}
+                              className={`${inputClass} resize-y`}
+                              placeholder="Текст с ошибками для выбора"
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>
+                              Фрагменты для выбора (каждый с новой строки — точный текст)
+                            </label>
+                            <p className="text-xs text-zinc-500 mb-1">
+                              Укажите фрагменты, которые должны быть кликабельны. Система найдёт их в тексте и создаст markedParts.
+                            </p>
+                            <textarea
+                              value={(q.markedParts || []).map((p: { text?: string }) => p.text || "").join("\n")}
+                              onChange={(e) => {
+                                const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
+                                const content = q.content || "";
+                                const markedParts: Array<{ id: number; text: string; start: number; end: number }> = [];
+                                let searchFrom = 0;
+                                lines.forEach((text, i) => {
+                                  const pos = content.indexOf(text, searchFrom);
+                                  if (pos >= 0) {
+                                    markedParts.push({
+                                      id: i + 1,
+                                      text,
+                                      start: pos,
+                                      end: pos + text.length,
+                                    });
+                                    searchFrom = pos + text.length;
+                                  } else {
+                                    markedParts.push({ id: i + 1, text, start: 0, end: text.length });
+                                  }
+                                });
+                                updateQuestion(idx, "markedParts", markedParts);
+                              }}
+                              rows={4}
+                              className={`${inputClass} font-mono text-sm`}
+                              placeholder={'перекарбонизации\nмаксимально возможном давлении\nнезависимо от температуры'}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Можно выбрать несколько</label>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={!!q.allowMultiple}
+                                onChange={(e) => updateQuestion(idx, "allowMultiple", e.target.checked)}
+                                className="rounded border-zinc-300"
+                              />
+                              <span className="text-sm">Да (несколько ошибок)</span>
+                            </label>
+                          </div>
+                          <div>
+                            <label className={labelClass}>Правильные ошибки (отметьте ID фрагментов)</label>
+                            <p className="text-xs text-zinc-500 mb-1">
+                              Выберите, какие фрагменты являются ошибками. ID = номер строки (1, 2, 3…).
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                              {(q.markedParts || []).map((p: { id?: number; text?: string }, pi: number) => {
+                                const pid = p.id ?? pi + 1;
+                                const arr = Array.isArray(test.answerKey[q.id]) ? (test.answerKey[q.id] as number[]) : [];
+                                const checked = arr.includes(pid);
+                                return (
+                                  <label key={pid} className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => {
+                                        const next = checked
+                                          ? arr.filter((x) => x !== pid)
+                                          : [...arr, pid].sort((a, b) => a - b);
+                                        updateAnswer(q.id, next);
+                                      }}
+                                      className="rounded border-zinc-300"
+                                    />
+                                    <span className="text-sm">
+                                      {pid}. {(p.text || "").slice(0, 30)}{(p.text?.length || 0) > 30 ? "…" : ""}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                              {(q.markedParts || []).length === 0 && (
+                                <span className="text-sm text-zinc-400">Сначала добавьте фрагменты выше</span>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
                       {![
                         "multiple-choice",
                         "multiple-select",
@@ -934,6 +1034,7 @@ export function EditTestForm({
                         "cloze-dropdown",
                         "matching",
                         "ordering",
+                        "select-errors",
                       ].includes(q.type) && (
                         <div>
                           <label className={labelClass}>Правильный ответ (JSON)</label>

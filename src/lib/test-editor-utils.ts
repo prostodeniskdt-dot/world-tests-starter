@@ -103,9 +103,9 @@ export function normalizeQuestionByType(question: any, newType: string): any {
       return {
         ...base,
         type: "select-errors",
-        content: question.content ?? "",
+        content: question.content ?? question.text ?? "",
         markedParts: question.markedParts ?? [],
-        allowMultiple: question.allowMultiple ?? false,
+        allowMultiple: question.allowMultiple ?? true,
       };
     case "two-step":
       return {
@@ -174,6 +174,14 @@ export function validateTestForSave(test: {
     if (q.type === "true-false-enhanced") {
       if (!(q.statement && String(q.statement).trim())) {
         errors.push({ field: `questions[${i}].statement`, message: `Вопрос ${i + 1}: укажите утверждение` });
+      }
+    } else if (q.type === "select-errors") {
+      const c = q.content ?? q.text ?? "";
+      if (!c.trim()) {
+        errors.push({ field: `questions[${i}].content`, message: `Вопрос ${i + 1}: укажите утверждение (content)` });
+      }
+      if (!q.markedParts?.length) {
+        errors.push({ field: `questions[${i}].markedParts`, message: `Вопрос ${i + 1}: добавьте фрагменты для выбора` });
       }
     } else if (q.text === undefined || q.text === null || String(q.text).trim() === "") {
       errors.push({ field: `questions[${i}].text`, message: `Вопрос ${i + 1}: укажите текст` });

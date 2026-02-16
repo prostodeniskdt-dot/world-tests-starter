@@ -18,25 +18,39 @@ function arraysEqualUnordered<T>(a: T[], b: T[]): boolean {
   return arraysEqual(sortedA, sortedB);
 }
 
+/** Нормализует пару: приводит элементы к number (на случай строк из JSON) */
+function normalizePair(p: unknown): [number, number] | null {
+  if (!Array.isArray(p) || p.length !== 2) return null;
+  const a = typeof p[0] === "number" ? p[0] : parseInt(String(p[0]), 10);
+  const b = typeof p[1] === "number" ? p[1] : parseInt(String(p[1]), 10);
+  if (Number.isNaN(a) || Number.isNaN(b)) return null;
+  return [a, b];
+}
+
 /**
  * Проверяет пары соответствий
  */
 function checkMatchingPairs(
   userPairs: [number, number][],
-  correctPairs: [number, number][]
+  correctPairs: unknown
 ): boolean {
-  if (userPairs.length !== correctPairs.length) return false;
-  
-  // Сортируем пары для сравнения
-  const sortedUser = [...userPairs].sort((a, b) => {
+  if (!Array.isArray(correctPairs)) return false;
+  const normalizedCorrect = correctPairs.map(normalizePair).filter((x): x is [number, number] => x !== null);
+  if (normalizedCorrect.length !== correctPairs.length) return false;
+  if (userPairs.length !== normalizedCorrect.length) return false;
+
+  const normalizedUser = userPairs.map((p) => normalizePair(p)).filter((x): x is [number, number] => x !== null);
+  if (normalizedUser.length !== userPairs.length) return false;
+
+  const sortedUser = [...normalizedUser].sort((a, b) => {
     if (a[0] !== b[0]) return a[0] - b[0];
     return a[1] - b[1];
   });
-  const sortedCorrect = [...correctPairs].sort((a, b) => {
+  const sortedCorrect = [...normalizedCorrect].sort((a, b) => {
     if (a[0] !== b[0]) return a[0] - b[0];
     return a[1] - b[1];
   });
-  
+
   return arraysEqual(sortedUser, sortedCorrect);
 }
 
