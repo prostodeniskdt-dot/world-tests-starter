@@ -22,12 +22,15 @@ export function TrueFalseEnhancedQuestion({
     answer: null as any,
     reason: null as any,
   };
-  const [step, setStep] = useState<1 | 2>(currentAnswer.answer === null ? 1 : 2);
+  const hasReasons = (question.reasons?.length ?? 0) > 0;
+  const [step, setStep] = useState<1 | 2>(
+    currentAnswer.answer === null || !hasReasons ? 1 : 2
+  );
 
   const handleAnswer = (value: boolean) => {
     if (disabled) return;
-    onChange({ answer: value, reason: currentAnswer.reason ?? 0 });
-    setStep(2);
+    onChange({ answer: value, reason: 0 });
+    if (question.reasons?.length) setStep(2);
   };
 
   const handleReason = (reasonIndex: number) => {
@@ -85,8 +88,8 @@ export function TrueFalseEnhancedQuestion({
         </div>
       )}
 
-      {/* Шаг 2: Выбор причины */}
-      {step === 2 && currentAnswer.answer !== null && (
+      {/* Шаг 2: Выбор причины (только если есть варианты причин) */}
+      {step === 2 && currentAnswer.answer !== null && question.reasons?.length > 0 && (
         <div className="space-y-4">
           <div className="p-3 rounded-lg border border-zinc-200 bg-zinc-50">
             <div className="flex items-center justify-between">

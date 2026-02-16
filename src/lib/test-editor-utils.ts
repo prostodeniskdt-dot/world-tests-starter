@@ -48,7 +48,7 @@ export function defaultAnswerForType(type: string, question?: any): any {
     case "select-errors":
       return [];
     case "two-step":
-      return { step1: 0, step2: 0 };
+      return { step1: 0, step2Mapping: { 0: 0 } };
     case "matrix":
       return {};
     case "grouping":
@@ -75,7 +75,7 @@ export function normalizeQuestionByType(question: any, newType: string): any {
         ...base,
         type: "true-false-enhanced",
         statement: question.statement ?? question.text ?? "",
-        reasons: question.reasons?.length ? question.reasons : [""],
+        reasons: question.reasons?.length ? question.reasons : [],
       };
     case "cloze-dropdown":
       return {
@@ -171,7 +171,11 @@ export function validateTestForSave(test: {
   test.questions.forEach((q: any, i: number) => {
     if (!q.id) errors.push({ field: `questions[${i}].id`, message: `Вопрос ${i + 1}: укажите ID` });
     if (!q.type) errors.push({ field: `questions[${i}].type`, message: `Вопрос ${i + 1}: укажите тип` });
-    if (q.text === undefined || q.text === null || String(q.text).trim() === "") {
+    if (q.type === "true-false-enhanced") {
+      if (!(q.statement && String(q.statement).trim())) {
+        errors.push({ field: `questions[${i}].statement`, message: `Вопрос ${i + 1}: укажите утверждение` });
+      }
+    } else if (q.text === undefined || q.text === null || String(q.text).trim() === "") {
       errors.push({ field: `questions[${i}].text`, message: `Вопрос ${i + 1}: укажите текст` });
     }
     if (q.id && !(q.id in answerKey)) {
@@ -183,9 +187,7 @@ export function validateTestForSave(test: {
     if (q.type === "multiple-select" && (!q.options || q.options.length === 0)) {
       errors.push({ field: `questions[${i}].options`, message: `Вопрос ${i + 1}: добавьте варианты ответа` });
     }
-    if (q.type === "true-false-enhanced" && (!q.reasons || q.reasons.length === 0)) {
-      errors.push({ field: `questions[${i}].reasons`, message: `Вопрос ${i + 1}: добавьте варианты причин` });
-    }
+    // true-false-enhanced: reasons опциональны (простой режим — только Верно/Неверно + подсказка)
     if (q.type === "cloze-dropdown" && (!q.gaps || q.gaps.length === 0)) {
       errors.push({ field: `questions[${i}].gaps`, message: `Вопрос ${i + 1}: добавьте хотя бы один пропуск` });
     }

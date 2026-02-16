@@ -105,19 +105,23 @@ export function EditTestForm({
     setValidationErrors([]);
   };
 
-  const addQuestion = () => {
+  const addQuestion = (afterIdx?: number) => {
     const ids = new Set(test.questions.map((q) => q.id).filter(Boolean));
     const { id, question } = createDefaultQuestion(ids);
-    setTest((prev) =>
-      prev
-        ? {
-            ...prev,
-            questions: [...prev.questions, question],
-            answerKey: { ...prev.answerKey, [id]: 0 },
-          }
-        : prev
-    );
-    setExpandedQuestions((prev) => [...prev, test.questions.length]);
+    const insertAt = afterIdx !== undefined ? afterIdx + 1 : test.questions.length;
+    setTest((prev) => {
+      if (!prev) return prev;
+      const questions = [
+        ...prev.questions.slice(0, insertAt),
+        question,
+        ...prev.questions.slice(insertAt),
+      ];
+      return { ...prev, questions, answerKey: { ...prev.answerKey, [id]: 0 } };
+    });
+    setExpandedQuestions((prev) => {
+      const shifted = prev.map((i) => (i >= insertAt ? i + 1 : i));
+      return [...shifted, insertAt];
+    });
     setSaveMessage(null);
     setValidationErrors([]);
   };
@@ -429,7 +433,7 @@ export function EditTestForm({
             <h2 className="font-semibold text-zinc-900">Вопросы ({test.questions.length})</h2>
             <button
               type="button"
-              onClick={addQuestion}
+              onClick={() => addQuestion()}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-zinc-300 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               <Plus className="h-4 w-4" />
@@ -637,41 +641,44 @@ export function EditTestForm({
                             <textarea
                               value={q.statement ?? ""}
                               onChange={(e) => updateQuestion(idx, "statement", e.target.value)}
-                              rows={2}
+                              rows={3}
                               className={`${inputClass} resize-y`}
+                              placeholder="Утверждение, которое нужно оценить как верно или неверно"
                             />
                           </div>
                           <div>
                             <label className={labelClass}>
-                              Варианты причин (каждая с новой строки)
+                              Варианты причин (опционально)
                             </label>
+                            <p className="text-xs text-zinc-500 mb-1">
+                              Оставьте пустым для простого «Верно/Неверно». Пояснение укажите в поле «Подсказка» ниже.
+                            </p>
                             <textarea
-                              value={(q.reasons || []).join("\n")}
-                              onChange={(e) =>
-                                updateQuestion(
-                                  idx,
-                                  "reasons",
-                                  e.target.value.split("\n").map((s) => s.trim())
-                                )
-                              }
-                              rows={3}
+                              value={(q.reasons || []).filter(Boolean).join("\n")}
+                              onChange={(e) => {
+                                const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
+                                updateQuestion(idx, "reasons", lines);
+                                if (lines.length === 0 && test.answerKey[q.id]) {
+                                  updateAnswer(q.id, { ...test.answerKey[q.id], reason: 0 });
+                                }
+                              }}
+                              rows={2}
                               className={`${inputClass} resize-y`}
+                              placeholder="Если нужно — несколько вариантов объяснений, каждый с новой строки"
                             />
                           </div>
                           <div className="flex flex-wrap gap-4">
                             <div>
-                              <label className={labelClass}>Верно/Неверно</label>
+                              <label className={labelClass}>Правильный ответ: Верно/Неверно</label>
                               <select
                                 value={
                                   test.answerKey[q.id]?.answer === false ? "false" : "true"
                                 }
                                 onChange={(e) =>
                                   updateAnswer(q.id, {
-                                    ...(test.answerKey[q.id] || {
-                                      answer: true,
-                                      reason: 0,
-                                    }),
+                                    ...(test.answerKey[q.id] || { answer: true, reason: 0 }),
                                     answer: e.target.value === "true",
+                                    reason: (q.reasons || []).length > 0 ? (test.answerKey[q.id]?.reason ?? 0) : 0,
                                   })
                                 }
                                 className={inputClass}
@@ -680,32 +687,31 @@ export function EditTestForm({
                                 <option value="false">Неверно</option>
                               </select>
                             </div>
-                            <div>
-                              <label className={labelClass}>Причина (индекс)</label>
-                              <select
-                                value={
-                                  typeof test.answerKey[q.id]?.reason === "number"
-                                    ? test.answerKey[q.id].reason
-                                    : 0
-                                }
-                                onChange={(e) =>
-                                  updateAnswer(q.id, {
-                                    ...(test.answerKey[q.id] || {
-                                      answer: true,
-                                      reason: 0,
-                                    }),
-                                    reason: parseInt(e.target.value, 10),
-                                  })
-                                }
-                                className={inputClass}
-                              >
-                                {(q.reasons || []).map((r: string, i: number) => (
-                                  <option key={i} value={i}>
-                                    {i + 1}: {(r || "").slice(0, 40)}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                            {(q.reasons || []).length > 0 && (
+                              <div>
+                                <label className={labelClass}>Причина (индекс)</label>
+                                <select
+                                  value={
+                                    typeof test.answerKey[q.id]?.reason === "number"
+                                      ? test.answerKey[q.id].reason
+                                      : 0
+                                  }
+                                  onChange={(e) =>
+                                    updateAnswer(q.id, {
+                                      ...(test.answerKey[q.id] || { answer: true, reason: 0 }),
+                                      reason: parseInt(e.target.value, 10),
+                                    })
+                                  }
+                                  className={inputClass}
+                                >
+                                  {(q.reasons || []).map((r: string, i: number) => (
+                                    <option key={i} value={i}>
+                                      {i + 1}: {(r || "").slice(0, 40)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
                           </div>
                         </>
                       )}
@@ -948,7 +954,15 @@ export function EditTestForm({
                         />
                       </div>
 
-                      <div className="pt-2 border-t border-zinc-100">
+                      <div className="pt-2 border-t border-zinc-100 flex items-center gap-3 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => addQuestion(idx)}
+                          className="inline-flex items-center gap-1 text-sm text-zinc-700 hover:text-zinc-900 font-medium"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Добавить вопрос
+                        </button>
                         <button
                           type="button"
                           onClick={() => deleteQuestion(idx)}
