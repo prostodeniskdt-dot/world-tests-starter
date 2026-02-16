@@ -11,6 +11,8 @@
     "parse-baza": "tsx scripts/parse-baza.ts",
     "validate-baza": "tsx scripts/validate-baza.ts",
     "migrate-tests": "tsx scripts/migrate-tests-to-db.ts",
+    "export-tests": "tsx scripts/export-tests-from-db.ts",
+    "fix-answer-keys-fc2848b9": "tsx scripts/fix-answer-keys-test-fc2848b9.ts",
     "run-fix-migration": "tsx scripts/run-fix-migration.ts"
   },
   "dependencies": {

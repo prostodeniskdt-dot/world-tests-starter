@@ -16,6 +16,11 @@ export function QuestionHint({ hint, isCorrect }: QuestionHintProps) {
           : "bg-blue-50 border-blue-300 text-blue-800"
       }`}
     >
+      {isCorrect !== undefined && (
+        <p className="font-semibold mb-2">
+          Ваш ответ: {isCorrect ? "Правильно" : "Неправильно"}
+        </p>
+      )}
       <strong>Справка:</strong> {hint}
     </div>
   );
