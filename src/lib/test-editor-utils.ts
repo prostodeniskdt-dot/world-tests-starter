@@ -2,6 +2,7 @@
  * Утилиты для редактора тестов: типы вопросов, нормализация, значения по умолчанию, валидация.
  */
 
+// Только типы с полной поддержкой: рендерер в QuestionRenderer + checker в answer-checkers
 export const QUESTION_TYPES = [
   "multiple-choice",
   "multiple-select",
@@ -12,22 +13,21 @@ export const QUESTION_TYPES = [
   "ordering",
   "two-step",
   "matrix",
-  "grouping",
 ] as const;
 
 export type QuestionTypeEditor = (typeof QUESTION_TYPES)[number];
 
+// Английские названия типов по механикам (как в types.ts)
 export const QUESTION_TYPE_LABELS: Record<string, string> = {
-  "multiple-choice": "Один ответ",
-  "multiple-select": "Несколько ответов",
-  "true-false-enhanced": "Верно/Неверно",
-  "cloze-dropdown": "Пропуски",
-  "select-errors": "Найди ошибки",
-  "matching": "Сопоставление",
-  "ordering": "Порядок",
-  "two-step": "Двухступенчатый",
-  "matrix": "Матрица",
-  "grouping": "Группировка",
+  "multiple-choice": "multiple-choice",
+  "multiple-select": "multiple-select",
+  "true-false-enhanced": "true-false-enhanced",
+  "cloze-dropdown": "cloze-dropdown",
+  "select-errors": "select-errors",
+  "matching": "matching",
+  "ordering": "ordering",
+  "two-step": "two-step",
+  "matrix": "matrix",
 };
 
 export function defaultAnswerForType(type: string, question?: any): any {

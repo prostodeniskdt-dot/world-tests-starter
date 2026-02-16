@@ -151,12 +151,21 @@ export default function TestPreviewPage() {
               key={question.id}
               className="bg-white rounded-lg border border-zinc-200 shadow-sm p-6"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-zinc-900 text-white text-sm font-bold">
-                  {index + 1}
-                </span>
-                <span className="text-xs text-zinc-400 font-mono">{question.type}</span>
-                <span className="text-xs text-zinc-400 font-mono">id: {question.id}</span>
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-zinc-900 text-white text-sm font-bold">
+                    {index + 1}
+                  </span>
+                  <span className="text-xs text-zinc-400 font-mono">{question.type}</span>
+                  <span className="text-xs text-zinc-400 font-mono">id: {question.id}</span>
+                </div>
+                {(question.text || (question as { statement?: string }).statement) ? (
+                  <p className="font-medium text-zinc-900 text-base leading-relaxed pl-9">
+                    {(question as { statement?: string }).statement || question.text}
+                  </p>
+                ) : (
+                  <p className="text-amber-600 text-sm pl-9 italic">Текст вопроса не задан</p>
+                )}
               </div>
 
               <QuestionRenderer
@@ -169,12 +178,15 @@ export default function TestPreviewPage() {
                 showHint={false}
               />
 
-              {/* Show correct answer */}
-              <div className="mt-4 pt-3 border-t border-zinc-100">
-                <div className="text-xs text-zinc-400">
-                  Правильный ответ: <code className="bg-zinc-100 px-1 rounded">{JSON.stringify(test.answerKey[question.id])}</code>
+              {/* Show correct answer (collapsible for admins) */}
+              <details className="mt-4 pt-3 border-t border-zinc-100">
+                <summary className="text-xs text-zinc-400 cursor-pointer hover:text-zinc-600">
+                  Админ: правильный ответ
+                </summary>
+                <div className="mt-1 text-xs text-zinc-500">
+                  <code className="bg-zinc-100 px-1 rounded">{JSON.stringify(test.answerKey[question.id])}</code>
                 </div>
-              </div>
+              </details>
             </div>
           ))}
         </div>

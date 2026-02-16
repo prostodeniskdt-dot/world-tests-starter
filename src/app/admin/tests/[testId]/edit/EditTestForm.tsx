@@ -13,6 +13,8 @@ import {
   Plus,
   Copy,
   ChevronUp,
+  ToggleRight,
+  ToggleLeft,
 } from "lucide-react";
 import {
   QUESTION_TYPES,
@@ -52,6 +54,7 @@ export function EditTestForm({
   testId: string;
 }) {
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -83,12 +86,9 @@ export function EditTestForm({
   };
 
   const updateOptions = (idx: number, optionsStr: string) => {
-    const options = optionsStr
-      .split("\n")
-      .filter((o) => o.trim() || true)
-      .map((o) => o.trim() || "");
-    if (options.length === 0) options.push("");
-    updateQuestion(idx, "options", options);
+    const lines = optionsStr.split("\n").map((o) => o.trim());
+    const options = lines.filter((o) => o.length > 0);
+    updateQuestion(idx, "options", options.length > 0 ? options : [""]);
   };
 
   const setQuestionType = (idx: number, newType: string) => {
@@ -224,6 +224,30 @@ export function EditTestForm({
     }
   };
 
+  const handlePublish = async () => {
+    setPublishing(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/tests/${testId}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ published: !test.isPublished }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setTest((prev) => (prev ? { ...prev, isPublished: !prev.isPublished } : prev));
+        setSaveMessage(test.isPublished ? "Тест снят с публикации" : "Тест опубликован!");
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        setError(data.error || "Ошибка публикации");
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -286,6 +310,42 @@ export function EditTestForm({
         {saveMessage && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-700">
             {saveMessage}
+          </div>
+        )}
+
+        {!test.isPublished && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-amber-800 font-medium mb-2">
+              Тест не опубликован — он не отображается на главной странице.
+            </p>
+            <button
+              onClick={handlePublish}
+              disabled={publishing || test.questions.length === 0}
+              className="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {publishing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : test.isPublished ? (
+                <ToggleRight className="h-4 w-4" />
+              ) : (
+                <ToggleLeft className="h-4 w-4" />
+              )}
+              {publishing ? "Публикация..." : "Опубликовать тест"}
+            </button>
+          </div>
+        )}
+
+        {test.isPublished && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+            <span className="text-sm text-green-800">Тест опубликован и доступен на главной странице.</span>
+            <button
+              onClick={handlePublish}
+              disabled={publishing}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-green-300 text-green-700 text-sm hover:bg-green-100 disabled:opacity-50"
+            >
+              <ToggleRight className="h-4 w-4" />
+              Снять с публикации
+            </button>
           </div>
         )}
 
