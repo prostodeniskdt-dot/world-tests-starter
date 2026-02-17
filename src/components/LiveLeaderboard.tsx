@@ -16,11 +16,15 @@ type LeaderboardRow = {
   tests_completed: number;
 };
 
-function getRankStyle(rank: number) {
-  if (rank === 1) return "rank-1-row text-amber-900 border-yellow-400/50";
-  if (rank === 2) return "rank-2-row text-zinc-900 border-zinc-300";
-  if (rank === 3) return "rank-3-row text-amber-900 border-amber-700/50";
-  return "bg-white text-zinc-900 border-zinc-200";
+const RANK_1_BG = "linear-gradient(135deg, #fef08a 0%, #fde047 50%, #facc15 100%)";
+const RANK_2_BG = "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 50%, #9ca3af 100%)";
+const RANK_3_BG = "linear-gradient(135deg, #fed7aa 0%, #fdba74 50%, #f97316 100%)";
+
+function getRankStyle(rank: number): { className: string; style?: React.CSSProperties } {
+  if (rank === 1) return { className: "text-amber-900 border-l-4 border-amber-600", style: { background: RANK_1_BG } };
+  if (rank === 2) return { className: "text-zinc-900 border-l-4 border-zinc-500", style: { background: RANK_2_BG } };
+  if (rank === 3) return { className: "text-amber-900 border-l-4 border-orange-600", style: { background: RANK_3_BG } };
+  return { className: "bg-white text-zinc-900 border-zinc-200" };
 }
 
 function getRankIcon(rank: number) {
@@ -115,7 +119,8 @@ export function LiveLeaderboard() {
             return (
               <div 
                 key={r.user_id} 
-                className={`rounded-lg border-2 p-4 ${rankStyle}`}
+                className={`rounded-lg border-2 p-4 ${rankStyle.className}`}
+                style={rankStyle.style}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 font-bold">
@@ -170,20 +175,20 @@ export function LiveLeaderboard() {
               const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
               const rankStyle = getRankStyle(r.rank);
               const rankIcon = getRankIcon(r.rank);
-
               const isTop3 = r.rank <= 3;
               return (
                 <tr 
                   key={r.user_id} 
-                  className={`border-b border-zinc-100 transition-colors ${rankStyle} ${!isTop3 ? "hover:bg-zinc-50" : ""}`}
+                  className={`border-b border-zinc-100 transition-colors ${rankStyle.className} ${!isTop3 ? "hover:bg-zinc-50" : ""}`}
+                  style={rankStyle.style}
                 >
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-4" style={rankStyle.style}>
                     <div className="flex items-center gap-2 font-bold">
                       {rankIcon}
                       <span>{r.rank}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-4" style={rankStyle.style}>
                     <Link
                       href={`/profile?userId=${r.user_id}`}
                       className="flex items-center gap-3 hover:opacity-80 transition-opacity"
@@ -211,7 +216,7 @@ export function LiveLeaderboard() {
                       </div>
                     </Link>
                   </td>
-                  <td className="px-4 py-4 text-right font-bold">
+                  <td className="px-4 py-4 text-right font-bold" style={rankStyle.style}>
                     {r.total_points.toLocaleString()}
                   </td>
                 </tr>

@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { ArrowRight, Award, Send } from "lucide-react";
+import { DifficultyBadge } from "@/components/DifficultyBadge";
 import { addToast } from "./Toast";
 import { NavigateToLeaderboard } from "./NavigateToLeaderboard";
 import { QuestionRenderer } from "./questions/QuestionRenderer";
@@ -159,13 +160,7 @@ export function TestClient({ test }: { test: PublicTest }) {
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
             {test.title}
           </h1>
-          <div className="flex items-center gap-1" title={`Сложность: ${test.difficultyLevel} из 3`}>
-            {Array.from({ length: test.difficultyLevel }).map((_, i) => (
-              <span key={i} className="text-amber-600 text-lg sm:text-xl" aria-label={`Барная ложка ${i + 1}`}>
-                🥄
-              </span>
-            ))}
-          </div>
+          <DifficultyBadge level={test.difficultyLevel} />
         </div>
         <p className="mt-1 text-sm text-zinc-500">
           Автор: {test.author ?? "Денис Колодешников"}

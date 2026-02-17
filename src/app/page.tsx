@@ -6,6 +6,7 @@ import { LiveLeaderboard } from "@/components/LiveLeaderboard";
 import { TestCategories } from "@/components/TestCategories";
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
+import { DifficultyBadge } from "@/components/DifficultyBadge";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Spinner } from "@/components/Spinner";
 
@@ -105,13 +106,7 @@ export default function Page() {
                               <div className="flex items-center gap-3 flex-wrap">
                                 <BookOpen className="h-5 w-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
                                 <h3 className="font-bold text-lg sm:text-xl text-zinc-900">{test.title}</h3>
-                                <div className="flex items-center gap-1 ml-auto">
-                                  {Array.from({ length: test.difficultyLevel }).map((_, i) => (
-                                    <span key={i} className="text-amber-600 text-lg" aria-label={`Барная ложка ${i + 1}`}>
-                                      🥄
-                                    </span>
-                                  ))}
-                                </div>
+                                <DifficultyBadge level={test.difficultyLevel} />
                               </div>
                             </div>
                             <p className="text-sm text-zinc-500 mt-1">
