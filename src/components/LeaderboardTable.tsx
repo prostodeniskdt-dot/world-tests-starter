@@ -110,8 +110,9 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
             const rankStyle = getRankStyle(r.rank);
             const rankIcon = getRankIcon(r.rank);
 
+            const isTop3 = r.rank <= 3;
             return (
-              <tr key={r.user_id} className={`border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50 transition-colors ${rankStyle}`}>
+              <tr key={r.user_id} className={`border-b border-zinc-200 last:border-b-0 transition-colors ${rankStyle} ${!isTop3 ? "hover:bg-zinc-50" : ""}`}>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-2 font-bold">
                     {rankIcon}

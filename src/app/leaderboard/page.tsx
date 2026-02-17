@@ -52,6 +52,9 @@ export default async function LeaderboardPage({
         <p className="mt-2 text-zinc-600">
           Сортировка по сумме очков (чем больше — тем выше).
         </p>
+        <p className="mt-1 text-sm text-zinc-500">
+          Топ-3 места выделены золотом, серебром и бронзой.
+        </p>
         {error ? (
           <p className="mt-3 text-sm text-error bg-red-50 border border-red-200 rounded-lg p-3">
             Ошибка чтения рейтинга: {error.message}

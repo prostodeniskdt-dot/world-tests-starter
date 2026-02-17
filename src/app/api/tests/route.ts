@@ -14,6 +14,7 @@ export async function GET() {
       title: test.title,
       description: test.description,
       category: test.category,
+      author: test.author,
       difficultyLevel: test.difficultyLevel,
     }));
 

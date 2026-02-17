@@ -31,6 +31,7 @@ type TestData = {
   title: string;
   description: string;
   category: string;
+  author: string;
   difficultyLevel: number;
   basePoints: number;
   maxAttempts: number | null;
@@ -209,6 +210,7 @@ export function EditTestForm({
           title: test.title,
           description: test.description,
           category: test.category,
+          author: test.author ?? "",
           difficultyLevel: test.difficultyLevel,
           basePoints: test.basePoints,
           maxAttempts: test.maxAttempts,
@@ -391,6 +393,16 @@ export function EditTestForm({
                 type="text"
                 value={test.category}
                 onChange={(e) => updateMeta("category", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Автор</label>
+              <input
+                type="text"
+                value={test.author ?? ""}
+                onChange={(e) => updateMeta("author", e.target.value)}
+                placeholder="Денис Колодешников"
                 className={inputClass}
               />
             </div>

@@ -14,6 +14,7 @@ type Test = {
   title: string;
   description: string | null;
   category: string;
+  author?: string;
   difficultyLevel: 1 | 2 | 3;
 };
 
@@ -95,17 +96,27 @@ export default function Page() {
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <BookOpen className="h-5 w-5 text-primary-600" aria-hidden="true" />
-                              <h3 className="font-bold text-lg sm:text-xl text-zinc-900">{test.title}</h3>
-                              <div className="flex items-center gap-1 ml-auto">
-                                {Array.from({ length: test.difficultyLevel }).map((_, i) => (
-                                  <span key={i} className="text-amber-600 text-lg" aria-label={`Барная ложка ${i + 1}`}>
-                                    🥄
-                                  </span>
-                                ))}
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              {test.category && (
+                                <span className="inline-flex items-center rounded-md bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
+                                  {test.category}
+                                </span>
+                              )}
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <BookOpen className="h-5 w-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
+                                <h3 className="font-bold text-lg sm:text-xl text-zinc-900">{test.title}</h3>
+                                <div className="flex items-center gap-1 ml-auto">
+                                  {Array.from({ length: test.difficultyLevel }).map((_, i) => (
+                                    <span key={i} className="text-amber-600 text-lg" aria-label={`Барная ложка ${i + 1}`}>
+                                      🥄
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
                             </div>
+                            <p className="text-sm text-zinc-500 mt-1">
+                              Автор: {test.author ?? "Денис Колодешников"}
+                            </p>
                             {test.description && (
                               <p className="text-zinc-600 mt-2 leading-relaxed">{test.description}</p>
                             )}

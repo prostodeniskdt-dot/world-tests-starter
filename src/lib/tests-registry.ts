@@ -19,7 +19,7 @@ export type SecretTest = {
 /** Получить все опубликованные тесты (публичная часть, без ответов) */
 export async function getPublicTests(): Promise<PublicTest[]> {
   const { rows } = await db.query(
-    `SELECT id, title, description, category, difficulty_level, questions
+    `SELECT id, title, description, category, difficulty_level, questions, COALESCE(NULLIF(TRIM(author), ''), NULL) AS author
      FROM tests WHERE is_published = true ORDER BY category, difficulty_level`
   );
   return rows.map((r: any) => ({
@@ -28,6 +28,7 @@ export async function getPublicTests(): Promise<PublicTest[]> {
     description: r.description,
     category: r.category,
     difficultyLevel: r.difficulty_level,
+    author: r.author ?? undefined,
     questions: r.questions as PublicTestQuestion[],
   }));
 }
@@ -35,7 +36,7 @@ export async function getPublicTests(): Promise<PublicTest[]> {
 /** Получить публичный тест по ID */
 export async function getPublicTest(testId: string): Promise<PublicTest | null> {
   const { rows } = await db.query(
-    `SELECT id, title, description, category, difficulty_level, questions
+    `SELECT id, title, description, category, difficulty_level, questions, COALESCE(NULLIF(TRIM(author), ''), NULL) AS author
      FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
     [testId]
   );
@@ -47,6 +48,7 @@ export async function getPublicTest(testId: string): Promise<PublicTest | null> 
     description: r.description,
     category: r.category,
     difficultyLevel: r.difficulty_level,
+    author: r.author ?? undefined,
     questions: r.questions as PublicTestQuestion[],
   };
 }

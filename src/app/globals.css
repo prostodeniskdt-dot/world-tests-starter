@@ -32,18 +32,33 @@ body {
   .gradient-bronze {
     background: var(--gradient-bronze);
   }
-  /* Подсветка мест в рейтинге: золото, серебро, бронза */
-  .rank-1-row {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%) !important;
-    border-left: 4px solid #d97706;
-  }
-  .rank-2-row {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 50%, #d1d5db 100%) !important;
-    border-left: 4px solid #6b7280;
-  }
-  .rank-3-row {
-    background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 50%, #fdba74 100%) !important;
+  /* Подсветка мест в рейтинге: золото, серебро, бронза (насыщенные цвета) */
+  .rank-1-row,
+  .rank-1-row td {
+    background: linear-gradient(135deg, #fef08a 0%, #fde047 50%, #facc15 100%) !important;
     border-left: 4px solid #b45309;
+  }
+  .rank-1-row:hover,
+  .rank-1-row:hover td {
+    background: linear-gradient(135deg, #fde047 0%, #facc15 50%, #eab308 100%) !important;
+  }
+  .rank-2-row,
+  .rank-2-row td {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 50%, #9ca3af 100%) !important;
+    border-left: 4px solid #4b5563;
+  }
+  .rank-2-row:hover,
+  .rank-2-row:hover td {
+    background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 50%, #6b7280 100%) !important;
+  }
+  .rank-3-row,
+  .rank-3-row td {
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 50%, #f97316 100%) !important;
+    border-left: 4px solid #c2410c;
+  }
+  .rank-3-row:hover,
+  .rank-3-row:hover td {
+    background: linear-gradient(135deg, #fdba74 0%, #fb923c 50%, #ea580c 100%) !important;
   }
   .text-gradient {
     @apply bg-clip-text text-transparent;

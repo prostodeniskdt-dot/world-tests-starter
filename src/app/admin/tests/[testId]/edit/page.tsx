@@ -11,6 +11,7 @@ type TestData = {
   title: string;
   description: string;
   category: string;
+  author: string;
   difficultyLevel: number;
   basePoints: number;
   maxAttempts: number | null;
