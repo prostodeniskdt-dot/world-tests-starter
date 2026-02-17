@@ -72,7 +72,7 @@ export async function PUT(
     );
   }
 
-  const { title, description, category, author, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
+  const { title, description, category, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
 
   try {
     // Строим запрос динамически -- обновляем только переданные поля
@@ -83,7 +83,6 @@ export async function PUT(
     if (title !== undefined) { updates.push(`title = $${idx++}`); values.push(title); }
     if (description !== undefined) { updates.push(`description = $${idx++}`); values.push(description); }
     if (category !== undefined) { updates.push(`category = $${idx++}`); values.push(category); }
-    if (author !== undefined) { updates.push(`author = $${idx++}`); values.push(author); }
     if (difficultyLevel !== undefined) { updates.push(`difficulty_level = $${idx++}`); values.push(difficultyLevel); }
     if (basePoints !== undefined) { updates.push(`base_points = $${idx++}`); values.push(basePoints); }
     if (maxAttempts !== undefined) { updates.push(`max_attempts = $${idx++}`); values.push(maxAttempts); }

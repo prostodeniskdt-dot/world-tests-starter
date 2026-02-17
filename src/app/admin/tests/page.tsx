@@ -15,7 +15,7 @@ export default async function AdminTestsPage() {
   if (!payload || !payload.isAdmin) redirect("/");
 
   const { rows } = await db.query(
-    `SELECT id, title, description, category, COALESCE(author, '') as author, difficulty_level, base_points, max_attempts,
+    `SELECT id, title, description, category, difficulty_level, base_points, max_attempts,
             is_published, created_at, updated_at,
             jsonb_array_length(questions) as question_count
      FROM tests ORDER BY created_at DESC`
@@ -26,7 +26,7 @@ export default async function AdminTestsPage() {
     title: r.title,
     description: r.description,
     category: r.category,
-    author: r.author ?? "",
+    author: "",
     difficultyLevel: r.difficulty_level,
     basePoints: r.base_points,
     maxAttempts: r.max_attempts,

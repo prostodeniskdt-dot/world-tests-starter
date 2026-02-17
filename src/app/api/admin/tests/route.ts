@@ -10,7 +10,7 @@ export async function GET(req: Request) {
 
   try {
     const { rows } = await db.query(
-      `SELECT id, title, description, category, COALESCE(author, '') as author, difficulty_level, base_points, max_attempts, 
+      `SELECT id, title, description, category, difficulty_level, base_points, max_attempts, 
               is_published, created_at, updated_at,
               jsonb_array_length(questions) as question_count
        FROM tests ORDER BY created_at DESC`
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
       title: r.title,
       description: r.description,
       category: r.category,
-      author: r.author ?? "",
+      author: "",
       difficultyLevel: r.difficulty_level,
       basePoints: r.base_points,
       maxAttempts: r.max_attempts,
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { id, title, description, category, author, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
+  const { id, title, description, category, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
 
   // Валидация (разрешаем пустой тест: questions: [], answerKey: {})
   if (!title || typeof title !== "string") {
@@ -95,14 +95,13 @@ export async function POST(req: Request) {
     }
 
     await db.query(
-      `INSERT INTO tests (id, title, description, category, author, difficulty_level, base_points, max_attempts, questions, answer_key, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false)`,
+      `INSERT INTO tests (id, title, description, category, difficulty_level, base_points, max_attempts, questions, answer_key, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false)`,
       [
         testId,
         title,
         description || "",
         category || "",
-        (author != null && String(author).trim()) ? String(author).trim() : "",
         difficultyLevel ?? 1,
         basePoints ?? 200,
         maxAttempts ?? null,
