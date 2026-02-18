@@ -7,6 +7,7 @@ import { useLocalUser } from "./UserGate";
 import { addToast } from "./Toast";
 import { buttonStyles } from "@/lib/button-styles";
 import { Spinner } from "./Spinner";
+import { DocModal } from "./DocModal";
 
 type RegisterFormProps = {
   onSuccess: (user: {
@@ -33,6 +34,9 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [consentPdp, setConsentPdp] = useState(false);
+  const [consentPublicRating, setConsentPublicRating] = useState(false);
+  const [showPdnModal, setShowPdnModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +73,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       return;
     }
 
+    if (!consentPdp) {
+      setError("Необходимо дать согласие на обработку персональных данных");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -79,6 +89,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           lastName: lastName.trim(),
           telegramUsername: telegramUsername.trim() || undefined,
           password: password,
+          consentPdp: true,
+          consentPublicRating,
         }),
       });
 
@@ -226,6 +238,39 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         </p>
       </div>
 
+      <div className="space-y-2">
+        <label className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={consentPdp}
+            onChange={(e) => setConsentPdp(e.target.checked)}
+            className="mt-1 rounded border-zinc-300 text-primary-600 focus:ring-primary-500"
+          />
+          <span className="text-sm">
+            Даю согласие на обработку персональных данных и принимаю{" "}
+            <button
+              type="button"
+              onClick={() => setShowPdnModal(true)}
+              className="text-primary-600 hover:underline"
+            >
+              Политику ПДн
+            </button>
+            . <span className="text-red-500">*</span>
+          </span>
+        </label>
+        <label className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={consentPublicRating}
+            onChange={(e) => setConsentPublicRating(e.target.checked)}
+            className="mt-1 rounded border-zinc-300 text-primary-600 focus:ring-primary-500"
+          />
+          <span className="text-sm">
+            Разрешаю публиковать выбранные мной данные в публичном рейтинге.
+          </span>
+        </label>
+      </div>
+
       <div>
         <label htmlFor="password" className="block text-sm font-medium mb-1">
           Пароль <span className="text-red-500">*</span>
@@ -300,6 +345,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           "Зарегистрироваться"
         )}
       </button>
+
+      <DocModal slug="pdn" isOpen={showPdnModal} onClose={() => setShowPdnModal(false)} />
     </form>
   );
 }

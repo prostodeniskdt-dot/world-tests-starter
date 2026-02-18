@@ -6,7 +6,7 @@ import { Trophy, Medal, Award } from "lucide-react";
 export type LeaderboardRow = {
   rank: number;
   user_id: string;
-  email: string;
+  display_name: string;
   first_name: string | null;
   last_name: string | null;
   telegram_username: string | null;
@@ -53,9 +53,9 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
       {/* Мобильный вид - карточки */}
       <div className="block sm:hidden space-y-3 p-4">
         {rows.map((r) => {
-          const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
           const rankStyle = getRankStyle(r.rank);
           const rankIcon = getRankIcon(r.rank);
+          const initial = (r.display_name || r.first_name || "?").charAt(0).toUpperCase();
           return (
             <div 
               key={r.user_id} 
@@ -81,11 +81,10 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                     ? "bg-white/80 text-zinc-800 border border-zinc-300/80" 
                     : "bg-zinc-800 text-zinc-700"
                 }`}>
-                  {r.first_name?.charAt(0).toUpperCase() || "?"}
+                  {initial}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold truncate">{fullName || "Без имени"}</div>
-                  <div className="text-xs opacity-80 truncate">{r.email}</div>
+                  <div className="font-semibold truncate">{r.display_name || "Участник"}</div>
                   {r.telegram_username && (
                     <a
                       href={`https://t.me/${r.telegram_username}`}
@@ -118,10 +117,10 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
         </thead>
         <tbody>
           {rows.map((r) => {
-            const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
             const rankStyle = getRankStyle(r.rank);
             const rankIcon = getRankIcon(r.rank);
             const isTop3 = r.rank <= 3;
+            const initial = (r.display_name || r.first_name || "?").charAt(0).toUpperCase();
             return (
               <tr
                 key={r.user_id}
@@ -144,11 +143,10 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                         ? "bg-white/80 text-zinc-800 border border-zinc-300/80" 
                         : "bg-zinc-800 text-zinc-700"
                     }`}>
-                      {r.first_name?.charAt(0).toUpperCase() || "?"}
+                      {initial}
                     </div>
                     <div>
-                      <div className="font-semibold">{fullName || "Без имени"}</div>
-                      <div className="text-xs opacity-80">{r.email}</div>
+                      <div className="font-semibold">{r.display_name || "Участник"}</div>
                     </div>
                   </Link>
                 </td>

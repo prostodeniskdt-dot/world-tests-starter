@@ -27,10 +27,10 @@
 
 | № | Файл | Назначение |
 |---|------|------------|
-| 1 | `supabase/init.sql` | Таблицы пользователей, статистики, попыток, рейтинг, сброс пароля, функции |
-| 2 | `supabase/migrations/add-admin-fields.sql` | Поля админки и бана в `users` |
-| 3 | `supabase/migrations/add-tests-v2.sql` | Таблица тестов с JSONB (вместо старых `test_questions` / `test_options`) |
-| 4 | `supabase/migrations/fix-record-attempt-ambiguous.sql` | Исправление ambiguous `user_id` в record_attempt, права админа |
+| 1 | `db/init.sql` | Таблицы пользователей, статистики, попыток, рейтинг, сброс пароля, функции |
+| 2 | `db/migrations/add-admin-fields.sql` | Поля админки и бана в `users` |
+| 3 | `db/migrations/add-tests-v2.sql` | Таблица тестов с JSONB (вместо старых `test_questions` / `test_options`) |
+| 4 | `db/migrations/fix-record-attempt-ambiguous.sql` | Исправление ambiguous `user_id` в record_attempt, права админа |
 
 После выполнения приложение будет использовать одну и ту же схему, что и локально (PostgreSQL на Timeweb совместим с этими скриптами).
 

@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { hashPassword, validatePasswordStrength } from "@/lib/password";
 import { signToken } from "@/lib/jwt";
 import { checkRateLimit, registerRateLimiter } from "@/lib/rateLimit";
+import { DOCUMENT_VERSION } from "@/lib/consent";
 
 const registerSchema = z.object({
   email: z.string().email("Невалидный email адрес"),
@@ -13,6 +14,8 @@ const registerSchema = z.object({
   lastName: z.string().trim().min(1, "Фамилия обязательна").max(50, "Фамилия слишком длинная"),
   telegramUsername: z.string().trim().optional(),
   password: z.string().min(8, "Пароль должен содержать минимум 8 символов"),
+  consentPdp: z.literal(true, { errorMap: () => ({ message: "Необходимо согласие на обработку ПДн" }) }),
+  consentPublicRating: z.boolean().optional().default(false),
 });
 
 export async function POST(req: Request) {
@@ -55,7 +58,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const { email, firstName, lastName, telegramUsername, password } = parsed.data;
+  const { email, firstName, lastName, telegramUsername, password, consentPublicRating } = parsed.data;
+  const userAgent = req.headers.get("user-agent") ?? null;
 
   // Проверка силы пароля
   const passwordValidation = validatePasswordStrength(password);
@@ -128,6 +132,32 @@ export async function POST(req: Request) {
   const normalizedEmail = email.toLowerCase().trim();
   const normalizedFirstName = firstName.trim();
   const normalizedLastName = lastName.trim();
+
+  // Обновляем согласие на публичный рейтинг
+  try {
+    await db.query(
+      `UPDATE users SET consent_public_rating = $1, updated_at = now() WHERE id = $2`,
+      [consentPublicRating, finalUserId]
+    );
+  } catch {
+    // игнорируем, колонка может отсутствовать до миграции
+  }
+
+  // Логируем согласия (дата/время, IP, версия документа)
+  try {
+    await db.query(
+      `INSERT INTO consent_logs (user_id, consent_type, ip, user_agent, document_version) VALUES ($1, 'pdp', $2, $3, $4)`,
+      [finalUserId, ip, userAgent, DOCUMENT_VERSION]
+    );
+    if (consentPublicRating) {
+      await db.query(
+        `INSERT INTO consent_logs (user_id, consent_type, ip, user_agent, document_version) VALUES ($1, 'public_rating', $2, $3, $4)`,
+        [finalUserId, ip, userAgent, DOCUMENT_VERSION]
+      );
+    }
+  } catch (e) {
+    console.error("Consent log error:", e);
+  }
 
   // Получаем данные пользователя с is_admin и is_banned
   let isAdmin = false;

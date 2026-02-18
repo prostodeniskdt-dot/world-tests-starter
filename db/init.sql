@@ -1,6 +1,6 @@
 -- ============================================
--- ПОЛНАЯ ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
--- Выполните этот скрипт в PostgreSQL (psql или pgAdmin)
+-- ПОЛНАЯ ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ (PostgreSQL)
+-- Выполните в psql или клиенте БД (Timeweb Cloud, локальный PostgreSQL 18 и т.д.)
 -- ============================================
 
 -- 1) Расширения
@@ -107,7 +107,6 @@ declare
   v_is_new_test boolean := false;
   v_points_delta int;
 begin
-  -- Находим предыдущую попытку по этому тесту для этого пользователя
   select points_awarded into v_previous_points
   from public.attempts
   where attempts.user_id = p_user_id
@@ -115,20 +114,16 @@ begin
   order by attempts.created_at desc
   limit 1;
 
-  -- Если предыдущей попытки нет, это новый тест
   if v_previous_points is null then
     v_is_new_test := true;
     v_previous_points := 0;
   end if;
 
-  -- Вычисляем разницу очков
   v_points_delta := p_points_awarded - v_previous_points;
 
-  -- Записываем новую попытку
   insert into public.attempts (user_id, test_id, score_percent, points_awarded)
   values (p_user_id, p_test_id, p_score_percent, p_points_awarded);
 
-  -- Обновляем статистику пользователя (явно указываем имя таблицы во избежание ambiguous column)
   insert into public.user_stats (user_id, total_points, tests_completed)
   values (p_user_id, v_points_delta, case when v_is_new_test then 1 else 0 end)
   on conflict on constraint user_stats_pkey do update
@@ -136,7 +131,6 @@ begin
         tests_completed = user_stats.tests_completed + case when v_is_new_test then 1 else 0 end,
         updated_at = now();
 
-  -- Возвращаем обновленную статистику
   return query
   select us.user_id, us.total_points, us.tests_completed
   from public.user_stats us
@@ -164,30 +158,25 @@ declare
   v_normalized_last_name text;
   v_normalized_telegram_username text;
 begin
-  -- Нормализуем данные
   v_normalized_email := lower(trim(p_email));
   v_normalized_first_name := trim(p_first_name);
   v_normalized_last_name := trim(p_last_name);
   v_normalized_telegram_username := trim(p_telegram_username);
-  
-  -- Если telegram_username указан, убираем @ если есть
+
   if v_normalized_telegram_username is not null and v_normalized_telegram_username != '' then
     v_normalized_telegram_username := regexp_replace(v_normalized_telegram_username, '^@', '');
-    -- Проверяем, что после нормализации username не пустой
     if v_normalized_telegram_username = '' then
       v_normalized_telegram_username := null;
     end if;
   else
     v_normalized_telegram_username := null;
   end if;
-  
-  -- Проверяем, существует ли пользователь с таким email
+
   select id into v_user_id
   from public.users
   where email = v_normalized_email;
 
   if v_user_id is not null then
-    -- Обновляем существующего пользователя
     update public.users
     set
       first_name = v_normalized_first_name,
@@ -198,7 +187,6 @@ begin
     where id = v_user_id;
     return v_user_id;
   else
-    -- Создаём нового пользователя
     insert into public.users (
       id, email, first_name, last_name, telegram_username, password_hash
     )
@@ -209,7 +197,6 @@ begin
   end if;
 exception
   when unique_violation then
-    -- Если email уже существует (race condition), обновляем существующего
     select id into v_user_id
     from public.users
     where email = v_normalized_email;
@@ -298,28 +285,27 @@ create table if not exists public.password_reset_tokens (
   created_at timestamptz not null default now()
 );
 
-create index if not exists password_reset_tokens_token_idx 
-  on public.password_reset_tokens(token) 
+create index if not exists password_reset_tokens_token_idx
+  on public.password_reset_tokens(token)
   where used = false;
 
-create index if not exists password_reset_tokens_user_id_idx 
+create index if not exists password_reset_tokens_user_id_idx
   on public.password_reset_tokens(user_id);
 
--- 11) Таблицы для системы управления тестами (опционально)
+-- 11) Таблицы для системы управления тестами
 create table if not exists public.tests (
   id text primary key,
   title text not null,
   description text,
   base_points int not null default 100,
   difficulty decimal(3,2) not null default 1.0,
-  max_attempts int, -- null = без ограничений
-  time_limit_minutes int, -- null = без ограничений
+  max_attempts int,
+  time_limit_minutes int,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
--- Таблица вопросов
 create table if not exists public.test_questions (
   id text primary key,
   test_id text not null references public.tests(id) on delete cascade,
@@ -328,7 +314,6 @@ create table if not exists public.test_questions (
   created_at timestamptz not null default now()
 );
 
--- Таблица вариантов ответов
 create table if not exists public.test_options (
   id text primary key,
   question_id text not null references public.test_questions(id) on delete cascade,
@@ -338,12 +323,10 @@ create table if not exists public.test_options (
   created_at timestamptz not null default now()
 );
 
--- Индексы для тестов
 create index if not exists test_questions_test_id_idx on public.test_questions(test_id);
 create index if not exists test_options_question_id_idx on public.test_options(question_id);
 create index if not exists tests_is_active_idx on public.tests(is_active);
 
--- Триггер для обновления updated_at в tests
 drop trigger if exists tests_set_updated_at on public.tests;
 create trigger tests_set_updated_at
 before update on public.tests

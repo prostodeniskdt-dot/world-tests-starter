@@ -19,9 +19,9 @@
 
 ### Шаг 1: Выполнить SQL миграцию
 
-Откройте Supabase Dashboard → SQL Editor и выполните файл:
+Подключитесь к PostgreSQL (Timeweb Cloud SQL-консоль, psql или pgAdmin) и выполните файл:
 ```
-supabase/migrations/add-admin-fields.sql
+db/migrations/add-admin-fields.sql
 ```
 
 Этот скрипт:

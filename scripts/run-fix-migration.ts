@@ -24,7 +24,7 @@ const pool = new Pool({
 async function main() {
   console.log("=== Применение исправлений ===\n");
 
-  const migrationPath = path.join(__dirname, "..", "supabase", "migrations", "fix-record-attempt-ambiguous.sql");
+  const migrationPath = path.join(__dirname, "..", "db", "migrations", "fix-record-attempt-ambiguous.sql");
   const sql = fs.readFileSync(migrationPath, "utf-8");
 
   try {

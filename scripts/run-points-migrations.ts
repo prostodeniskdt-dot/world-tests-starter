@@ -23,7 +23,7 @@ const pool = new Pool({
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
 });
 
-const MIGRATIONS_DIR = path.join(__dirname, "..", "supabase", "migrations");
+const MIGRATIONS_DIR = path.join(__dirname, "..", "db", "migrations");
 
 const MIGRATION_FILES = [
   "20260216_points_race_and_no_deduction.sql",

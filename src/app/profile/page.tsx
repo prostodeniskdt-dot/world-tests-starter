@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { Trophy, Award, Calendar, ExternalLink } from "lucide-react";
 import { getPublicTests } from "@/lib/tests-registry";
+import { ProfileDeleteAccount } from "@/components/ProfileDeleteAccount";
 
 export const revalidate = 10;
 
@@ -76,23 +77,30 @@ export default async function ProfilePage({
 
   // Функция для получения названия теста
   const getTestTitle = (testId: string): string => {
-    const test = testsMap[testId];
-    return test?.title || testId;
+    return testsMap[testId]?.title || testId;
   };
+
+  const isOwnProfile = currentUser.userId === userId;
+  const consentPublicRating = Boolean(user.consent_public_rating);
+  const displayName =
+    user.telegram_username?.trim()
+      ? user.telegram_username
+      : `${user.first_name || ""} ${(user.last_name || "").charAt(0) || ""}.`.trim() || "Участник";
+  const showPublicInfo = isOwnProfile || consentPublicRating;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
         <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full gradient-primary flex items-center justify-center text-primary-600 text-xl sm:text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">
-            {user.first_name?.charAt(0).toUpperCase() || "?"}
+            {(showPublicInfo ? (displayName || user.first_name || "?").charAt(0) : "?").toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-zinc-900 mb-1">
-              {user.first_name} {user.last_name}
+              {isOwnProfile ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : showPublicInfo ? displayName : "Участник"}
             </h1>
-            <div className="text-zinc-600 mb-2">{user.email}</div>
-            {user.telegram_username && (
+            {isOwnProfile && <div className="text-zinc-600 mb-2">{user.email}</div>}
+            {showPublicInfo && user.telegram_username && (
               <a
                 href={`https://t.me/${user.telegram_username}`}
                 target="_blank"
@@ -125,6 +133,7 @@ export default async function ProfilePage({
             </div>
           </div>
         )}
+        {isOwnProfile && !user.delete_requested_at && <ProfileDeleteAccount />}
       </div>
 
       {attemptsList.length > 0 && (

@@ -6,7 +6,7 @@
  * 
  * Перед запуском убедитесь:
  * 1. В .env.local указан DATABASE_URL
- * 2. Выполнена миграция supabase/migrations/add-tests-v2.sql
+ * 2. Выполнена миграция db/migrations/add-tests-v2.sql
  */
 
 // Мок для "server-only" — answer.ts его импортирует, но при tsx модуль не резолвится
