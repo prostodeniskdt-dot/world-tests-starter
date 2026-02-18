@@ -5,6 +5,11 @@ const config: Config = {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    "rank-1-row",
+    "rank-2-row",
+    "rank-3-row",
+  ],
   theme: {
     extend: {
       colors: {
