@@ -5,7 +5,7 @@ import Link from "next/link";
 import { UserMenu } from "./UserMenu";
 import { LoginModal } from "./LoginModal";
 import { useLocalUser } from "./UserGate";
-import { Trophy } from "lucide-react";
+import { Trophy, Medal } from "lucide-react";
 import { buttonStyles } from "@/lib/button-styles";
 
 export function Nav() {
@@ -38,6 +38,14 @@ export function Nav() {
             <span className="whitespace-nowrap">King of the Bar</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <Link
+              href="/leaderboard"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 px-3 sm:px-4 py-2 min-h-[44px] sm:min-h-0 text-xs sm:text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 transition-all"
+              aria-label="Рейтинг"
+            >
+              <Medal className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
+              <span className="whitespace-nowrap">Рейтинг</span>
+            </Link>
             {user ? (
               <UserMenu />
             ) : (

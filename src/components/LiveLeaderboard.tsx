@@ -20,6 +20,13 @@ const RANK_1_BG = "linear-gradient(135deg, #fef08a 0%, #fde047 50%, #facc15 100%
 const RANK_2_BG = "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 50%, #9ca3af 100%)";
 const RANK_3_BG = "linear-gradient(135deg, #fed7aa 0%, #fdba74 50%, #f97316 100%)";
 
+function getRankRowClass(rank: number): string {
+  if (rank === 1) return "rank-1-row";
+  if (rank === 2) return "rank-2-row";
+  if (rank === 3) return "rank-3-row";
+  return "";
+}
+
 function getRankStyle(rank: number): { className: string; style?: React.CSSProperties } {
   if (rank === 1) return { className: "text-amber-900 border-l-4 border-amber-600", style: { background: RANK_1_BG } };
   if (rank === 2) return { className: "text-zinc-900 border-l-4 border-zinc-500", style: { background: RANK_2_BG } };
@@ -119,7 +126,7 @@ export function LiveLeaderboard() {
             return (
               <div 
                 key={r.user_id} 
-                className={`rounded-lg border-2 p-4 ${rankStyle.className}`}
+                className={`rounded-lg border-2 p-4 ${getRankRowClass(r.rank)} ${rankStyle.className}`}
                 style={rankStyle.style}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -179,7 +186,7 @@ export function LiveLeaderboard() {
               return (
                 <tr 
                   key={r.user_id} 
-                  className={`border-b border-zinc-100 transition-colors ${rankStyle.className} ${!isTop3 ? "hover:bg-zinc-50" : ""}`}
+                  className={`border-b border-zinc-100 transition-colors ${getRankRowClass(r.rank)} ${rankStyle.className} ${!isTop3 ? "hover:bg-zinc-50" : ""}`}
                   style={rankStyle.style}
                 >
                   <td className="px-4 py-4" style={rankStyle.style}>
