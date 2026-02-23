@@ -2,7 +2,9 @@
   "name": "world-tests-starter",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,6 +19,7 @@
     "verify-matching": "tsx scripts/verify-matching-keys.ts",
     "run-fix-migration": "tsx scripts/run-fix-migration.ts",
     "run-points-migrations": "tsx scripts/run-points-migrations.ts",
+    "run-db-migrations": "tsx scripts/run-db-migrations.ts",
     "reset-points": "tsx scripts/reset-points.ts",
     "reset-attempts": "tsx scripts/reset-attempts.ts"
   },
@@ -27,6 +30,7 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.562.0",
     "next": "^14.2.5",
+    "pdfmake": "^0.3.5",
     "pg": "^8.18.0",
     "rate-limiter-flexible": "^9.0.1",
     "react": "^18.3.1",

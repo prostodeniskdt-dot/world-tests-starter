@@ -221,11 +221,38 @@ export async function POST(req: Request) {
 
   // Записываем в БД
   try {
-    const { rows: data } = await db.query(
+    await db.query(
       `SELECT * FROM record_attempt($1, $2, $3, $4, $5)`,
       [userId, testId, scorePercent, pointsAwarded, idempotencyKey ?? null]
     );
 
+    const { rows: attemptRows } = await db.query(
+      `SELECT id FROM attempts WHERE user_id = $1 AND test_id = $2 ORDER BY created_at DESC LIMIT 1`,
+      [userId, testId]
+    );
+    const attemptId = attemptRows[0]?.id;
+
+    if (attemptId) {
+      for (const qId of questionIds) {
+        const question = testPublic.questions.find((q: PublicTestQuestion) => q.id === qId);
+        const userAnswer = answers[qId];
+        if (!question) continue;
+
+        const correctAnswer = testSecret.answerKey[qId];
+        const isCorrect = checkAnswer(question, userAnswer, correctAnswer);
+
+        await db.query(
+          `INSERT INTO attempt_answers (attempt_id, question_id, user_answer, is_correct)
+           VALUES ($1, $2, $3, $4)`,
+          [attemptId, qId, JSON.stringify(userAnswer ?? null), isCorrect]
+        );
+      }
+    }
+
+    const { rows: data } = await db.query(
+      `SELECT total_points, tests_completed FROM user_stats WHERE user_id = $1`,
+      [userId]
+    );
     const row = data[0];
     const responsePayload = {
       ok: true as const,

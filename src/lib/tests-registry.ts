@@ -53,6 +53,36 @@ export async function getPublicTest(testId: string): Promise<PublicTest | null> 
   };
 }
 
+/** Получить тест по ID (включая неопубликованные, для отображения в истории попыток) */
+export async function getTestById(testId: string): Promise<{ id: string; title: string; category: string } | null> {
+  const { rows } = await db.query(
+    `SELECT id, title, category FROM tests WHERE id = $1 LIMIT 1`,
+    [testId]
+  );
+  if (rows.length === 0) return null;
+  return { id: rows[0].id, title: rows[0].title, category: rows[0].category };
+}
+
+/** Получить тест с вопросами по ID (без проверки is_published, для деталей попытки) */
+export async function getTestWithQuestionsById(testId: string): Promise<PublicTest | null> {
+  const { rows } = await db.query(
+    `SELECT id, title, description, category, difficulty_level, questions
+     FROM tests WHERE id = $1 LIMIT 1`,
+    [testId]
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    category: r.category,
+    difficultyLevel: r.difficulty_level,
+    author: undefined as string | undefined,
+    questions: r.questions as PublicTestQuestion[],
+  };
+}
+
 /** Получить секретный тест по ID (с ответами) */
 export async function getSecretTest(testId: string): Promise<SecretTest | null> {
   const { rows } = await db.query(
