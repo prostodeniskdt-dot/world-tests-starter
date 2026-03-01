@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "parse-baza": "tsx scripts/parse-baza.ts",
+    "parse-flavor-pairings": "tsx scripts/parse-flavor-pairings.ts",
     "validate-baza": "tsx scripts/validate-baza.ts",
     "migrate-tests": "tsx scripts/migrate-tests-to-db.ts",
     "export-tests": "tsx scripts/export-tests-from-db.ts",
@@ -20,8 +21,10 @@
     "run-fix-migration": "tsx scripts/run-fix-migration.ts",
     "run-points-migrations": "tsx scripts/run-points-migrations.ts",
     "run-db-migrations": "tsx scripts/run-db-migrations.ts",
+    "run-initial-tests-schema": "tsx scripts/run-initial-tests-schema.ts",
     "reset-points": "tsx scripts/reset-points.ts",
-    "reset-attempts": "tsx scripts/reset-attempts.ts"
+    "reset-attempts": "tsx scripts/reset-attempts.ts",
+    "seed-flavor-pairings": "tsx scripts/seed-flavor-pairings.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",

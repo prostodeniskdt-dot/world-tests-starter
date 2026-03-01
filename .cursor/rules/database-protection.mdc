@@ -1,0 +1,31 @@
+---
+description: Защита таблицы tests — не удалять данные при миграциях
+globs: db/**/*.sql, scripts/run-*.ts, scripts/*migration*.ts
+alwaysApply: false
+---
+
+# Защита базы данных тестов
+
+## Критическое ограничение
+
+**Таблица `tests` и данные в ней НЕ ДОЛЖНЫ удаляться** при обычных миграциях.
+
+- **ЗАПРЕЩЕНО:** `DROP TABLE tests`, `TRUNCATE tests`, `DROP TABLE test_options`, `DROP TABLE test_questions`
+- **Безопасно:** `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`
+
+## Скрипты миграций
+
+- **`npm run run-db-migrations`** — безопасен. Выполняет только инкрементальные миграции. Не включает add-tests-v2.sql
+- **`npm run run-initial-tests-schema`** — ОПАСНО. Удаляет tests. Только для пустой БД
+
+## При добавлении новой миграции
+
+1. Создавать только добавляющие операции (новые таблицы, колонки, индексы)
+2. Добавлять файл в `MIGRATION_FILES` в `scripts/run-db-migrations.ts`
+3. НЕ включать add-tests-v2.sql в run-db-migrations
+
+## При изменении run-db-migrations.ts
+
+1. Проверить, что в MIGRATION_FILES нет add-tests-v2.sql
+2. Не добавлять миграции с DROP/TRUNCATE для tests, test_options, test_questions
+3. Скрипт содержит встроенную проверку isMigrationSafe — не удалять её
