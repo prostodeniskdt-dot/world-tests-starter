@@ -6,10 +6,11 @@ import { UserProvider } from "@/components/UserGate";
 import { ToastContainer } from "@/components/Toast";
 import { Footer } from "@/components/Footer";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "King of the Bar",
-  description: "Тесты + мировой рейтинг на Next.js + PostgreSQL",
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
 };
 
 export default function RootLayout({

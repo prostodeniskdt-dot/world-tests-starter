@@ -27,6 +27,7 @@
     "seed-flavor-pairings": "tsx scripts/seed-flavor-pairings.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1013.0",
     "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^2.4.3",
     "dotenv": "^17.3.1",

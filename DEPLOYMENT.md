@@ -1,4 +1,4 @@
-# Развёртывание King of the Bar на Timeweb Cloud
+# Развёртывание О том О сем на Timeweb Cloud
 
 Приложение: **Next.js** (Node.js 24) + **PostgreSQL**. Сайт с тестами, пользователями и рейтингом. Для работы нужны API routes и серверный рендеринг — **не подходит статический экспорт**.
 
@@ -31,8 +31,11 @@
 | 2 | `db/migrations/add-admin-fields.sql` | Поля админки и бана в `users` |
 | 3 | `db/migrations/add-tests-v2.sql` | Таблица тестов с JSONB (вместо старых `test_questions` / `test_options`) |
 | 4 | `db/migrations/fix-record-attempt-ambiguous.sql` | Исправление ambiguous `user_id` в record_attempt, права админа |
+| 5 | `db/migrations/20260320_catalogs.sql` | Каталоги (алкоголь, б/а, техника, коктейли, посуда), база знаний, UGC |
 
 После выполнения приложение будет использовать одну и ту же схему, что и локально (PostgreSQL на Timeweb совместим с этими скриптами).
+
+Альтернатива: вместо ручного выполнения миграций можно запустить `npm run run-db-migrations` (при наличии `DATABASE_URL` в `.env.local`).
 
 ---
 
@@ -68,6 +71,19 @@ npm run migrate-tests
 | `JWT_SECRET` | Секрет для JWT (длинная случайная строка) |
 | `NEXT_PUBLIC_APP_URL` | URL сайта после деплоя (например `https://your-app.twc1.net`) |
 
+### Переменные для S3 (опционально, для загрузки изображений)
+
+| Переменная | Описание |
+|------------|----------|
+| `S3_ACCESS_KEY` | Ключ доступа Timeweb Object Storage |
+| `S3_SECRET_KEY` | Секретный ключ |
+| `S3_BUCKET` | Имя бакета |
+| `S3_ENDPOINT` | `https://s3.twcstorage.ru` |
+| `S3_REGION` | `ru-1` |
+| `S3_PUBLIC_URL` | Публичный URL бакета (если привязан домен) |
+
+Создайте бакет в разделе «Хранилище S3» панели Timeweb, настройте CORS и публичный доступ.
+
 Пример `DATABASE_URL`:
 
 ```text
@@ -81,13 +97,13 @@ postgresql://gen_user:YourPassword%40@xxxxx.twc1.net:5432/default_db
 ## 4. Локальная проверка образа
 
 ```bash
-docker build -t king-of-the-bar .
+docker build -t o-tom-o-sem .
 docker run -p 8080:8080 \
   -e DATABASE_URL="postgresql://..." \
   -e DB_SSL=true \
   -e JWT_SECRET="your-secret" \
   -e NEXT_PUBLIC_APP_URL="http://localhost:8080" \
-  king-of-the-bar
+  o-tom-o-sem
 ```
 
 Откройте в браузере: http://localhost:8080
@@ -97,7 +113,7 @@ docker run -p 8080:8080 \
 ## 5. Чек-лист перед продакшеном
 
 - [ ] В панели Timeweb создана БД PostgreSQL, скопирована `DATABASE_URL`.
-- [ ] Выполнены скрипты: `init.sql` → `add-admin-fields.sql` → `add-tests-v2.sql`.
+- [ ] Выполнены скрипты: `init.sql` → `add-admin-fields.sql` → `add-tests-v2.sql` → `20260320_catalogs.sql`.
 - [ ] Запущена миграция тестов: `npm run migrate-tests` (при необходимости укажите в `.env.local` IP вместо хоста).
 - [ ] Деплой идёт через **Dockerfile**, не через шаблон «Next.js».
 - [ ] Заданы переменные: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET`, `NEXT_PUBLIC_APP_URL`.

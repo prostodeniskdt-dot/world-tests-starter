@@ -48,6 +48,7 @@ const MIGRATION_FILES = [
   "20260218_consent_and_deletion.sql",
   "20260223_add_attempt_answers.sql",
   "20260301_flavor_pairings.sql",
+  "20260320_catalogs.sql",
 ];
 
 function isMigrationSafe(sql: string, fileName: string): { safe: boolean; reason?: string } {

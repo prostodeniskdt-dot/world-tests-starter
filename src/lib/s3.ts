@@ -1,0 +1,80 @@
+import "server-only";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
+
+function getS3Config() {
+  const accessKey = process.env.S3_ACCESS_KEY;
+  const secretKey = process.env.S3_SECRET_KEY;
+  const bucket = process.env.S3_BUCKET;
+  const endpoint = process.env.S3_ENDPOINT || "https://s3.twcstorage.ru";
+  const region = process.env.S3_REGION || "ru-1";
+  const publicUrl = process.env.S3_PUBLIC_URL; // e.g. https://bucket.s3.twcstorage.ru or custom domain
+
+  if (!accessKey || !secretKey || !bucket) {
+    return null;
+  }
+
+  return {
+    client: new S3Client({
+      region,
+      endpoint,
+      credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
+      forcePathStyle: true,
+    }),
+    bucket,
+    publicUrl: publicUrl || `${endpoint.replace("https://", `https://${bucket}.`)}`,
+  };
+}
+
+export async function uploadToS3(
+  file: Buffer,
+  key: string,
+  contentType: string
+): Promise<string | null> {
+  const config = getS3Config();
+  if (!config) return null;
+
+  try {
+    await config.client.send(
+      new PutObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+        Body: file,
+        ContentType: contentType,
+      })
+    );
+    // Формируем публичный URL (Timeweb: https://bucket.s3.twcstorage.ru/key)
+    const base = config.publicUrl.replace(/\/$/, "");
+    const normalizedKey = key.startsWith("/") ? key.slice(1) : key;
+    return `${base}/${normalizedKey}`;
+  } catch (err) {
+    console.error("S3 upload error:", err);
+    return null;
+  }
+}
+
+export async function deleteFromS3(key: string): Promise<boolean> {
+  const config = getS3Config();
+  if (!config) return false;
+
+  try {
+    await config.client.send(
+      new DeleteObjectCommand({ Bucket: config.bucket, Key: key })
+    );
+    return true;
+  } catch (err) {
+    console.error("S3 delete error:", err);
+    return false;
+  }
+}
+
+export function isS3Configured(): boolean {
+  return !!(
+    process.env.S3_ACCESS_KEY &&
+    process.env.S3_SECRET_KEY &&
+    process.env.S3_BUCKET
+  );
+}

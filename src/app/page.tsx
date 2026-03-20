@@ -1,171 +1,45 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useLocalUser } from "@/components/UserGate";
-import { LiveLeaderboard } from "@/components/LiveLeaderboard";
-import { TestCategories } from "@/components/TestCategories";
 import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
-import { DifficultyBadge } from "@/components/DifficultyBadge";
-import { LoadingSkeleton } from "@/components/LoadingSkeleton";
-import { Spinner } from "@/components/Spinner";
+import { SECTIONS } from "@/lib/sections";
+import { SITE_NAME } from "@/lib/constants";
 
-type Test = {
-  id: string;
-  title: string;
-  description: string | null;
-  category: string;
-  author?: string;
-  difficultyLevel: 1 | 2 | 3;
-};
-
-export default function Page() {
-  const { user, isLoading } = useLocalUser();
-  const [tests, setTests] = useState<Test[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [testsLoading, setTestsLoading] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setTestsLoading(true);
-      fetch("/api/tests")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.ok) {
-            setTests(data.tests || []);
-            setCategories(data.categories || []);
-          }
-        })
-        .catch((err) => {
-          console.error("Ошибка загрузки тестов:", err);
-        })
-        .finally(() => setTestsLoading(false));
-    } else {
-      setTestsLoading(false);
-    }
-  }, [user]);
-
-  const filteredTests = useMemo(() => {
-    return selectedCategory
-      ? tests.filter(t => t.category === selectedCategory)
-      : tests;
-  }, [tests, selectedCategory]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <Spinner size="lg" />
-            <div className="text-zinc-600">Загрузка...</div>
-          </div>
-      </div>
-    );
-  }
-
+export default function HomePage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        {/* Левая колонка: Тесты */}
-        <div className="space-y-6 flex flex-col">
-          {user ? (
-            <>
-              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8">
-                <h1 className="text-xl sm:text-2xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-                  Доступные тесты
-                </h1>
-                <p className="text-zinc-600 mb-8 text-base leading-relaxed">
-                  Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
-                </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="text-center mb-10 sm:mb-14">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+          {SITE_NAME}
+        </h1>
+        <p className="text-zinc-600 text-base sm:text-lg max-w-2xl mx-auto">
+          Образовательная платформа для барменов и работников HoReCa
+        </p>
+      </div>
 
-                {/* Компонент категорий */}
-                <TestCategories
-                  tests={tests}
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  onCategorySelect={setSelectedCategory}
-                />
-
-                {testsLoading ? (
-                  <LoadingSkeleton />
-                ) : (
-                  <div className="space-y-4">
-                    {filteredTests.map((test) => (
-                      <div 
-                        key={test.id} 
-                        className="group border-2 border-zinc-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all bg-white"
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              {test.category && (
-                                <span className="inline-flex items-center rounded-md bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
-                                  {test.category}
-                                </span>
-                              )}
-                              <div className="flex items-center gap-3 flex-wrap">
-                                <BookOpen className="h-5 w-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
-                                <h3 className="font-bold text-lg sm:text-xl text-zinc-900">{test.title}</h3>
-                                <DifficultyBadge level={test.difficultyLevel} />
-                              </div>
-                            </div>
-                            <p className="text-sm text-zinc-500 mt-1">
-                              Автор: {test.author ?? "Денис Колодешников"}
-                            </p>
-                            {test.description && (
-                              <p className="text-zinc-600 mt-2 leading-relaxed">{test.description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <Link
-                          href={`/test?testId=${test.id}`}
-                          className="inline-flex items-center gap-2 mt-4 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all group-hover:scale-105"
-                        >
-                          Пройти тест
-                          <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                        </Link>
-                      </div>
-                    ))}
-                    {filteredTests.length === 0 && (
-                      <div className="text-center py-12 text-zinc-500">
-                        {selectedCategory 
-                          ? `Пока нет тестов в категории "${selectedCategory}"`
-                          : "Пока нет доступных тестов"}
-                      </div>
-                    )}
-                  </div>
-                )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {SECTIONS.map((section) => {
+          const Icon = section.icon;
+          return (
+            <Link
+              key={section.id}
+              href={section.href}
+              className="group flex flex-col rounded-xl border-2 border-zinc-200 bg-white p-6 sm:p-8 hover:border-primary-300 hover:shadow-lg transition-all duration-200"
+            >
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary-100 text-primary-600 mb-4 group-hover:bg-primary-200 transition-colors">
+                <Icon className="h-7 w-7" aria-hidden />
               </div>
-            </>
-          ) : (
-            <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8 h-full">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-                King of the Bar
-              </h1>
-              <div className="space-y-6 text-zinc-700 leading-relaxed">
-                <p className="text-base sm:text-lg font-medium text-zinc-900">
-                  Добро пожаловать на платформу для соревновательных тестов!
-                </p>
-                <div className="space-y-4">
-                  <h2 className="font-bold text-lg sm:text-xl text-zinc-900">О проекте</h2>
-                  <p className="text-base leading-relaxed">
-                    King of the Bar — это интерактивная платформа, где вы можете проверить свои знания, 
-                    пройти увлекательные тесты и соревноваться с другими участниками в мировом рейтинге.
-                  </p>
-                  <p className="mt-6 text-zinc-600 bg-primary-50 p-4 rounded-lg border border-primary-200">
-                    Начните свой путь к вершине рейтинга уже сегодня! Войдите или зарегистрируйтесь, 
-                    чтобы получить доступ к тестам и начать зарабатывать очки.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Правая колонка: Рейтинг */}
-        <div className="flex flex-col">
-          <LiveLeaderboard />
-        </div>
+              <h2 className="font-bold text-lg sm:text-xl text-zinc-900 mb-2 group-hover:text-primary-700 transition-colors">
+                {section.title}
+              </h2>
+              <p className="text-sm text-zinc-600 leading-relaxed flex-1">
+                {section.description}
+              </p>
+              <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary-600 group-hover:underline">
+                Перейти →
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

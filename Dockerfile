@@ -1,4 +1,4 @@
-# King of the Bar — Dockerfile для Timeweb Cloud App Platform
+# О том О сем — Dockerfile для Timeweb Cloud App Platform
 # Используйте деплой через Dockerfile (не шаблон "Next.js") — приложению нужны API routes и SSR
 # Next.js + Node.js 24, PostgreSQL
 

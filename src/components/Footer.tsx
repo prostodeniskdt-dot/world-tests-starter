@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy } from "lucide-react";
+import { SITE_NAME, LOGO_PATH } from "@/lib/constants";
 import { DocModal } from "./DocModal";
 
 const DOC_LINKS: { slug: string; label: string }[] = [
@@ -21,8 +21,8 @@ export function Footer() {
       <footer className="border-t border-zinc-200 bg-white/95 backdrop-blur-sm py-6 sm:py-8 mt-8 sm:mt-12">
         <div className="max-w-7xl mx-auto px-4 text-xs sm:text-sm text-zinc-600">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Trophy className="h-4 w-4 text-primary-600" />
-            <span className="font-semibold text-zinc-900">King of the Bar</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={LOGO_PATH} alt={SITE_NAME} className="h-6 w-auto" />
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-2">
             {DOC_LINKS.map(({ slug, label }) => (

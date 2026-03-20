@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { verifyToken } from "@/lib/jwt";
 import { AdminUsersTable } from "@/components/AdminUsersTable";
 import { db } from "@/lib/db";
-import { Shield, Users, FileText } from "lucide-react";
+import { Shield, Users, FileText, Wine, Coffee, Wrench, Martini, UtensilsCrossed, Library, Bell } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminPage() {
@@ -74,6 +74,11 @@ export default async function AdminPage() {
     totalPages: Math.ceil(totalCount / 50),
   };
 
+  const { rows: pendingSubmissions } = await db.query(
+    `SELECT COUNT(*) AS c FROM article_submissions WHERE status = 'pending'`
+  );
+  const pendingCount = parseInt((pendingSubmissions[0] as { c: string })?.c || "0", 10);
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -88,22 +93,97 @@ export default async function AdminPage() {
         </div>
 
         {/* Быстрые ссылки */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Link
             href="/admin/tests"
             className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
           >
             <FileText className="h-8 w-8 text-primary-600" />
             <div>
-              <div className="font-semibold text-zinc-900">Управление тестами</div>
-              <div className="text-sm text-zinc-500">Импорт, редактирование, публикация</div>
+              <div className="font-semibold text-zinc-900">Тесты</div>
+              <div className="text-sm text-zinc-500">Импорт, редактирование</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/knowledge/submissions"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all relative"
+          >
+            <Bell className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Заявки на статьи (UGC)</div>
+              <div className="text-sm text-zinc-500">Модерация статей</div>
+            </div>
+            {pendingCount > 0 && (
+              <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+          <Link
+            href="/admin/knowledge"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <Library className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">База знаний</div>
+              <div className="text-sm text-zinc-500">Статьи</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/alcohol"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <Wine className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Алкоголь</div>
+              <div className="text-sm text-zinc-500">Каталог</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/na"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <Coffee className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Б/а</div>
+              <div className="text-sm text-zinc-500">Каталог</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/technique"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <Wrench className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Техника</div>
+              <div className="text-sm text-zinc-500">Каталог</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/cocktails"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <Martini className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Коктейли</div>
+              <div className="text-sm text-zinc-500">Каталог</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/glassware"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <UtensilsCrossed className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Посуда</div>
+              <div className="text-sm text-zinc-500">Каталог</div>
             </div>
           </Link>
           <div className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
             <Users className="h-8 w-8 text-zinc-600" />
             <div>
               <div className="font-semibold text-zinc-900">Пользователи</div>
-              <div className="text-sm text-zinc-500">Управление и модерация</div>
+              <div className="text-sm text-zinc-500">Управление</div>
             </div>
           </div>
         </div>

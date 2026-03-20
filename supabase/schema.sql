@@ -1,4 +1,4 @@
--- King of the Bar starter schema
+-- О том О сем starter schema
 -- Run in Supabase SQL Editor.
 
 -- 1) Extensions
