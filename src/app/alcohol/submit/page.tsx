@@ -6,6 +6,11 @@ import { ArrowLeft, Wine, ImagePlus } from "lucide-react";
 import { useLocalUser } from "@/components/UserGate";
 import { LoginModal } from "@/components/LoginModal";
 import { slugify } from "@/lib/slugify";
+import {
+  DRINK_TYPES,
+  DRINK_TYPE_CONFIG,
+  type DrinkType,
+} from "@/lib/alcoholDrinkTypes";
 
 type Category = { id: number; name: string; slug: string };
 type ArticleOpt = { id: number; title: string; slug: string };
@@ -18,6 +23,9 @@ export default function AlcoholSubmitPage() {
   const [articles, setArticles] = useState<ArticleOpt[]>([]);
   const [tests, setTests] = useState<TestOpt[]>([]);
 
+  const [drinkType, setDrinkType] = useState<DrinkType>("other");
+  const [sensoryValues, setSensoryValues] = useState<Record<string, string>>({});
+
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [categoryId, setCategoryId] = useState<number | "">("");
@@ -28,12 +36,11 @@ export default function AlcoholSubmitPage() {
   const [producer, setProducer] = useState("");
   const [abv, setAbv] = useState("");
   const [volume, setVolume] = useState("");
-  const [grapeOrRaw, setGrapeOrRaw] = useState("");
+  const [primaryIngredient, setPrimaryIngredient] = useState("");
+  const [additionalIngredients, setAdditionalIngredients] = useState("");
   const [servingTemp, setServingTemp] = useState("");
-  const [sweetness, setSweetness] = useState("");
-  const [acidity, setAcidity] = useState("");
-  const [aromaticity, setAromaticity] = useState("");
-  const [body, setBody] = useState("");
+  const [recommendedGlassware, setRecommendedGlassware] = useState("");
+  const [serveStyle, setServeStyle] = useState("");
   const [gastronomy, setGastronomy] = useState("");
   const [wineStyle, setWineStyle] = useState("");
   const [tastingNotes, setTastingNotes] = useState("");
@@ -51,6 +58,12 @@ export default function AlcoholSubmitPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const cfg = DRINK_TYPE_CONFIG[drinkType];
+
+  useEffect(() => {
+    setSensoryValues({});
+  }, [drinkType]);
 
   useEffect(() => {
     fetch("/api/alcohol/categories", { credentials: "same-origin" })
@@ -99,18 +112,19 @@ export default function AlcoholSubmitPage() {
     }
   };
 
-  const sensoryPayload = () => {
-    const o: Record<string, number> = {};
-    const add = (k: string, s: string) => {
-      if (s.trim() === "") return;
+  const setSensory = (key: string, value: string) => {
+    setSensoryValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const sensoryPayload = (): Record<string, number> => {
+    const out: Record<string, number> = {};
+    for (const key of cfg.sensoryKeys) {
+      const s = (sensoryValues[key] ?? "").trim();
+      if (s === "") continue;
       const n = parseInt(s, 10);
-      if (n >= 1 && n <= 5) o[k] = n;
-    };
-    add("sweetness", sweetness);
-    add("acidity", acidity);
-    add("aromaticity", aromaticity);
-    add("body", body);
-    return o;
+      if (n >= 1 && n <= 5) out[key] = n;
+    }
+    return out;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,6 +139,7 @@ export default function AlcoholSubmitPage() {
     }
 
     const body = {
+      drink_type: drinkType,
       name: name.trim(),
       slug: (slug.trim() || slugify(name.trim()) || "").trim(),
       category_id: categoryId === "" ? null : categoryId,
@@ -135,8 +150,11 @@ export default function AlcoholSubmitPage() {
       producer: producer.trim() || null,
       abv: abv.trim() === "" ? null : abv.trim(),
       volume: volume.trim() || null,
-      grape_or_raw_material: grapeOrRaw.trim() || null,
+      primary_ingredient: primaryIngredient.trim() || null,
+      additional_ingredients: additionalIngredients.trim() || null,
       serving_temperature: servingTemp.trim() || null,
+      recommended_glassware: recommendedGlassware.trim() || null,
+      serve_style: serveStyle.trim() || null,
       sensory_matrix: sensoryPayload(),
       gastronomy: gastronomy.trim() || null,
       wine_or_spirit_style: wineStyle.trim() || null,
@@ -202,8 +220,9 @@ export default function AlcoholSubmitPage() {
         <h1 className="text-2xl font-bold text-zinc-900">Предложить карточку</h1>
       </div>
       <p className="text-sm text-zinc-600 mb-6 leading-relaxed">
-        Карточка появится в каталоге после проверки администратором. Укажите достоверные данные; при
-        необходимости модератор скорректирует категорию или привязки к статье и тесту.
+        Карточка появится в каталоге после проверки. <strong>Тип напитка</strong> задаёт подсказки и шкалы
+        сенсорики; <strong>категория каталога</strong> — раздел витрины на сайте (при необходимости поправит
+        модератор).
       </p>
 
       {success ? (
@@ -246,9 +265,34 @@ export default function AlcoholSubmitPage() {
                 placeholder="из названия"
               />
             </div>
+            <div>
+              <label className={labelClass}>Краткое описание</label>
+              <textarea className={fieldClass} rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-base font-semibold text-zinc-900 border-b border-zinc-200 pb-2">
+              Происхождение и продукт
+            </h2>
+            <div>
+              <label className={labelClass}>Тип напитка *</label>
+              <select
+                className={fieldClass}
+                value={drinkType}
+                onChange={(e) => setDrinkType(e.target.value as DrinkType)}
+              >
+                {DRINK_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {DRINK_TYPE_CONFIG[t].label}
+                  </option>
+                ))}
+              </select>
+            </div>
             {categories.length > 0 && (
               <div>
-                <label className={labelClass}>Категория</label>
+                <label className={labelClass}>Категория каталога (витрина)</label>
+                <p className="text-xs text-zinc-500 mb-1">Раздел сайта, не путать с типом напитка выше.</p>
                 <select
                   className={fieldClass}
                   value={categoryId === "" ? "" : String(categoryId)}
@@ -265,16 +309,6 @@ export default function AlcoholSubmitPage() {
                 </select>
               </div>
             )}
-            <div>
-              <label className={labelClass}>Краткое описание</label>
-              <textarea className={fieldClass} rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-base font-semibold text-zinc-900 border-b border-zinc-200 pb-2">
-              Происхождение и продукт
-            </h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Страна</label>
@@ -290,19 +324,70 @@ export default function AlcoholSubmitPage() {
               </div>
               <div>
                 <label className={labelClass}>Крепость % (ABV)</label>
-                <input className={fieldClass} type="text" inputMode="decimal" value={abv} onChange={(e) => setAbv(e.target.value)} placeholder="40 или 0.5" />
+                <input
+                  className={fieldClass}
+                  type="text"
+                  inputMode="decimal"
+                  value={abv}
+                  onChange={(e) => setAbv(e.target.value)}
+                  placeholder="40 или 0.5"
+                />
               </div>
               <div>
                 <label className={labelClass}>Объём</label>
                 <input className={fieldClass} value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="0.75 л" />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Виноград / сырьё</label>
-                <input className={fieldClass} value={grapeOrRaw} onChange={(e) => setGrapeOrRaw(e.target.value)} />
+                <label className={labelClass}>Основное сырьё</label>
+                <input
+                  className={fieldClass}
+                  value={primaryIngredient}
+                  onChange={(e) => setPrimaryIngredient(e.target.value)}
+                  placeholder={cfg.primaryIngredientPlaceholder}
+                />
               </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Доп. ингредиенты / ботаникалы (необязательно)</label>
+                <textarea
+                  className={fieldClass}
+                  rows={2}
+                  value={additionalIngredients}
+                  onChange={(e) => setAdditionalIngredients(e.target.value)}
+                  placeholder="Для джина, ликёров, биттеров: травы, специи…"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-base font-semibold text-zinc-900 border-b border-zinc-200 pb-2">Подача</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Температура подачи</label>
-                <input className={fieldClass} value={servingTemp} onChange={(e) => setServingTemp(e.target.value)} placeholder="6–8 °C" />
+                <input
+                  className={fieldClass}
+                  value={servingTemp}
+                  onChange={(e) => setServingTemp(e.target.value)}
+                  placeholder="6–8 °C, комнатная…"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Рекомендуемая посуда</label>
+                <input
+                  className={fieldClass}
+                  value={recommendedGlassware}
+                  onChange={(e) => setRecommendedGlassware(e.target.value)}
+                  placeholder="Glencairn, бокал для вина, пивной бокал…"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Способ подачи</label>
+                <input
+                  className={fieldClass}
+                  value={serveStyle}
+                  onChange={(e) => setServeStyle(e.target.value)}
+                  placeholder="Neat, со льдом, с водой, в коктейлях…"
+                />
               </div>
             </div>
           </section>
@@ -311,51 +396,39 @@ export default function AlcoholSubmitPage() {
             <h2 className="text-base font-semibold text-zinc-900 border-b border-zinc-200 pb-2">
               Сенсорика (1–5, необязательно)
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div>
-                <label className="text-xs text-zinc-600">Сладость</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  className={fieldClass}
-                  value={sweetness}
-                  onChange={(e) => setSweetness(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-xs text-zinc-600">Кислотность</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  className={fieldClass}
-                  value={acidity}
-                  onChange={(e) => setAcidity(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-xs text-zinc-600">Ароматичность</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  className={fieldClass}
-                  value={aromaticity}
-                  onChange={(e) => setAromaticity(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-xs text-zinc-600">Тело</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  className={fieldClass}
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                />
-              </div>
+            <p className="text-xs text-zinc-500">
+              Шкалы зависят от типа напитка. При смене типа значения сбрасываются.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {cfg.sensoryKeys.map((key) => (
+                <div key={key}>
+                  <label className="text-xs text-zinc-600 block mb-1">
+                    {key === "intensity"
+                      ? "Интенсивность / аромат"
+                      : key === "peat_smoke"
+                        ? "Дым / торф"
+                        : key === "texture"
+                          ? "Текстура"
+                          : key === "bitterness"
+                            ? "Горечь"
+                            : key === "body"
+                              ? "Тело"
+                              : key === "sweetness"
+                                ? "Сладость"
+                                : key === "acidity"
+                                  ? "Кислотность"
+                                  : key}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    className={fieldClass}
+                    value={sensoryValues[key] ?? ""}
+                    onChange={(e) => setSensory(key, e.target.value)}
+                  />
+                </div>
+              ))}
             </div>
           </section>
 
@@ -376,7 +449,7 @@ export default function AlcoholSubmitPage() {
               <textarea className={fieldClass} rows={3} value={gastronomy} onChange={(e) => setGastronomy(e.target.value)} />
             </div>
             <div>
-              <label className={labelClass}>Виноградники / терруар</label>
+              <label className={labelClass}>Терруар / происхождение сырья</label>
               <textarea className={fieldClass} rows={3} value={vineyards} onChange={(e) => setVineyards(e.target.value)} />
             </div>
             <div>
@@ -387,16 +460,34 @@ export default function AlcoholSubmitPage() {
 
           <section className="space-y-4">
             <h2 className="text-base font-semibold text-zinc-900 border-b border-zinc-200 pb-2">
-              Производство и бренд
+              Выдержка и производство
             </h2>
             <div>
-              <label className={labelClass}>Способ выдержки</label>
-              <textarea className={fieldClass} rows={2} value={agingMethod} onChange={(e) => setAgingMethod(e.target.value)} />
+              <label className={labelClass}>{cfg.maturationTitle}</label>
+              <textarea
+                className={fieldClass}
+                rows={2}
+                value={agingMethod}
+                onChange={(e) => setAgingMethod(e.target.value)}
+                placeholder={cfg.maturationPlaceholder}
+              />
             </div>
             <div>
-              <label className={labelClass}>Способ производства</label>
-              <textarea className={fieldClass} rows={3} value={productionMethod} onChange={(e) => setProductionMethod(e.target.value)} />
+              <label className={labelClass}>{cfg.productionTitle}</label>
+              <textarea
+                className={fieldClass}
+                rows={3}
+                value={productionMethod}
+                onChange={(e) => setProductionMethod(e.target.value)}
+                placeholder={cfg.productionPlaceholder}
+              />
             </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-base font-semibold text-zinc-900 border-b border-zinc-200 pb-2">
+              Бренд и кухня
+            </h2>
             <div>
               <label className={labelClass}>Это интересно</label>
               <textarea className={fieldClass} rows={3} value={interestingFacts} onChange={(e) => setInterestingFacts(e.target.value)} />

@@ -4,6 +4,12 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Wine } from "lucide-react";
 import { CatalogEmpty } from "@/components/catalog/CatalogEmpty";
+import {
+  DRINK_TYPES,
+  DRINK_TYPE_CONFIG,
+  normalizeDrinkType,
+  type DrinkType,
+} from "@/lib/alcoholDrinkTypes";
 
 type CatalogItem = {
   id: number;
@@ -11,6 +17,7 @@ type CatalogItem = {
   slug: string;
   image_url: string | null;
   category_id: number | null;
+  drink_type?: string | null;
   abv?: number;
   country?: string | null;
   region?: string | null;
@@ -25,6 +32,7 @@ export default function AlcoholPage() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState<number | "">("");
+  const [drinkTypeFilter, setDrinkTypeFilter] = useState<DrinkType | "">("");
   const [q, setQ] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
 
@@ -32,6 +40,7 @@ export default function AlcoholPage() {
     setLoading(true);
     const params = new URLSearchParams();
     if (categoryId !== "") params.set("category", String(categoryId));
+    if (drinkTypeFilter !== "") params.set("drink_type", drinkTypeFilter);
     if (q.trim()) params.set("q", q.trim());
     const qs = params.toString();
     fetch(`/api/catalog/alcohol${qs ? `?${qs}` : ""}`)
@@ -41,7 +50,7 @@ export default function AlcoholPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [categoryId, q]);
+  }, [categoryId, drinkTypeFilter, q]);
 
   useEffect(() => {
     load();
@@ -81,6 +90,20 @@ export default function AlcoholPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
+        <select
+          value={drinkTypeFilter === "" ? "" : drinkTypeFilter}
+          onChange={(e) =>
+            setDrinkTypeFilter(e.target.value === "" ? "" : normalizeDrinkType(e.target.value))
+          }
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm bg-white min-w-[200px]"
+        >
+          <option value="">Все типы напитков</option>
+          {DRINK_TYPES.map((dt) => (
+            <option key={dt} value={dt}>
+              {DRINK_TYPE_CONFIG[dt].label}
+            </option>
+          ))}
+        </select>
         {categories.length > 0 && (
           <select
             value={categoryId === "" ? "" : String(categoryId)}
@@ -89,7 +112,7 @@ export default function AlcoholPage() {
             }
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm bg-white min-w-[200px]"
           >
-            <option value="">Все категории</option>
+            <option value="">Все разделы каталога</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -154,6 +177,11 @@ export default function AlcoholPage() {
                   <h3 className="font-semibold text-zinc-900 line-clamp-2 group-hover:text-primary-700">
                     {item.name}
                   </h3>
+                  {item.drink_type ? (
+                    <p className="text-[11px] text-zinc-500 mt-1">
+                      {DRINK_TYPE_CONFIG[normalizeDrinkType(item.drink_type)].label}
+                    </p>
+                  ) : null}
                   {sub ? <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{sub}</p> : null}
                   {item.abv != null && (
                     <p className="text-xs text-zinc-500 mt-0.5">{item.abv}% ABV</p>

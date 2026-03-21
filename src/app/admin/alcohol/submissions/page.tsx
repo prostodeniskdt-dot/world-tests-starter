@@ -22,7 +22,7 @@ export default async function AdminAlcoholSubmissionsPage() {
     const [subRes, catRes] = await Promise.all([
       db.query(`
         SELECT s.id, s.name, s.slug, s.description, s.country, s.producer, s.status, s.created_at,
-               s.user_id, s.image_url, s.category_id, s.photo_rights_confirmed,
+               s.user_id, s.image_url, s.category_id, s.drink_type, s.photo_rights_confirmed,
                u.first_name, u.last_name, u.email
         FROM alcohol_submissions s
         LEFT JOIN users u ON u.id = s.user_id

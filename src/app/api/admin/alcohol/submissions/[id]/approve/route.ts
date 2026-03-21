@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-middleware";
 import { withTransaction } from "@/lib/db";
+import { normalizeDrinkType } from "@/lib/alcoholDrinkTypes";
 
 function asJsonbParam(v: unknown): string {
   if (v == null) return "{}";
@@ -29,6 +30,7 @@ export async function POST(
   }
 
   let categoryIdOverride: number | null | undefined;
+  let drinkTypeOverride: string | undefined;
   try {
     const ct = req.headers.get("content-type");
     if (ct?.includes("application/json")) {
@@ -38,6 +40,9 @@ export async function POST(
       } else if (body?.categoryId != null) {
         const n = parseInt(String(body.categoryId), 10);
         if (!Number.isNaN(n) && n > 0) categoryIdOverride = n;
+      }
+      if (body?.drinkType != null && body?.drinkType !== "") {
+        drinkTypeOverride = String(body.drinkType).trim();
       }
     }
   } catch {
@@ -72,6 +77,10 @@ export async function POST(
         }
       }
 
+      const drinkType = drinkTypeOverride
+        ? normalizeDrinkType(drinkTypeOverride)
+        : normalizeDrinkType(sub.drink_type);
+
       let practiceTestId = (sub.practice_test_id as string | null) || null;
       if (practiceTestId) {
         const tchk = await client.query(
@@ -93,22 +102,30 @@ export async function POST(
       const flavor = asJsonbParam(sub.flavor_profile);
       const sensory = asJsonbParam(sub.sensory_matrix);
 
+      const primary =
+        (sub.primary_ingredient as string | null) ??
+        (sub as Record<string, unknown>).grape_or_raw_material ??
+        null;
+
       await client.query(
         `INSERT INTO alcohol_products (
-          category_id, name, slug, image_url, description, history, country, region, producer, abv,
-          flavor_profile, sensory_matrix, grape_or_raw_material, volume, serving_temperature,
+          category_id, drink_type, name, slug, image_url, description, history, country, region, producer, abv,
+          flavor_profile, sensory_matrix, primary_ingredient, additional_ingredients, volume, serving_temperature,
+          recommended_glassware, serve_style,
           aging_method, production_method, interesting_facts, about_brand, gastronomy,
           wine_or_spirit_style, tasting_notes, vineyards_or_origin_detail, food_usage,
           practice_test_id, related_knowledge_article_id, is_published
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-          $11::jsonb, $12::jsonb, $13, $14, $15,
-          $16, $17, $18, $19, $20,
-          $21, $22, $23, $24,
-          $25, $26, true
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+          $12::jsonb, $13::jsonb, $14, $15, $16, $17,
+          $18, $19,
+          $20, $21, $22, $23, $24,
+          $25, $26, $27, $28,
+          $29, $30, true
         )`,
         [
           catId,
+          drinkType,
           sub.name,
           slug,
           sub.image_url ?? null,
@@ -120,9 +137,12 @@ export async function POST(
           sub.abv ?? null,
           flavor,
           sensory,
-          sub.grape_or_raw_material ?? null,
+          primary,
+          sub.additional_ingredients ?? null,
           sub.volume ?? null,
           sub.serving_temperature ?? null,
+          sub.recommended_glassware ?? null,
+          sub.serve_style ?? null,
           sub.aging_method ?? null,
           sub.production_method ?? null,
           sub.interesting_facts ?? null,

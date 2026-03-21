@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { DRINK_TYPES } from "@/lib/alcoholDrinkTypes";
 
 const SECTIONS = ["alcohol", "na", "technique", "cocktails", "glassware"] as const;
 type Section = (typeof SECTIONS)[number];
@@ -7,7 +8,8 @@ type Section = (typeof SECTIONS)[number];
 const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
   alcohol: {
     table: "alcohol_products",
-    listColumns: "id, name, slug, image_url, category_id, abv, country, region, producer, description",
+    listColumns:
+      "id, name, slug, image_url, category_id, drink_type, abv, country, region, producer, description",
   },
   na: { table: "na_products", listColumns: "id, name, slug, image_url, category_id" },
   technique: { table: "equipment", listColumns: "id, name, slug, image_url, category_id" },
@@ -57,6 +59,16 @@ export async function GET(
     }
     if (section === "cocktails" && classic === "false") {
       where += ` AND is_classic = false`;
+    }
+
+    const drinkTypeParam = searchParams.get("drink_type")?.trim();
+    if (section === "alcohol" && drinkTypeParam) {
+      const dt = (DRINK_TYPES as readonly string[]).includes(drinkTypeParam) ? drinkTypeParam : null;
+      if (dt) {
+        where += ` AND drink_type = $${i}`;
+        values.push(dt);
+        i++;
+      }
     }
 
     const countValues = [...values];

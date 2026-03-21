@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import sanitizeHtml from "sanitize-html";
 import { requireAuth } from "@/lib/auth-middleware";
 import { db } from "@/lib/db";
 import { isAllowedKnowledgeMediaUrl } from "@/lib/sanitizeArticleHtml";
@@ -7,6 +6,7 @@ import { userMessageFromDbError } from "@/lib/pg-api-errors";
 import { checkRateLimit, submitRateLimiterByUser } from "@/lib/rateLimit";
 import { slugify } from "@/lib/slugify";
 import { normalizeSensoryMatrix } from "@/lib/sensoryMatrix";
+import { normalizeDrinkType } from "@/lib/alcoholDrinkTypes";
 
 function trimText(v: unknown, max: number): string | null {
   const s = v != null ? String(v).trim() : "";
@@ -74,6 +74,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Укажите название" }, { status: 400 });
   }
 
+  const drinkType = normalizeDrinkType(body.drink_type);
+
   let slug = trimText(body.slug, 120) || slugify(name);
   slug = slugify(slug);
   if (!slug) slug = `alcohol-${Date.now()}`;
@@ -85,7 +87,7 @@ export async function POST(req: NextRequest) {
     if (!Number.isNaN(n) && n > 0) {
       const cat = await db.query(`SELECT id FROM alcohol_categories WHERE id = $1`, [n]);
       if (cat.rows.length === 0) {
-        return NextResponse.json({ ok: false, error: "Категория не найдена" }, { status: 400 });
+        return NextResponse.json({ ok: false, error: "Категория каталога не найдена" }, { status: 400 });
       }
       categoryId = n;
     }
@@ -135,7 +137,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const sensory_matrix = normalizeSensoryMatrix(body.sensory_matrix);
+  const sensory_matrix = normalizeSensoryMatrix(body.sensory_matrix, drinkType);
   const flavor_profile = normalizeFlavorProfile(body.flavor_profile);
   const abv = parseAbv(body.abv);
 
@@ -144,9 +146,16 @@ export async function POST(req: NextRequest) {
   const country = trimText(body.country, 120);
   const region = trimText(body.region, 200);
   const producer = trimText(body.producer, 200);
-  const grape_or_raw_material = trimText(body.grape_or_raw_material, 500);
+  const primaryRaw =
+    body.primary_ingredient != null && String(body.primary_ingredient).trim() !== ""
+      ? body.primary_ingredient
+      : body.grape_or_raw_material;
+  const primary_ingredient = trimText(primaryRaw, 500);
+  const additional_ingredients = trimText(body.additional_ingredients, 2000);
   const volume = trimText(body.volume, 80);
   const serving_temperature = trimText(body.serving_temperature, 120);
+  const recommended_glassware = trimText(body.recommended_glassware, 300);
+  const serve_style = trimText(body.serve_style, 300);
   const aging_method = trimText(body.aging_method, 4000);
   const production_method = trimText(body.production_method, 4000);
   const interesting_facts = trimText(body.interesting_facts, 8000);
@@ -162,14 +171,14 @@ export async function POST(req: NextRequest) {
     !history &&
     !country &&
     !producer &&
-    !grape_or_raw_material &&
+    !primary_ingredient &&
     !tasting_notes
   ) {
     return NextResponse.json(
       {
         ok: false,
         error:
-          "Добавьте хотя бы краткое описание, страну/производителя, сырьё или дегустационные заметки",
+          "Добавьте хотя бы краткое описание, страну/производителя, основное сырьё или дегустационные заметки",
       },
       { status: 400 }
     );
@@ -178,21 +187,24 @@ export async function POST(req: NextRequest) {
   try {
     await db.query(
       `INSERT INTO alcohol_submissions (
-        user_id, category_id, name, slug, image_url, description, history, country, region, producer, abv,
-        flavor_profile, sensory_matrix, grape_or_raw_material, volume, serving_temperature,
+        user_id, category_id, drink_type, name, slug, image_url, description, history, country, region, producer, abv,
+        flavor_profile, sensory_matrix, primary_ingredient, additional_ingredients, volume, serving_temperature,
+        recommended_glassware, serve_style,
         aging_method, production_method, interesting_facts, about_brand, gastronomy,
         wine_or_spirit_style, tasting_notes, vineyards_or_origin_detail, food_usage,
         practice_test_id, related_knowledge_article_id, photo_rights_confirmed, status
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-        $12::jsonb, $13::jsonb, $14, $15, $16,
-        $17, $18, $19, $20, $21,
-        $22, $23, $24, $25,
-        $26, $27, true, 'pending'
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+        $13::jsonb, $14::jsonb, $15, $16, $17, $18,
+        $19, $20,
+        $21, $22, $23, $24, $25,
+        $26, $27, $28, $29,
+        $30, $31, true, 'pending'
       )`,
       [
         auth.userId,
         categoryId,
+        drinkType,
         name,
         slug,
         image_url,
@@ -204,9 +216,12 @@ export async function POST(req: NextRequest) {
         abv,
         JSON.stringify(flavor_profile),
         JSON.stringify(sensory_matrix),
-        grape_or_raw_material,
+        primary_ingredient,
+        additional_ingredients,
         volume,
         serving_temperature,
+        recommended_glassware,
+        serve_style,
         aging_method,
         production_method,
         interesting_facts,

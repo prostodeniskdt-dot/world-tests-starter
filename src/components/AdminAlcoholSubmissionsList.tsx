@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  DRINK_TYPES,
+  DRINK_TYPE_CONFIG,
+  normalizeDrinkType,
+  type DrinkType,
+} from "@/lib/alcoholDrinkTypes";
 
 export type AlcoholSubmissionRow = {
   id: number;
@@ -17,6 +23,7 @@ export type AlcoholSubmissionRow = {
   email: string | null;
   image_url: string | null;
   category_id: number | null;
+  drink_type: string | null;
   photo_rights_confirmed: boolean;
 };
 
@@ -36,7 +43,7 @@ export function AdminAlcoholSubmissionsList({
     setItems(submissions);
   }, [submissions]);
 
-  const handleApprove = async (id: number, categoryId: number | "") => {
+  const handleApprove = async (id: number, categoryId: number | "", drinkType: DrinkType) => {
     setProcessing(id);
     try {
       const res = await fetch(`/api/admin/alcohol/submissions/${id}/approve`, {
@@ -45,6 +52,7 @@ export function AdminAlcoholSubmissionsList({
         credentials: "same-origin",
         body: JSON.stringify({
           categoryId: categoryId === "" ? null : categoryId,
+          drinkType,
         }),
       });
       const data = await res.json();
@@ -116,7 +124,7 @@ export function AdminAlcoholSubmissionsList({
                     s={s}
                     categories={categories}
                     processing={processing === s.id}
-                    onApprove={(catId) => handleApprove(s.id, catId)}
+                    onApprove={(catId, drinkType) => handleApprove(s.id, catId, drinkType)}
                     onReject={() => handleReject(s.id)}
                   />
                 ))}
@@ -172,12 +180,13 @@ function PendingCard({
   s: AlcoholSubmissionRow;
   categories: Category[];
   processing: boolean;
-  onApprove: (categoryId: number | "") => void;
+  onApprove: (categoryId: number | "", drinkType: DrinkType) => void;
   onReject: () => void;
 }) {
   const [categoryId, setCategoryId] = useState<number | "">(
     s.category_id != null ? s.category_id : ""
   );
+  const [drinkType, setDrinkType] = useState<DrinkType>(() => normalizeDrinkType(s.drink_type));
 
   const who = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email || s.user_id;
 
@@ -209,10 +218,27 @@ function PendingCard({
       </div>
 
       <div className="mt-4 flex flex-col gap-3 border-t border-zinc-100 pt-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor={`al-dt-${s.id}`} className="text-sm text-zinc-600">
+            Тип напитка:
+          </label>
+          <select
+            id={`al-dt-${s.id}`}
+            value={drinkType}
+            onChange={(e) => setDrinkType(normalizeDrinkType(e.target.value))}
+            className="text-sm border border-zinc-300 rounded-lg px-2 py-1.5 bg-white min-w-[180px]"
+          >
+            {DRINK_TYPES.map((dt) => (
+              <option key={dt} value={dt}>
+                {DRINK_TYPE_CONFIG[dt].label}
+              </option>
+            ))}
+          </select>
+        </div>
         {categories.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             <label htmlFor={`al-cat-${s.id}`} className="text-sm text-zinc-600">
-              Категория каталога:
+              Раздел каталога:
             </label>
             <select
               id={`al-cat-${s.id}`}
@@ -235,7 +261,7 @@ function PendingCard({
           <button
             type="button"
             disabled={processing}
-            onClick={() => onApprove(categoryId)}
+            onClick={() => onApprove(categoryId, drinkType)}
             className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
           >
             Опубликовать

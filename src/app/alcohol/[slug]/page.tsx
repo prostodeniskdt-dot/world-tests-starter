@@ -10,15 +10,35 @@ import {
   Martini,
 } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
-import { SENSORY_KEYS, sensoryLabelRu } from "@/lib/sensoryMatrix";
+import { parseSensoryForDisplay, sensoryLabelRu } from "@/lib/sensoryMatrix";
+import {
+  DRINK_TYPE_CONFIG,
+  normalizeDrinkType,
+  sensoryKeysForDrinkType,
+  type DrinkType,
+} from "@/lib/alcoholDrinkTypes";
 
 export const dynamic = "force-dynamic";
 
 type Row = Record<string, unknown>;
 
-function parseSensory(raw: unknown): Record<string, number> {
-  if (!raw || typeof raw !== "object") return {};
-  return raw as Record<string, number>;
+function orderedSensoryKeys(sensory: Record<string, number>, dt: DrinkType): string[] {
+  const preferred = [...sensoryKeysForDrinkType(dt)];
+  const valid = Object.entries(sensory)
+    .filter(([, v]) => v >= 1 && v <= 5)
+    .map(([k]) => k);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const k of preferred) {
+    if (valid.includes(k)) {
+      out.push(k);
+      seen.add(k);
+    }
+  }
+  for (const k of valid) {
+    if (!seen.has(k)) out.push(k);
+  }
+  return out;
 }
 
 export async function generateMetadata({
@@ -61,7 +81,16 @@ export default async function AlcoholProductPage({
   if (rows.length === 0) notFound();
   const item = rows[0] as Row;
   const flavorProfile = item.flavor_profile as Record<string, number> | null;
-  const sensory = parseSensory(item.sensory_matrix);
+  const sensory = parseSensoryForDisplay(item.sensory_matrix);
+  const drinkType = normalizeDrinkType(item.drink_type);
+  const cfg = DRINK_TYPE_CONFIG[drinkType];
+
+  const primaryIngredient =
+    item.primary_ingredient != null && String(item.primary_ingredient).trim() !== ""
+      ? String(item.primary_ingredient)
+      : item.grape_or_raw_material != null
+        ? String(item.grape_or_raw_material)
+        : null;
 
   let articleLink: { slug: string; title: string } | null = null;
   const artId = item.related_knowledge_article_id;
@@ -112,10 +141,17 @@ export default async function AlcoholProductPage({
     withCocktails = [];
   }
 
-  const hasSensory = SENSORY_KEYS.some((k) => sensory[k] != null && Number(sensory[k]) >= 1);
+  const sensoryKeysOrdered = orderedSensoryKeys(sensory, drinkType);
+  const hasSensoryBars = sensoryKeysOrdered.length > 0;
+  const hasServing =
+    Boolean(item.serving_temperature) ||
+    Boolean(item.recommended_glassware) ||
+    Boolean(item.serve_style);
+
   const nav: { id: string; label: string }[] = [];
   nav.push({ id: "summary", label: "О продукте" });
-  if (hasSensory || (flavorProfile && Object.keys(flavorProfile).length > 0)) {
+  if (hasServing) nav.push({ id: "serving", label: "Подача" });
+  if (hasSensoryBars || (flavorProfile && Object.keys(flavorProfile).length > 0)) {
     nav.push({ id: "taste", label: "Вкус" });
   }
   if (articleLink || practiceTest) nav.push({ id: "learn", label: "Учёба" });
@@ -168,7 +204,12 @@ export default async function AlcoholProductPage({
                 )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-zinc-900 mb-2">{String(item.name)}</h1>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <h1 className="text-2xl font-bold text-zinc-900">{String(item.name)}</h1>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700">
+                    {cfg.label}
+                  </span>
+                </div>
                 {subtitle ? <p className="text-zinc-600 text-sm mb-4">{subtitle}</p> : null}
                 {item.producer ? (
                   <p className="text-sm text-zinc-700 mb-3">
@@ -177,10 +218,18 @@ export default async function AlcoholProductPage({
                 ) : null}
 
                 <dl className="space-y-2 text-sm border-t border-zinc-100 pt-4">
-                  {item.grape_or_raw_material ? (
+                  {primaryIngredient ? (
                     <>
-                      <dt className="text-zinc-500">Виноград / сырьё</dt>
-                      <dd className="text-zinc-900 font-medium">{String(item.grape_or_raw_material)}</dd>
+                      <dt className="text-zinc-500">Основное сырьё</dt>
+                      <dd className="text-zinc-900 font-medium">{primaryIngredient}</dd>
+                    </>
+                  ) : null}
+                  {item.additional_ingredients ? (
+                    <>
+                      <dt className="text-zinc-500">Доп. ингредиенты / ботаникалы</dt>
+                      <dd className="text-zinc-900 font-medium whitespace-pre-wrap">
+                        {String(item.additional_ingredients)}
+                      </dd>
                     </>
                   ) : null}
                   {item.abv != null && item.abv !== "" ? (
@@ -195,12 +244,6 @@ export default async function AlcoholProductPage({
                       <dd className="text-zinc-900 font-medium">{String(item.volume)}</dd>
                     </>
                   ) : null}
-                  {item.serving_temperature ? (
-                    <>
-                      <dt className="text-zinc-500">Температура подачи</dt>
-                      <dd className="text-zinc-900 font-medium">{String(item.serving_temperature)}</dd>
-                    </>
-                  ) : null}
                 </dl>
 
                 {item.description ? (
@@ -211,14 +254,40 @@ export default async function AlcoholProductPage({
               </div>
             </div>
 
-            {(hasSensory || (flavorProfile && Object.keys(flavorProfile).length > 0)) && (
+            {hasServing && (
+              <div id="serving" className="border-t border-zinc-200 p-6 scroll-mt-24">
+                <h2 className="font-semibold text-zinc-900 mb-3">Подача</h2>
+                <dl className="space-y-2 text-sm">
+                  {item.serving_temperature ? (
+                    <>
+                      <dt className="text-zinc-500">Температура</dt>
+                      <dd className="text-zinc-900">{String(item.serving_temperature)}</dd>
+                    </>
+                  ) : null}
+                  {item.recommended_glassware ? (
+                    <>
+                      <dt className="text-zinc-500">Посуда</dt>
+                      <dd className="text-zinc-900">{String(item.recommended_glassware)}</dd>
+                    </>
+                  ) : null}
+                  {item.serve_style ? (
+                    <>
+                      <dt className="text-zinc-500">Способ</dt>
+                      <dd className="text-zinc-900">{String(item.serve_style)}</dd>
+                    </>
+                  ) : null}
+                </dl>
+              </div>
+            )}
+
+            {(hasSensoryBars || (flavorProfile && Object.keys(flavorProfile).length > 0)) && (
               <div id="taste" className="border-t border-zinc-200 p-6 scroll-mt-24">
                 <h2 className="font-semibold text-zinc-900 mb-4">Вкус и сенсорика</h2>
-                {hasSensory && (
+                {hasSensoryBars && (
                   <div className="rounded-xl bg-zinc-50 border border-zinc-100 p-4 mb-4 space-y-3 max-w-lg">
-                    {SENSORY_KEYS.map((key) => {
+                    {sensoryKeysOrdered.map((key) => {
                       const v = sensory[key];
-                      if (v == null || Number(v) < 1) return null;
+                      if (v == null) return null;
                       const n = Math.min(5, Math.max(1, Math.round(Number(v))));
                       return (
                         <div key={key}>
@@ -288,7 +357,7 @@ export default async function AlcoholProductPage({
                 ) : null}
                 {item.vineyards_or_origin_detail ? (
                   <div>
-                    <h2 className="font-semibold text-zinc-900 mb-2">Виноградники и терруар</h2>
+                    <h2 className="font-semibold text-zinc-900 mb-2">Терруар и происхождение сырья</h2>
                     <p className="text-zinc-700 text-sm whitespace-pre-wrap">
                       {String(item.vineyards_or_origin_detail)}
                     </p>
@@ -367,13 +436,13 @@ export default async function AlcoholProductPage({
               <div className="px-6 pb-6 space-y-5 text-sm">
                 {item.aging_method ? (
                   <div>
-                    <h3 className="font-semibold text-zinc-900 mb-1">Способ выдержки</h3>
+                    <h3 className="font-semibold text-zinc-900 mb-1">{cfg.maturationTitle}</h3>
                     <p className="text-zinc-700 whitespace-pre-wrap">{String(item.aging_method)}</p>
                   </div>
                 ) : null}
                 {item.production_method ? (
                   <div>
-                    <h3 className="font-semibold text-zinc-900 mb-1">Способ производства</h3>
+                    <h3 className="font-semibold text-zinc-900 mb-1">{cfg.productionTitle}</h3>
                     <p className="text-zinc-700 whitespace-pre-wrap">{String(item.production_method)}</p>
                   </div>
                 ) : null}
