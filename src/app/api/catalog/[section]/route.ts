@@ -29,7 +29,11 @@ const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
     table: "cocktails",
     listColumns: "id, name, slug, image_url, category_id, is_classic, description",
   },
-  glassware: { table: "glassware", listColumns: "id, name, slug, image_url, category_id" },
+  glassware: {
+    table: "glassware",
+    listColumns:
+      "id, name, slug, image_url, category_id, subcategory_text, producer, price_segment, tags, description",
+  },
 };
 
 export async function GET(
@@ -85,7 +89,7 @@ export async function GET(
 
     const tagParam = searchParams.get("tag")?.trim().toLowerCase();
     if (
-      (section === "na" || section === "technique" || section === "skills") &&
+      (section === "na" || section === "technique" || section === "skills" || section === "glassware") &&
       tagParam &&
       tagParam.length <= 64
     ) {

@@ -142,6 +142,29 @@ export default async function AdminPage() {
   const pendingTechniqueModerationTotal =
     pendingEquipmentSubmissionCount + pendingGuideSubmissionCount + pendingEquipmentReviewCount;
 
+  let pendingGlasswareSubmissionCount = 0;
+  try {
+    const { rows: pgw } = await db.query(
+      `SELECT COUNT(*) AS c FROM glassware_submissions WHERE status = 'pending'`
+    );
+    pendingGlasswareSubmissionCount = parseInt((pgw[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingGlasswareSubmissionCount = 0;
+  }
+
+  let pendingGlasswareDrinkPhotoCount = 0;
+  try {
+    const { rows: pd } = await db.query(
+      `SELECT COUNT(*) AS c FROM glassware_drink_photos WHERE status = 'pending'`
+    );
+    pendingGlasswareDrinkPhotoCount = parseInt((pd[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingGlasswareDrinkPhotoCount = 0;
+  }
+
+  const pendingGlasswareTotal =
+    pendingGlasswareSubmissionCount + pendingGlasswareDrinkPhotoCount;
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -161,7 +184,9 @@ export default async function AdminPage() {
           pendingNaCount > 0 ||
           pendingEquipmentSubmissionCount > 0 ||
           pendingGuideSubmissionCount > 0 ||
-          pendingEquipmentReviewCount > 0) && (
+          pendingEquipmentReviewCount > 0 ||
+          pendingGlasswareSubmissionCount > 0 ||
+          pendingGlasswareDrinkPhotoCount > 0) && (
           <div className="mb-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
             {pendingCount > 0 && (
               <div>
@@ -231,6 +256,26 @@ export default async function AdminPage() {
                 >
                   <Star className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   Отзывы на оборудование на модерации: {pendingEquipmentReviewCount}. Открыть →
+                </Link>
+              </div>
+            )}
+            {pendingGlasswareSubmissionCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/glassware/submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Заявки на посуду: {pendingGlasswareSubmissionCount}. Открыть →
+                </Link>
+              </div>
+            )}
+            {pendingGlasswareDrinkPhotoCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/glassware/drink-photos"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Фото с напитками на модерации: {pendingGlasswareDrinkPhotoCount}. Открыть →
                 </Link>
               </div>
             )}
@@ -366,13 +411,18 @@ export default async function AdminPage() {
           </Link>
           <Link
             href="/admin/glassware"
-            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all relative"
           >
             <UtensilsCrossed className="h-8 w-8 text-primary-600" />
             <div>
               <div className="font-semibold text-zinc-900">Посуда</div>
-              <div className="text-sm text-zinc-500">Каталог</div>
+              <div className="text-sm text-zinc-500">Заявки и фото</div>
             </div>
+            {pendingGlasswareTotal > 0 && (
+              <span className="absolute top-3 right-3 flex h-5 min-w-5 px-1 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {pendingGlasswareTotal}
+              </span>
+            )}
           </Link>
           <div className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
             <Users className="h-8 w-8 text-zinc-600" />

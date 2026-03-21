@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyToken } from "@/lib/jwt";
 import Link from "next/link";
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, ImagePlus } from "lucide-react";
 
 export default async function AdminGlasswarePage() {
   const cookieStore = await cookies();
@@ -19,11 +19,34 @@ export default async function AdminGlasswarePage() {
         </Link>
         <div className="flex items-center gap-3 mb-6">
           <UtensilsCrossed className="h-8 w-8 text-primary-600" />
-          <h1 className="text-2xl font-bold text-zinc-900">Каталог посуды</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900">Посуда</h1>
+            <p className="text-zinc-600 text-sm">Модерация UGC</p>
+          </div>
         </div>
-        <p className="text-zinc-600">
-          Добавление и редактирование — раздел в разработке. Таблицы: glassware, glassware_categories.
-        </p>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link
+            href="/admin/glassware/submissions"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-5 hover:border-primary-300 shadow-sm"
+          >
+            <UtensilsCrossed className="h-10 w-10 text-primary-600 shrink-0" />
+            <div>
+              <div className="font-semibold text-zinc-900">Заявки на карточки</div>
+              <div className="text-sm text-zinc-500">Модерация заявок посуды</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/glassware/drink-photos"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-5 hover:border-primary-300 shadow-sm"
+          >
+            <ImagePlus className="h-10 w-10 text-primary-600 shrink-0" />
+            <div>
+              <div className="font-semibold text-zinc-900">Фото с напитками</div>
+              <div className="text-sm text-zinc-500">Галерея UGC на карточках</div>
+            </div>
+          </Link>
+        </div>
       </div>
     </div>
   );
