@@ -89,6 +89,16 @@ export default async function AdminPage() {
     pendingCocktailCount = 0;
   }
 
+  let pendingAlcoholCount = 0;
+  try {
+    const { rows: pa } = await db.query(
+      `SELECT COUNT(*) AS c FROM alcohol_submissions WHERE status = 'pending'`
+    );
+    pendingAlcoholCount = parseInt((pa[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingAlcoholCount = 0;
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -102,7 +112,7 @@ export default async function AdminPage() {
           </p>
         </div>
 
-        {(pendingCount > 0 || pendingCocktailCount > 0) && (
+        {(pendingCount > 0 || pendingCocktailCount > 0 || pendingAlcoholCount > 0) && (
           <div className="mb-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
             {pendingCount > 0 && (
               <div>
@@ -121,6 +131,16 @@ export default async function AdminPage() {
                   className="font-semibold text-amber-900 hover:underline"
                 >
                   Ожидают модерации коктейлей: {pendingCocktailCount}. Открыть заявки →
+                </Link>
+              </div>
+            )}
+            {pendingAlcoholCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/alcohol/submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Ожидают модерации алкоголя: {pendingAlcoholCount}. Открыть заявки →
                 </Link>
               </div>
             )}
@@ -163,6 +183,21 @@ export default async function AdminPage() {
               <div className="font-semibold text-zinc-900">База знаний</div>
               <div className="text-sm text-zinc-500">Статьи</div>
             </div>
+          </Link>
+          <Link
+            href="/admin/alcohol/submissions"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all relative"
+          >
+            <Wine className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Заявки на алкоголь</div>
+              <div className="text-sm text-zinc-500">Модерация UGC</div>
+            </div>
+            {pendingAlcoholCount > 0 && (
+              <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {pendingAlcoholCount}
+              </span>
+            )}
           </Link>
           <Link
             href="/admin/alcohol"

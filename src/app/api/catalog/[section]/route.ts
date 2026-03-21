@@ -5,7 +5,10 @@ const SECTIONS = ["alcohol", "na", "technique", "cocktails", "glassware"] as con
 type Section = (typeof SECTIONS)[number];
 
 const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
-  alcohol: { table: "alcohol_products", listColumns: "id, name, slug, image_url, category_id, abv" },
+  alcohol: {
+    table: "alcohol_products",
+    listColumns: "id, name, slug, image_url, category_id, abv, country, region, producer, description",
+  },
   na: { table: "na_products", listColumns: "id, name, slug, image_url, category_id" },
   technique: { table: "equipment", listColumns: "id, name, slug, image_url, category_id" },
   cocktails: {

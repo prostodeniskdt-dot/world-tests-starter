@@ -21,11 +21,17 @@ export default async function AdminAlcoholPage() {
           <Wine className="h-8 w-8 text-primary-600" />
           <h1 className="text-2xl font-bold text-zinc-900">Каталог алкоголя</h1>
         </div>
+        <p className="text-zinc-600 mb-4">
+          <Link href="/admin/alcohol/submissions" className="text-primary-600 hover:underline font-medium">
+            Модерация заявок на карточки алкоголя (UGC)
+          </Link>
+        </p>
         <p className="text-zinc-600">
-          Добавление и редактирование продуктов — раздел в разработке. Пока можно добавлять записи напрямую в БД (таблица alcohol_products, alcohol_categories).
+          Добавление и редактирование каталога напрямую — раздел в разработке. Таблицы: alcohol_products,
+          alcohol_categories.
         </p>
         <p className="text-sm text-zinc-500 mt-4">
-          Для загрузки изображений используйте API <code className="bg-zinc-100 px-1 rounded">POST /api/upload</code> (требуется авторизация админа).
+          Для загрузки изображений админом: <code className="bg-zinc-100 px-1 rounded">POST /api/upload</code>.
         </p>
       </div>
     </div>

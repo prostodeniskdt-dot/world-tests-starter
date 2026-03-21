@@ -54,6 +54,7 @@ const MIGRATION_FILES = [
   "20260322_knowledge_practice_test.sql",
   "20260323_user_profile_bio.sql",
   "20260324_alcohol_cocktails_mvp.sql",
+  "20260325_alcohol_ugc.sql",
 ];
 
 function isMigrationSafe(sql: string, fileName: string): { safe: boolean; reason?: string } {

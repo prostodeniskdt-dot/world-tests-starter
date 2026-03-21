@@ -7,7 +7,7 @@ import { useLocalUser } from "@/components/UserGate";
 import { LoginModal } from "@/components/LoginModal";
 import { slugify } from "@/lib/slugify";
 
-type IngredientRow = { name: string; amount: string };
+type IngredientRow = { name: string; amount: string; alcohol_product_slug: string };
 
 export default function CocktailSubmitPage() {
   const { user } = useLocalUser();
@@ -20,7 +20,9 @@ export default function CocktailSubmitPage() {
   const [glass, setGlass] = useState("");
   const [garnish, setGarnish] = useState("");
   const [ice, setIce] = useState("");
-  const [ingredients, setIngredients] = useState<IngredientRow[]>([{ name: "", amount: "" }]);
+  const [ingredients, setIngredients] = useState<IngredientRow[]>([
+    { name: "", amount: "", alcohol_product_slug: "" },
+  ]);
   const [instructions, setInstructions] = useState("");
   const [cordialsRecipe, setCordialsRecipe] = useState("");
   const [barName, setBarName] = useState("");
@@ -71,7 +73,7 @@ export default function CocktailSubmitPage() {
   };
 
   const addIngredient = () => {
-    setIngredients((prev) => [...prev, { name: "", amount: "" }]);
+    setIngredients((prev) => [...prev, { name: "", amount: "", alcohol_product_slug: "" }]);
   };
 
   const setIngredient = (i: number, field: keyof IngredientRow, value: string) => {
@@ -104,7 +106,16 @@ export default function CocktailSubmitPage() {
       return;
     }
 
-    const cleaned = ingredients.filter((r) => r.name.trim() || r.amount.trim());
+    const cleaned = ingredients
+      .filter((r) => r.name.trim() || r.amount.trim())
+      .map((r) => {
+        const slug = r.alcohol_product_slug.trim();
+        return {
+          name: r.name.trim(),
+          amount: r.amount.trim(),
+          ...(slug ? { alcohol_product_slug: slug } : {}),
+        };
+      });
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim())
@@ -159,7 +170,7 @@ export default function CocktailSubmitPage() {
       setGlass("");
       setGarnish("");
       setIce("");
-      setIngredients([{ name: "", amount: "" }]);
+      setIngredients([{ name: "", amount: "", alcohol_product_slug: "" }]);
       setInstructions("");
       setCordialsRecipe("");
       setBarName("");
@@ -305,31 +316,43 @@ export default function CocktailSubmitPage() {
                 + строка
               </button>
             </div>
-            <div className="space-y-2">
+            <p className="text-xs text-zinc-500 mb-2">
+              Опционально: slug карточки из раздела «Алкоголь» — тогда напиток появится в блоке «В коктейлях» на
+              карточке продукта.
+            </p>
+            <div className="space-y-3">
               {ingredients.map((row, i) => (
-                <div key={i} className="flex gap-2">
+                <div key={i} className="flex flex-col gap-2 rounded-lg border border-zinc-100 p-2 bg-zinc-50/50">
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      value={row.amount}
+                      onChange={(e) => setIngredient(i, "amount", e.target.value)}
+                      placeholder="объём"
+                      className="w-28 shrink-0 rounded-lg border border-zinc-300 px-2 py-2 text-sm bg-white"
+                    />
+                    <input
+                      value={row.name}
+                      onChange={(e) => setIngredient(i, "name", e.target.value)}
+                      placeholder="ингредиент"
+                      className="flex-1 min-w-[120px] rounded-lg border border-zinc-300 px-3 py-2 text-sm bg-white"
+                    />
+                    {ingredients.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeIngredient(i)}
+                        className="text-zinc-400 hover:text-red-600 px-2 self-center"
+                        aria-label="Удалить строку"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                   <input
-                    value={row.amount}
-                    onChange={(e) => setIngredient(i, "amount", e.target.value)}
-                    placeholder="объём"
-                    className="w-28 shrink-0 rounded-lg border border-zinc-300 px-2 py-2 text-sm"
+                    value={row.alcohol_product_slug}
+                    onChange={(e) => setIngredient(i, "alcohol_product_slug", e.target.value)}
+                    placeholder="slug карточки алкоголя (необязательно)"
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs font-mono bg-white"
                   />
-                  <input
-                    value={row.name}
-                    onChange={(e) => setIngredient(i, "name", e.target.value)}
-                    placeholder="ингредиент"
-                    className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-                  />
-                  {ingredients.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeIngredient(i)}
-                      className="text-zinc-400 hover:text-red-600 px-2"
-                      aria-label="Удалить строку"
-                    >
-                      ×
-                    </button>
-                  )}
                 </div>
               ))}
             </div>

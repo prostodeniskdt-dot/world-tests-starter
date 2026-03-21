@@ -20,16 +20,27 @@ function parseScale(v: unknown): number | null {
   return n;
 }
 
-function normalizeIngredients(raw: unknown): { name: string; amount: string }[] | null {
+function normalizeIngredients(
+  raw: unknown
+): { name: string; amount: string; alcohol_product_slug?: string }[] | null {
   if (!Array.isArray(raw)) return null;
-  const out: { name: string; amount: string }[] = [];
+  const out: { name: string; amount: string; alcohol_product_slug?: string }[] = [];
   for (const row of raw) {
     if (!row || typeof row !== "object") continue;
     const o = row as Record<string, unknown>;
     const name = sanitizeHtml(String(o.name ?? "").trim(), { allowedTags: [], allowedAttributes: {} });
     const amount = sanitizeHtml(String(o.amount ?? "").trim(), { allowedTags: [], allowedAttributes: {} });
     if (!name && !amount) continue;
-    out.push({ name: name.slice(0, 200), amount: amount.slice(0, 120) });
+    const slugRaw = o.alcohol_product_slug != null ? String(o.alcohol_product_slug).trim() : "";
+    const alcohol_product_slug = slugRaw
+      ? sanitizeHtml(slugRaw, { allowedTags: [], allowedAttributes: {} }).slice(0, 120) || undefined
+      : undefined;
+    const entry: { name: string; amount: string; alcohol_product_slug?: string } = {
+      name: name.slice(0, 200),
+      amount: amount.slice(0, 120),
+    };
+    if (alcohol_product_slug) entry.alcohol_product_slug = alcohol_product_slug;
+    out.push(entry);
     if (out.length >= 40) break;
   }
   return out;
