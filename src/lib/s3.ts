@@ -4,6 +4,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
+import { getS3PublicUrlPrefixes } from "@/lib/knowledgeMediaUrl";
 
 function getS3Config() {
   const accessKey = process.env.S3_ACCESS_KEY;
@@ -79,18 +80,7 @@ export function isS3Configured(): boolean {
   );
 }
 
-/** Префиксы публичных URL объектов (для проверки src в HTML и обложек). */
-export function getS3PublicUrlPrefixes(): string[] {
-  const accessKey = process.env.S3_ACCESS_KEY;
-  const secretKey = process.env.S3_SECRET_KEY;
-  const bucket = process.env.S3_BUCKET;
-  const endpoint = process.env.S3_ENDPOINT || "https://s3.twcstorage.ru";
-  if (!accessKey || !secretKey || !bucket) return [];
-  const publicUrl =
-    process.env.S3_PUBLIC_URL ||
-    `${endpoint.replace(/^https:\/\//, `https://${bucket}.`)}`;
-  return [publicUrl.replace(/\/$/, "")];
-}
+export { getS3PublicUrlPrefixes };
 
 /** Извлекает ключ объекта в бакете из публичного URL (для удаления при смене аватара/обоев). */
 export function tryGetS3KeyFromPublicUrl(url: string): string | null {

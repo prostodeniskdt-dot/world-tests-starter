@@ -1,6 +1,6 @@
 import sanitizeHtml from "sanitize-html";
 import { slugify } from "@/lib/slugify";
-import { isAllowedKnowledgeMediaUrl } from "@/lib/sanitizeArticleHtml";
+import { isAllowedKnowledgeMediaUrl } from "@/lib/knowledgeMediaUrl";
 
 export const EQUIPMENT_PRICE_SEGMENTS = ["budget", "mid", "premium", "pro"] as const;
 export type EquipmentPriceSegment = (typeof EQUIPMENT_PRICE_SEGMENTS)[number];

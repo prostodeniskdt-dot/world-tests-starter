@@ -1,26 +1,8 @@
 import "server-only";
 import sanitizeHtml, { type Attributes } from "sanitize-html";
-import { getS3PublicUrlPrefixes } from "@/lib/s3";
+import { isAllowedKnowledgeMediaUrl, normalizeKnowledgeMediaSrc } from "@/lib/knowledgeMediaUrl";
 
-function normalizeSrc(src: string): string {
-  try {
-    const u = new URL(src);
-    return u.href;
-  } catch {
-    return "";
-  }
-}
-
-export function isAllowedKnowledgeMediaUrl(url: string | null | undefined): boolean {
-  if (url == null || url === "") return true;
-  const trimmed = String(url).trim();
-  if (!trimmed) return true;
-  const prefixes = getS3PublicUrlPrefixes();
-  if (prefixes.length === 0) return false;
-  const normalized = normalizeSrc(trimmed);
-  if (!normalized.startsWith("https://")) return false;
-  return prefixes.some((p) => normalized.startsWith(`${p}/`) || normalized === p);
-}
+export { isAllowedKnowledgeMediaUrl } from "@/lib/knowledgeMediaUrl";
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -98,7 +80,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
       return {
         tagName,
         attribs: {
-          src: normalizeSrc(src),
+          src: normalizeKnowledgeMediaSrc(src),
           alt: attribs.alt || "",
           ...(attribs.width ? { width: attribs.width } : {}),
           ...(attribs.height ? { height: attribs.height } : {}),
