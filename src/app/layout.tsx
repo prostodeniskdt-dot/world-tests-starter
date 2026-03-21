@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { viewport } from "./viewport";
 import { Nav } from "@/components/Nav";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UserProvider } from "@/components/UserGate";
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
 };
+
+export { viewport };
 
 export default function RootLayout({
   children,
@@ -30,7 +33,9 @@ export default function RootLayout({
         <ErrorBoundary>
           <UserProvider>
             <Nav />
-            <main id="main-content" className="min-h-screen bg-zinc-50">{children}</main>
+            <main id="main-content" className="min-h-screen min-w-0 bg-zinc-50">
+              {children}
+            </main>
             <Footer />
             <ToastContainer />
             <CookieConsentBanner />

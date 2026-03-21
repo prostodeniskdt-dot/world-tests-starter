@@ -5,6 +5,8 @@ import type { JWTPayload } from "@/lib/jwt";
 
 export type LocalUser = JWTPayload & {
   userId: string;
+  avatarUrl?: string | null;
+  profileCoverUrl?: string | null;
 };
 
 type UserContextType = {

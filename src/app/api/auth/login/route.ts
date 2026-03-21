@@ -58,20 +58,39 @@ export async function POST(req: Request) {
   let user: any;
   try {
     const { rows } = await db.query(
-      `SELECT id, email, first_name, last_name, telegram_username, password_hash, is_admin, is_banned
+      `SELECT id, email, first_name, last_name, telegram_username, password_hash, is_admin, is_banned,
+              avatar_url, profile_cover_url
        FROM users WHERE email = $1 LIMIT 1`,
       [normalizedEmail]
     );
     user = rows[0] || null;
-  } catch (err: any) {
-    console.error("Error finding user:", err);
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Ошибка базы данных: " + (err.message || String(err)),
-      },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes("avatar_url") && !msg.includes("profile_cover_url")) {
+      console.error("Error finding user:", err);
+      return NextResponse.json(
+        { ok: false, error: "Ошибка базы данных: " + msg },
+        { status: 500 }
+      );
+    }
+    try {
+      const { rows } = await db.query(
+        `SELECT id, email, first_name, last_name, telegram_username, password_hash, is_admin, is_banned
+         FROM users WHERE email = $1 LIMIT 1`,
+        [normalizedEmail]
+      );
+      user = rows[0] || null;
+      if (user) {
+        user.avatar_url = null;
+        user.profile_cover_url = null;
+      }
+    } catch (e2) {
+      console.error("Error finding user (fallback):", e2);
+      return NextResponse.json(
+        { ok: false, error: "Ошибка базы данных" },
+        { status: 500 }
+      );
+    }
   }
 
   // Если пользователь не найден
@@ -139,6 +158,8 @@ export async function POST(req: Request) {
     telegramUsername: user.telegram_username,
     isAdmin: user.is_admin || false,
     isBanned: user.is_banned || false,
+    avatarUrl: user.avatar_url ?? null,
+    profileCoverUrl: user.profile_cover_url ?? null,
   };
 
   // Создаем ответ

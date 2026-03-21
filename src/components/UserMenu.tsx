@@ -44,9 +44,19 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-3 rounded-full hover:bg-zinc-100 p-2 transition-all"
       >
-        <div className="h-10 w-10 rounded-full gradient-primary flex items-center justify-center text-white text-sm font-bold shadow-md">
-          {user.firstName.charAt(0).toUpperCase()}
-        </div>
+        {user.avatarUrl ? (
+          // Публичный URL из S3
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={user.avatarUrl}
+            alt=""
+            className="h-10 w-10 rounded-full object-cover shadow-md ring-2 ring-white"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-full gradient-primary flex items-center justify-center text-white text-sm font-bold shadow-md">
+            {user.firstName.charAt(0).toUpperCase()}
+          </div>
+        )}
         <span className="hidden md:block text-sm font-semibold text-zinc-900">{fullName}</span>
       </button>
 

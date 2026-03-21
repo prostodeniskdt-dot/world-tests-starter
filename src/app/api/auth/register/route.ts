@@ -181,6 +181,10 @@ export async function POST(req: Request) {
     firstName: normalizedFirstName,
     lastName: normalizedLastName,
     telegramUsername: normalizedTelegramUsername,
+    isAdmin,
+    isBanned,
+    avatarUrl: null as string | null,
+    profileCoverUrl: null as string | null,
   };
 
   // Создаем JWT токен

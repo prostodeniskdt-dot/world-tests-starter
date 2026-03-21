@@ -91,3 +91,15 @@ export function getS3PublicUrlPrefixes(): string[] {
     `${endpoint.replace(/^https:\/\//, `https://${bucket}.`)}`;
   return [publicUrl.replace(/\/$/, "")];
 }
+
+/** Извлекает ключ объекта в бакете из публичного URL (для удаления при смене аватара/обоев). */
+export function tryGetS3KeyFromPublicUrl(url: string): string | null {
+  if (!url || typeof url !== "string") return null;
+  const normalized = url.trim();
+  for (const prefix of getS3PublicUrlPrefixes()) {
+    if (normalized.startsWith(prefix + "/")) {
+      return normalized.slice(prefix.length + 1);
+    }
+  }
+  return null;
+}

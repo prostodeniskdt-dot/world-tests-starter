@@ -7,6 +7,8 @@ import { Trophy, Award, Calendar, ExternalLink, BarChart3, FileDown } from "luci
 import { ProfileDeleteAccount } from "@/components/ProfileDeleteAccount";
 import { ProfileFilters } from "@/components/ProfileFilters";
 import { ProfileExportPdf } from "@/components/ProfileExportPdf";
+import { ProfileAppearancePanel } from "@/components/ProfileAppearancePanel";
+import { ProfileDashboardLinks } from "@/components/ProfileDashboardLinks";
 import { Suspense } from "react";
 
 export const revalidate = 10;
@@ -170,35 +172,66 @@ export default async function ProfilePage({
 
   const profileBasePath = "/profile";
 
+  const avatarUrl = user.avatar_url as string | null | undefined;
+  const coverUrl = user.profile_cover_url as string | null | undefined;
+  const showAvatarImage = Boolean(avatarUrl && (isOwnProfile || showPublicInfo));
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
-        <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
-          <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full gradient-primary flex items-center justify-center text-primary-600 text-xl sm:text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">
-            {(showPublicInfo ? (displayName || user.first_name || "?").charAt(0) : "?").toUpperCase()}
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 min-w-0">
+      {isOwnProfile && <ProfileDashboardLinks />}
+
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft overflow-hidden">
+        {isOwnProfile && coverUrl ? (
+          <div className="relative h-28 sm:h-40 bg-zinc-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={coverUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
           </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-zinc-900 mb-1">
-              {isOwnProfile
-                ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
-                : showPublicInfo
-                  ? displayName
-                  : "Участник"}
-            </h1>
-            {isOwnProfile && <div className="text-zinc-600 mb-2">{user.email}</div>}
-            {showPublicInfo && user.telegram_username && (
-              <a
-                href={`https://t.me/${user.telegram_username}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-zinc-600 hover:underline"
-              >
-                @{user.telegram_username}
-                <ExternalLink className="h-3 w-3" />
-              </a>
+        ) : null}
+
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+            {showAvatarImage && avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt=""
+                className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover shadow-lg flex-shrink-0 ring-2 ring-white"
+              />
+            ) : (
+              <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full gradient-primary flex items-center justify-center text-primary-600 text-xl sm:text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">
+                {(showPublicInfo ? (displayName || user.first_name || "?").charAt(0) : "?").toUpperCase()}
+              </div>
             )}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-zinc-900 mb-1">
+                {isOwnProfile
+                  ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
+                  : showPublicInfo
+                    ? displayName
+                    : "Участник"}
+              </h1>
+              {isOwnProfile && <div className="text-zinc-600 mb-2 break-all">{user.email}</div>}
+              {showPublicInfo && user.telegram_username && (
+                <a
+                  href={`https://t.me/${user.telegram_username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-zinc-600 hover:underline"
+                >
+                  @{user.telegram_username}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
           </div>
-        </div>
+
+          {isOwnProfile && (
+            <ProfileAppearancePanel hasAvatar={Boolean(avatarUrl)} hasCover={Boolean(coverUrl)} />
+          )}
 
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
@@ -220,6 +253,7 @@ export default async function ProfilePage({
           </div>
         )}
         {isOwnProfile && !user.delete_requested_at && <ProfileDeleteAccount />}
+        </div>
       </div>
 
       {/* Аналитика по категориям */}

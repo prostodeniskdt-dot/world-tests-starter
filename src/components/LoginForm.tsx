@@ -17,6 +17,8 @@ type LoginFormProps = {
     telegramUsername?: string | null;
     isAdmin?: boolean;
     isBanned?: boolean;
+    avatarUrl?: string | null;
+    profileCoverUrl?: string | null;
   }) => void;
   onSwitchToRegister: () => void;
 };

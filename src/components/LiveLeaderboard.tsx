@@ -116,7 +116,7 @@ export function LiveLeaderboard() {
           </span>
         </div>
       </div>
-      <div className="overflow-y-auto flex-1 -mx-4 sm:mx-0">
+      <div className="overflow-x-auto overflow-y-auto flex-1 -mx-4 sm:mx-0 min-w-0">
         {/* Мобильный вид - карточки */}
         <div className="block sm:hidden space-y-3 px-4">
           {displayedRows.map((r) => {
