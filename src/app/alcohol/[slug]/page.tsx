@@ -89,6 +89,13 @@ export default async function AlcoholProductPage({
             <p className="text-zinc-700 text-sm">{String(item.history)}</p>
           </div>
         ) : null}
+
+        {item.food_usage ? (
+          <div className="border-t border-zinc-200 p-6">
+            <h2 className="font-semibold text-zinc-900 mb-2">В кухне и блюдах</h2>
+            <p className="text-zinc-700 text-sm whitespace-pre-wrap">{String(item.food_usage)}</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );

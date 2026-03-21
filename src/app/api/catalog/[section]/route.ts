@@ -8,7 +8,10 @@ const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
   alcohol: { table: "alcohol_products", listColumns: "id, name, slug, image_url, category_id, abv" },
   na: { table: "na_products", listColumns: "id, name, slug, image_url, category_id" },
   technique: { table: "equipment", listColumns: "id, name, slug, image_url, category_id" },
-  cocktails: { table: "cocktails", listColumns: "id, name, slug, image_url, category_id, is_classic" },
+  cocktails: {
+    table: "cocktails",
+    listColumns: "id, name, slug, image_url, category_id, is_classic, description",
+  },
   glassware: { table: "glassware", listColumns: "id, name, slug, image_url, category_id" },
 };
 
@@ -43,6 +46,14 @@ export async function GET(
       where += ` AND (name ILIKE $${i} OR slug ILIKE $${i})`;
       values.push(`%${search}%`);
       i++;
+    }
+
+    const classic = searchParams.get("classic");
+    if (section === "cocktails" && classic === "true") {
+      where += ` AND is_classic = true`;
+    }
+    if (section === "cocktails" && classic === "false") {
+      where += ` AND is_classic = false`;
     }
 
     const countValues = [...values];

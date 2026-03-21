@@ -79,6 +79,16 @@ export default async function AdminPage() {
   );
   const pendingCount = parseInt((pendingSubmissions[0] as { c: string })?.c || "0", 10);
 
+  let pendingCocktailCount = 0;
+  try {
+    const { rows: pc } = await db.query(
+      `SELECT COUNT(*) AS c FROM cocktail_submissions WHERE status = 'pending'`
+    );
+    pendingCocktailCount = parseInt((pc[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingCocktailCount = 0;
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -92,14 +102,28 @@ export default async function AdminPage() {
           </p>
         </div>
 
-        {pendingCount > 0 && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            <Link
-              href="/admin/knowledge/submissions"
-              className="font-semibold text-amber-900 hover:underline"
-            >
-              Ожидают модерации статей в базу знаний: {pendingCount}. Открыть заявки →
-            </Link>
+        {(pendingCount > 0 || pendingCocktailCount > 0) && (
+          <div className="mb-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            {pendingCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/knowledge/submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Ожидают модерации статей в базу знаний: {pendingCount}. Открыть заявки →
+                </Link>
+              </div>
+            )}
+            {pendingCocktailCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/cocktails/submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Ожидают модерации коктейлей: {pendingCocktailCount}. Открыть заявки →
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -169,6 +193,21 @@ export default async function AdminPage() {
               <div className="font-semibold text-zinc-900">Техника</div>
               <div className="text-sm text-zinc-500">Каталог</div>
             </div>
+          </Link>
+          <Link
+            href="/admin/cocktails/submissions"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all relative"
+          >
+            <Martini className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Заявки на коктейли</div>
+              <div className="text-sm text-zinc-500">Модерация UGC</div>
+            </div>
+            {pendingCocktailCount > 0 && (
+              <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {pendingCocktailCount}
+              </span>
+            )}
           </Link>
           <Link
             href="/admin/cocktails"
