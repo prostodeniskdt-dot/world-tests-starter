@@ -56,8 +56,8 @@ export const SECTIONS: Section[] = [
   },
   {
     id: "technique",
-    title: "Техника",
-    description: "Оборудование для баров и кухонь",
+    title: "Техника и навыки",
+    description: "Оборудование, приёмы и техники работы за баром",
     href: "/technique",
     icon: Wrench,
   },

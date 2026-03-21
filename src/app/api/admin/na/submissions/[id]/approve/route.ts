@@ -172,15 +172,32 @@ export async function POST(
 
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
-    const code =
-      err && typeof err === "object" && "code" in err ? String((err as { code: string }).code) : "";
+    const e = err as { code?: string; message?: string };
+    const code = e.code ? String(e.code) : "";
     if (code === "NOT_FOUND") {
       return NextResponse.json({ ok: false, error: "Заявка не найдена" }, { status: 404 });
     }
     if (code === "BAD_CATEGORY") {
       return NextResponse.json({ ok: false, error: "Категория не найдена" }, { status: 400 });
     }
+    if (code === "42703") {
+      console.error("Approve NA submission: missing DB column", err);
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "В таблице na_products нет нужной колонки (часто country). Выполните миграции: npm run run-db-migrations",
+        },
+        { status: 500 }
+      );
+    }
     console.error("Approve NA submission error:", err);
-    return NextResponse.json({ ok: false, error: "Ошибка" }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error: process.env.NODE_ENV === "development" && e.message ? e.message : "Ошибка сохранения",
+      },
+      { status: 500 }
+    );
   }
 }

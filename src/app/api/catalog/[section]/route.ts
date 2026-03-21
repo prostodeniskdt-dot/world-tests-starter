@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { DRINK_TYPES } from "@/lib/alcoholDrinkTypes";
 
-const SECTIONS = ["alcohol", "na", "technique", "cocktails", "glassware"] as const;
+const SECTIONS = ["alcohol", "na", "technique", "skills", "cocktails", "glassware"] as const;
 type Section = (typeof SECTIONS)[number];
 
 const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
@@ -16,7 +16,15 @@ const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
     listColumns:
       "id, name, slug, image_url, category_id, tags, subcategory_text, description, producer, country",
   },
-  technique: { table: "equipment", listColumns: "id, name, slug, image_url, category_id" },
+  technique: {
+    table: "equipment",
+    listColumns:
+      "id, name, slug, image_url, category_id, producer, price_segment, tags, description",
+  },
+  skills: {
+    table: "technique_guides",
+    listColumns: "id, name, slug, category_id, difficulty, short_description, tags",
+  },
   cocktails: {
     table: "cocktails",
     listColumns: "id, name, slug, image_url, category_id, is_classic, description",
@@ -76,7 +84,11 @@ export async function GET(
     }
 
     const tagParam = searchParams.get("tag")?.trim().toLowerCase();
-    if (section === "na" && tagParam && tagParam.length <= 64) {
+    if (
+      (section === "na" || section === "technique" || section === "skills") &&
+      tagParam &&
+      tagParam.length <= 64
+    ) {
       where += ` AND $${i} = ANY(tags)`;
       values.push(tagParam);
       i++;

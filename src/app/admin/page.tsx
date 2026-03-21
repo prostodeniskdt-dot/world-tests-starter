@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { verifyToken } from "@/lib/jwt";
 import { AdminUsersTable } from "@/components/AdminUsersTable";
 import { db } from "@/lib/db";
-import { Shield, Users, FileText, Wine, Coffee, Wrench, Martini, UtensilsCrossed, Library, Bell } from "lucide-react";
+import { Shield, Users, FileText, Wine, Coffee, Wrench, Martini, UtensilsCrossed, Library, Bell, Star } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminPage() {
@@ -109,6 +109,39 @@ export default async function AdminPage() {
     pendingNaCount = 0;
   }
 
+  let pendingEquipmentSubmissionCount = 0;
+  try {
+    const { rows: pe } = await db.query(
+      `SELECT COUNT(*) AS c FROM equipment_submissions WHERE status = 'pending'`
+    );
+    pendingEquipmentSubmissionCount = parseInt((pe[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingEquipmentSubmissionCount = 0;
+  }
+
+  let pendingGuideSubmissionCount = 0;
+  try {
+    const { rows: pg } = await db.query(
+      `SELECT COUNT(*) AS c FROM technique_guide_submissions WHERE status = 'pending'`
+    );
+    pendingGuideSubmissionCount = parseInt((pg[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingGuideSubmissionCount = 0;
+  }
+
+  let pendingEquipmentReviewCount = 0;
+  try {
+    const { rows: pr } = await db.query(
+      `SELECT COUNT(*) AS c FROM equipment_reviews WHERE status = 'pending'`
+    );
+    pendingEquipmentReviewCount = parseInt((pr[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingEquipmentReviewCount = 0;
+  }
+
+  const pendingTechniqueModerationTotal =
+    pendingEquipmentSubmissionCount + pendingGuideSubmissionCount + pendingEquipmentReviewCount;
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -125,7 +158,10 @@ export default async function AdminPage() {
         {(pendingCount > 0 ||
           pendingCocktailCount > 0 ||
           pendingAlcoholCount > 0 ||
-          pendingNaCount > 0) && (
+          pendingNaCount > 0 ||
+          pendingEquipmentSubmissionCount > 0 ||
+          pendingGuideSubmissionCount > 0 ||
+          pendingEquipmentReviewCount > 0) && (
           <div className="mb-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
             {pendingCount > 0 && (
               <div>
@@ -164,6 +200,37 @@ export default async function AdminPage() {
                   className="font-semibold text-amber-900 hover:underline"
                 >
                   Ожидают модерации Б/А: {pendingNaCount}. Открыть заявки →
+                </Link>
+              </div>
+            )}
+            {pendingEquipmentSubmissionCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/technique/equipment-submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Заявки на оборудование (техника): {pendingEquipmentSubmissionCount}. Открыть →
+                </Link>
+              </div>
+            )}
+            {pendingGuideSubmissionCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/technique/guide-submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Заявки на приёмы и техники: {pendingGuideSubmissionCount}. Открыть →
+                </Link>
+              </div>
+            )}
+            {pendingEquipmentReviewCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/technique/reviews"
+                  className="font-semibold text-amber-900 hover:underline inline-flex items-center gap-1"
+                >
+                  <Star className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  Отзывы на оборудование на модерации: {pendingEquipmentReviewCount}. Открыть →
                 </Link>
               </div>
             )}
@@ -259,13 +326,18 @@ export default async function AdminPage() {
           </Link>
           <Link
             href="/admin/technique"
-            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all relative"
           >
             <Wrench className="h-8 w-8 text-primary-600" />
             <div>
-              <div className="font-semibold text-zinc-900">Техника</div>
-              <div className="text-sm text-zinc-500">Каталог</div>
+              <div className="font-semibold text-zinc-900">Техника и навыки</div>
+              <div className="text-sm text-zinc-500">Заявки и отзывы</div>
             </div>
+            {pendingTechniqueModerationTotal > 0 && (
+              <span className="absolute top-3 right-3 flex h-5 min-w-5 px-1 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {pendingTechniqueModerationTotal}
+              </span>
+            )}
           </Link>
           <Link
             href="/admin/cocktails/submissions"
