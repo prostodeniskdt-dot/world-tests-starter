@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Submission = {
@@ -21,19 +22,19 @@ type Submission = {
 
 type Category = { id: number; name: string };
 
-export function AdminSubmissionsList({ submissions }: { submissions: Submission[] }) {
+export function AdminSubmissionsList({
+  submissions,
+  categories,
+}: {
+  submissions: Submission[];
+  categories: Category[];
+}) {
   const [items, setItems] = useState(submissions);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [processing, setProcessing] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/knowledge/categories")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.ok) setCategories(data.items || []);
-      })
-      .catch(() => {});
-  }, []);
+    setItems(submissions);
+  }, [submissions]);
 
   const handleApprove = async (id: number, categoryId: number) => {
     setProcessing(id);
@@ -76,6 +77,20 @@ export function AdminSubmissionsList({ submissions }: { submissions: Submission[
 
   return (
     <div className="space-y-6">
+      {categories.length === 0 && pending.length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-medium">Нет категорий для публикации</p>
+          <p className="mt-1 text-amber-900">
+            Выполните миграции БД (<code className="text-xs bg-amber-100 px-1 rounded">npm run run-db-migrations</code>) и
+            при необходимости добавьте категории в разделе{" "}
+            <Link href="/admin/knowledge/categories" className="underline font-medium">
+              Категории базы знаний
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
       {pending.length === 0 && others.length === 0 ? (
         <p className="text-zinc-500">Нет заявок</p>
       ) : (
@@ -149,15 +164,19 @@ function SubmissionCard({
   const [publishCategoryId, setPublishCategoryId] = useState<number | "">("");
 
   useEffect(() => {
-    if (categories.length === 0) return;
+    if (categories.length === 0) {
+      setPublishCategoryId("");
+      return;
+    }
     const next =
-      s.category_id && categories.some((c) => c.id === s.category_id)
+      s.category_id != null && categories.some((c) => c.id === s.category_id)
         ? s.category_id
         : categories[0].id;
     setPublishCategoryId((prev) => (prev === "" ? next : prev));
   }, [categories, s.category_id, s.id]);
 
   const author = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email || "—";
+  const html = String(s.content ?? "");
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4">
@@ -168,7 +187,7 @@ function SubmissionCard({
             <img src={s.cover_image_url} alt="" className="w-full h-full object-cover" />
           </div>
         ) : null}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
             <div>
               <h3 className="font-semibold text-zinc-900">{s.title}</h3>
@@ -187,15 +206,20 @@ function SubmissionCard({
               <label className="text-xs text-zinc-600">
                 Категория при публикации
                 <select
-                  className="mt-1 w-full px-2 py-1.5 rounded-lg border border-zinc-300 text-sm bg-white"
+                  className="mt-1 w-full px-2 py-1.5 rounded-lg border border-zinc-300 text-sm bg-white disabled:bg-zinc-100 disabled:text-zinc-500"
                   value={publishCategoryId === "" ? "" : String(publishCategoryId)}
                   onChange={(e) => setPublishCategoryId(parseInt(e.target.value, 10))}
+                  disabled={categories.length === 0}
                 >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
+                  {categories.length === 0 ? (
+                    <option value="">Нет категорий — см. подсказку выше</option>
+                  ) : (
+                    categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </label>
               <div className="flex gap-2">
@@ -233,8 +257,8 @@ function SubmissionCard({
           </button>
           {expanded && (
             <div
-              className="mt-3 p-3 bg-zinc-50 rounded-lg text-sm text-zinc-700 prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: s.content }}
+              className="mt-3 p-3 bg-zinc-50 rounded-lg text-sm text-zinc-700 prose prose-sm max-w-none break-words"
+              dangerouslySetInnerHTML={{ __html: html }}
             />
           )}
         </div>

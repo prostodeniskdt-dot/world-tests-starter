@@ -39,17 +39,44 @@ export default function KnowledgeSubmitPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/knowledge/categories")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.ok && data.items?.length) {
-          setCategories(data.items);
-          setCategoryId((prev) => (prev === "" ? data.items[0].id : prev));
+    let cancelled = false;
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    fetch("/api/knowledge/categories", { credentials: "same-origin" })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!r.ok || !data.ok) {
+          setCategoriesError(data.error || "Не удалось загрузить категории");
+          setCategories([]);
+          return;
+        }
+        const items: Category[] = data.items || [];
+        setCategories(items);
+        if (items.length > 0) {
+          setCategoryId((prev) => (prev === "" ? items[0].id : prev));
+        } else {
+          setCategoriesError(
+            "Категории не настроены. Администратору нужно выполнить миграции БД и добавить категории."
+          );
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) {
+          setCategoriesError("Ошибка сети при загрузке категорий");
+          setCategories([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const uploadCover = async (file: File) => {
@@ -193,10 +220,13 @@ export default function KnowledgeSubmitPage() {
             required
             value={categoryId === "" ? "" : String(categoryId)}
             onChange={(e) => setCategoryId(e.target.value ? parseInt(e.target.value, 10) : "")}
-            className="w-full px-4 py-2 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+            disabled={categoriesLoading || categories.length === 0}
+            className="w-full px-4 py-2 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white disabled:bg-zinc-100"
           >
-            {categories.length === 0 ? (
+            {categoriesLoading ? (
               <option value="">Загрузка категорий…</option>
+            ) : categoriesError || categories.length === 0 ? (
+              <option value="">Категории недоступны</option>
             ) : (
               categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -205,6 +235,9 @@ export default function KnowledgeSubmitPage() {
               ))
             )}
           </select>
+          {categoriesError && !categoriesLoading && (
+            <p className="text-sm text-amber-800 mt-1">{categoriesError}</p>
+          )}
         </div>
 
         <div>
@@ -279,7 +312,7 @@ export default function KnowledgeSubmitPage() {
 
         <button
           type="submit"
-          disabled={loading || categories.length === 0}
+          disabled={loading || categoriesLoading || categories.length === 0}
           className="rounded-lg gradient-primary px-6 py-3 text-white font-semibold hover:opacity-90 disabled:opacity-50"
         >
           {loading ? "Отправка..." : "Отправить на модерацию"}

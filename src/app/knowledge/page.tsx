@@ -27,10 +27,10 @@ export default function KnowledgePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/knowledge/categories")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.ok) setCategories(data.items || []);
+    fetch("/api/knowledge/categories", { credentials: "same-origin" })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (r.ok && data.ok) setCategories(data.items || []);
       })
       .catch(() => {});
   }, []);

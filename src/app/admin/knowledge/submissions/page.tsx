@@ -1,7 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyToken } from "@/lib/jwt";
-import { db } from "@/lib/db";
+import {
+  queryArticleSubmissionsForAdmin,
+  queryKnowledgeCategoriesForSelect,
+} from "@/lib/knowledge-submissions-query";
 import { AdminSubmissionsList } from "@/components/AdminSubmissionsList";
 import { Bell } from "lucide-react";
 import Link from "next/link";
@@ -14,16 +17,15 @@ export default async function AdminSubmissionsPage() {
   const payload = verifyToken(token);
   if (!payload || !payload.isAdmin) redirect("/");
 
-  const { rows } = await db.query(
-    `SELECT s.id, s.title, s.slug, s.excerpt, s.content, s.status, s.created_at, s.user_id,
-            s.category_id, s.cover_image_url,
-            u.first_name, u.last_name, u.email,
-            c.name AS category_name
-     FROM article_submissions s
-     LEFT JOIN users u ON u.id = s.user_id
-     LEFT JOIN knowledge_categories c ON c.id = s.category_id
-     ORDER BY s.created_at DESC`
-  );
+  const [rows, categories] = await Promise.all([
+    queryArticleSubmissionsForAdmin(),
+    queryKnowledgeCategoriesForSelect(),
+  ]);
+
+  const safeRows = rows.map((r) => ({
+    ...r,
+    content: String(r.content ?? ""),
+  }));
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -38,7 +40,7 @@ export default async function AdminSubmissionsPage() {
             <p className="text-zinc-600 text-sm">Модерация UGC-контента</p>
           </div>
         </div>
-        <AdminSubmissionsList submissions={rows} />
+        <AdminSubmissionsList submissions={safeRows} categories={categories} />
       </div>
     </div>
   );
