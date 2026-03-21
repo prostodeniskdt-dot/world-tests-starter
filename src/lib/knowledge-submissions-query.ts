@@ -3,12 +3,14 @@ import { db } from "@/lib/db";
 
 const SUBMISSIONS_FULL = `
   SELECT s.id, s.title, s.slug, s.excerpt, s.content, s.status, s.created_at, s.user_id,
-         s.category_id, s.cover_image_url,
+         s.category_id, s.cover_image_url, s.practice_test_id,
+         t.title AS practice_test_title,
          u.first_name, u.last_name, u.email,
          c.name AS category_name
   FROM article_submissions s
   LEFT JOIN users u ON u.id = s.user_id
   LEFT JOIN knowledge_categories c ON c.id = s.category_id
+  LEFT JOIN tests t ON t.id = s.practice_test_id
   ORDER BY s.created_at DESC
 `;
 
@@ -69,6 +71,8 @@ export type AdminSubmissionRow = {
   category_id: number | null;
   cover_image_url: string | null;
   category_name: string | null;
+  practice_test_id: string | null;
+  practice_test_title: string | null;
 };
 
 /** Заявки для админки: полный запрос или без колонок миграции 20260321, если их ещё нет в БД. */
@@ -79,13 +83,22 @@ export async function queryArticleSubmissionsForAdmin(): Promise<AdminSubmission
   } catch (err) {
     if (!isUndefinedColumnError(err)) throw err;
     const { rows } = await db.query(SUBMISSIONS_LEGACY);
-    return (rows as Omit<AdminSubmissionRow, "category_id" | "cover_image_url" | "category_name">[]).map(
-      (r) => ({
-        ...r,
-        category_id: null,
-        cover_image_url: null,
-        category_name: null,
-      })
-    );
+    return (
+      rows as Omit<
+        AdminSubmissionRow,
+        | "category_id"
+        | "cover_image_url"
+        | "category_name"
+        | "practice_test_id"
+        | "practice_test_title"
+      >[]
+    ).map((r) => ({
+      ...r,
+      category_id: null,
+      cover_image_url: null,
+      category_name: null,
+      practice_test_id: null,
+      practice_test_title: null,
+    }));
   }
 }

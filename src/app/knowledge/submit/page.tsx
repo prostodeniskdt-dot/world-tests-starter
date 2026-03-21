@@ -41,6 +41,9 @@ export default function KnowledgeSubmitPage() {
   const [editorKey, setEditorKey] = useState(0);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [tests, setTests] = useState<{ id: string; title: string }[]>([]);
+  const [testsLoading, setTestsLoading] = useState(false);
+  const [practiceTestId, setPracticeTestId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -78,6 +81,33 @@ export default function KnowledgeSubmitPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setTestsLoading(true);
+    fetch("/api/tests", { credentials: "same-origin" })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (cancelled) return;
+        if (r.ok && data.ok && Array.isArray(data.tests)) {
+          setTests(
+            data.tests.map((t: { id: string; title: string }) => ({ id: t.id, title: t.title }))
+          );
+        } else {
+          setTests([]);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setTests([]);
+      })
+      .finally(() => {
+        if (!cancelled) setTestsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const uploadCover = async (file: File) => {
     setCoverUploading(true);
@@ -123,6 +153,7 @@ export default function KnowledgeSubmitPage() {
           slug: slugify(title.trim()) || `article-${Date.now()}`,
           category_id: categoryId,
           cover_image_url: coverUrl,
+          practice_test_id: practiceTestId.trim() || undefined,
         }),
       });
 
@@ -157,6 +188,7 @@ export default function KnowledgeSubmitPage() {
       setContent("<p></p>");
       setCoverUrl(null);
       setEditorKey((k) => k + 1);
+      setPracticeTestId("");
       if (categories.length) setCategoryId(categories[0].id);
     } catch {
       setError("Ошибка сети");
@@ -319,6 +351,37 @@ export default function KnowledgeSubmitPage() {
             className="w-full px-4 py-2 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             placeholder="Краткое описание для списка статей"
           />
+        </div>
+
+        <div>
+          <label htmlFor="practice-test" className="block text-sm font-medium text-zinc-700 mb-1">
+            Тест для закрепления знаний
+          </label>
+          <p className="text-xs text-zinc-500 mb-2">
+            Необязательно. После одобрения статьи в конце материала появится кнопка — она откроет
+            выбранный опубликованный тест.
+          </p>
+          <select
+            id="practice-test"
+            value={practiceTestId}
+            onChange={(e) => setPracticeTestId(e.target.value)}
+            disabled={loading || testsLoading}
+            className="w-full px-4 py-2 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white disabled:bg-zinc-100"
+          >
+            <option value="">Не предлагать тест</option>
+            {tests.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.title}
+              </option>
+            ))}
+          </select>
+          {testsLoading ? (
+            <p className="text-xs text-zinc-500 mt-1">Загрузка списка тестов…</p>
+          ) : tests.length === 0 ? (
+            <p className="text-xs text-amber-800 mt-1">
+              Нет опубликованных тестов — привязка теста к статье сейчас недоступна.
+            </p>
+          ) : null}
         </div>
 
         <div>

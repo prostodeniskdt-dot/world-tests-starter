@@ -9,6 +9,7 @@ import { ProfileFilters } from "@/components/ProfileFilters";
 import { ProfileExportPdf } from "@/components/ProfileExportPdf";
 import { ProfileAppearancePanel } from "@/components/ProfileAppearancePanel";
 import { ProfileDashboardLinks } from "@/components/ProfileDashboardLinks";
+import { ProfileBioSection } from "@/components/ProfileBioSection";
 import { Suspense } from "react";
 
 export const revalidate = 10;
@@ -232,6 +233,14 @@ export default async function ProfilePage({
           {isOwnProfile && (
             <ProfileAppearancePanel hasAvatar={Boolean(avatarUrl)} hasCover={Boolean(coverUrl)} />
           )}
+
+          <ProfileBioSection
+            isOwnProfile={isOwnProfile}
+            initialAbout={user.profile_about != null ? String(user.profile_about) : null}
+            initialAchievements={
+              user.profile_achievements != null ? String(user.profile_achievements) : null
+            }
+          />
 
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">

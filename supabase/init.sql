@@ -27,6 +27,8 @@ create table public.users (
   delete_requested_at timestamptz,
   avatar_url text,
   profile_cover_url text,
+  profile_about text,
+  profile_achievements text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

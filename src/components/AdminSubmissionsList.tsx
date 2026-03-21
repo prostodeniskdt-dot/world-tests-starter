@@ -18,6 +18,8 @@ type Submission = {
   category_id: number | null;
   category_name: string | null;
   cover_image_url: string | null;
+  practice_test_id: string | null;
+  practice_test_title: string | null;
 };
 
 type Category = { id: number; name: string };
@@ -230,6 +232,11 @@ function SubmissionCard({
               </p>
               {s.category_name ? (
                 <p className="text-xs text-primary-700 mt-1">Категория автора: {s.category_name}</p>
+              ) : null}
+              {s.practice_test_title ? (
+                <p className="text-xs text-violet-700 mt-1">
+                  Тест для закрепления: {s.practice_test_title}
+                </p>
               ) : null}
               {s.excerpt && (
                 <p className="text-sm text-zinc-600 mt-2 line-clamp-2">{s.excerpt}</p>

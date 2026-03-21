@@ -45,6 +45,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const practiceTestRaw =
+      body?.practice_test_id != null ? String(body.practice_test_id).trim() : "";
+    let practice_test_id: string | null = null;
+    if (practiceTestRaw) {
+      const t = await db.query(
+        `SELECT id FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
+        [practiceTestRaw]
+      );
+      if (t.rows.length === 0) {
+        return NextResponse.json(
+          { ok: false, error: "Выбранный тест не найден или не опубликован" },
+          { status: 400 }
+        );
+      }
+      practice_test_id = practiceTestRaw;
+    }
+
     if (!title || !content || (!textOnly && !hasImage)) {
       return NextResponse.json(
         { ok: false, error: "Заполните заголовок и содержание статьи" },
@@ -60,9 +77,9 @@ export async function POST(req: NextRequest) {
     }
 
     await db.query(
-      `INSERT INTO article_submissions (user_id, title, slug, excerpt, content, status, category_id, cover_image_url)
-       VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7)`,
-      [auth.userId, title, slug, excerpt, content, categoryId, cover_image_url]
+      `INSERT INTO article_submissions (user_id, title, slug, excerpt, content, status, category_id, cover_image_url, practice_test_id)
+       VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $8)`,
+      [auth.userId, title, slug, excerpt, content, categoryId, cover_image_url, practice_test_id]
     );
 
     return NextResponse.json({ ok: true });

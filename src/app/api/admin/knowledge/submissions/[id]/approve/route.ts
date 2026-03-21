@@ -74,10 +74,19 @@ export async function POST(
 
       const coverUrl = (sub.cover_image_url as string | null) || null;
 
+      let practiceTestId = (sub.practice_test_id as string | null) || null;
+      if (practiceTestId) {
+        const tchk = await client.query(
+          `SELECT id FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
+          [practiceTestId]
+        );
+        if (tchk.rows.length === 0) practiceTestId = null;
+      }
+
       await client.query(
-        `INSERT INTO knowledge_articles (title, slug, excerpt, content, author_id, author_name, is_published, category_id, cover_image_url)
-         VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8)`,
-        [sub.title, slug, sub.excerpt, sub.content, userId, authorName, categoryId, coverUrl]
+        `INSERT INTO knowledge_articles (title, slug, excerpt, content, author_id, author_name, is_published, category_id, cover_image_url, practice_test_id)
+         VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, $9)`,
+        [sub.title, slug, sub.excerpt, sub.content, userId, authorName, categoryId, coverUrl, practiceTestId]
       );
 
       await client.query(

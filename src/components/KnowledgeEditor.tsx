@@ -8,6 +8,7 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
+import Underline from "@tiptap/extension-underline";
 import {
   Bold,
   Italic,
@@ -52,6 +53,7 @@ export default function KnowledgeEditor({
         heading: { levels: [2, 3] },
         link: false,
       }),
+      Underline,
       TableKit.configure({
         table: { resizable: false },
       }),
@@ -160,6 +162,12 @@ export default function KnowledgeEditor({
     <button
       type="button"
       title={title}
+      tabIndex={-1}
+      onMouseDown={(e) => {
+        if (disabled || btnDisabled) return;
+        // Иначе фокус уходит с contenteditable и сбрасывается выделение — команды не к чему применить
+        e.preventDefault();
+      }}
       onClick={onClick}
       disabled={disabled || btnDisabled}
       className={`p-2 rounded-md border text-sm ${
