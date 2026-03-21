@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { TableKit } from "@tiptap/extension-table";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
 import {
   Bold,
   Italic,
+  Underline as UnderlineIcon,
   List,
   ListOrdered,
   Heading2,
@@ -18,6 +21,13 @@ import {
   Redo,
   Link2,
   ImageIcon,
+  Table2,
+  Trash2,
+  Minus,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
 } from "lucide-react";
 
 type Props = {
@@ -42,6 +52,14 @@ export default function KnowledgeEditor({
         heading: { levels: [2, 3] },
         link: false,
       }),
+      TableKit.configure({
+        table: { resizable: false },
+      }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right", "justify"],
+        defaultAlignment: "left",
+      }),
       Link.configure({
         openOnClick: false,
         autolink: true,
@@ -61,7 +79,7 @@ export default function KnowledgeEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose max-w-none min-h-[280px] px-3 py-2 focus:outline-none prose-zinc",
+          "prose prose-sm sm:prose max-w-none min-h-[280px] px-3 py-2 focus:outline-none prose-zinc knowledge-editor-content",
       },
     },
   });
@@ -131,17 +149,19 @@ export default function KnowledgeEditor({
     active,
     children,
     title,
+    btnDisabled,
   }: {
     onClick: () => void;
     active?: boolean;
     children: React.ReactNode;
     title: string;
+    btnDisabled?: boolean;
   }) => (
     <button
       type="button"
       title={title}
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || btnDisabled}
       className={`p-2 rounded-md border text-sm ${
         active
           ? "bg-primary-50 border-primary-300 text-primary-800"
@@ -169,6 +189,43 @@ export default function KnowledgeEditor({
         >
           <Italic className="h-4 w-4" />
         </Btn>
+        <Btn
+          title="Подчёркивание"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          active={editor.isActive("underline")}
+        >
+          <UnderlineIcon className="h-4 w-4" />
+        </Btn>
+        <span className="w-px h-6 bg-zinc-200 self-center mx-0.5" aria-hidden />
+        <Btn
+          title="Выровнять влево"
+          onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          active={editor.isActive({ textAlign: "left" })}
+        >
+          <AlignLeft className="h-4 w-4" />
+        </Btn>
+        <Btn
+          title="По центру"
+          onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          active={editor.isActive({ textAlign: "center" })}
+        >
+          <AlignCenter className="h-4 w-4" />
+        </Btn>
+        <Btn
+          title="Вправо"
+          onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          active={editor.isActive({ textAlign: "right" })}
+        >
+          <AlignRight className="h-4 w-4" />
+        </Btn>
+        <Btn
+          title="По ширине"
+          onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+          active={editor.isActive({ textAlign: "justify" })}
+        >
+          <AlignJustify className="h-4 w-4" />
+        </Btn>
+        <span className="w-px h-6 bg-zinc-200 self-center mx-0.5" aria-hidden />
         <Btn
           title="Заголовок 2"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -204,12 +261,36 @@ export default function KnowledgeEditor({
         >
           <Quote className="h-4 w-4" />
         </Btn>
+        <Btn
+          title="Горизонтальная линия"
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        >
+          <Minus className="h-4 w-4" />
+        </Btn>
+        <span className="w-px h-6 bg-zinc-200 self-center mx-0.5" aria-hidden />
+        <Btn
+          title="Таблица 3×3 (с шапкой)"
+          onClick={() =>
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+          }
+        >
+          <Table2 className="h-4 w-4" />
+        </Btn>
+        <Btn
+          title="Удалить таблицу"
+          onClick={() => editor.chain().focus().deleteTable().run()}
+          btnDisabled={!editor.can().deleteTable()}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Btn>
+        <span className="w-px h-6 bg-zinc-200 self-center mx-0.5" aria-hidden />
         <Btn title="Ссылка" onClick={setLink} active={editor.isActive("link")}>
           <Link2 className="h-4 w-4" />
         </Btn>
         <Btn title="Изображение" onClick={addImage}>
           <ImageIcon className="h-4 w-4" />
         </Btn>
+        <span className="w-px h-6 bg-zinc-200 self-center mx-0.5" aria-hidden />
         <Btn title="Отменить" onClick={() => editor.chain().focus().undo().run()}>
           <Undo className="h-4 w-4" />
         </Btn>

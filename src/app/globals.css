@@ -100,3 +100,36 @@ body {
   box-shadow: inset 0 0 0 2px rgb(59 130 246 / 0.35);
   border-radius: 0 0 0.5rem 0.5rem;
 }
+
+/* Таблицы и разделители в статьях базы знаний + в редакторе */
+.knowledge-prose table,
+.knowledge-editor-root .ProseMirror table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+.knowledge-prose th,
+.knowledge-prose td,
+.knowledge-editor-root .ProseMirror th,
+.knowledge-editor-root .ProseMirror td {
+  border: 1px solid rgb(228 228 231);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+}
+.knowledge-prose th,
+.knowledge-editor-root .ProseMirror th {
+  background: rgb(244 244 245);
+  font-weight: 600;
+}
+.knowledge-prose hr,
+.knowledge-editor-root .ProseMirror hr {
+  margin: 1.25rem 0;
+  border: 0;
+  border-top: 1px solid rgb(228 228 231);
+}
+.knowledge-prose .tableWrapper,
+.knowledge-editor-root .tableWrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}

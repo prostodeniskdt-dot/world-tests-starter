@@ -72,6 +72,25 @@ export function AdminSubmissionsList({
     }
   };
 
+  const handleDeleteRejected = async (id: number) => {
+    if (!confirm("Удалить эту заявку из списка навсегда?")) return;
+    setProcessing(id);
+    try {
+      const res = await fetch(`/api/admin/knowledge/submissions/${id}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setItems((prev) => prev.filter((s) => s.id !== id));
+      } else {
+        alert(data.error || "Не удалось удалить");
+      }
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   const pending = items.filter((s) => s.status === "pending");
   const others = items.filter((s) => s.status !== "pending");
 
@@ -123,19 +142,33 @@ export function AdminSubmissionsList({
                     key={s.id}
                     className="rounded-lg border border-zinc-200 bg-white p-4 opacity-75"
                   >
-                    <div className="flex justify-between gap-4">
-                      <span className="font-medium">{s.title}</span>
-                      <span
-                        className={`text-sm flex-shrink-0 ${
-                          s.status === "approved" ? "text-emerald-600" : "text-red-600"
-                        }`}
-                      >
-                        {s.status === "approved" ? "Одобрено" : "Отклонено"}
-                      </span>
+                    <div className="flex flex-wrap justify-between items-start gap-3">
+                      <div>
+                        <span className="font-medium">{s.title}</span>
+                        <p className="text-sm text-zinc-500 mt-1">
+                          {new Date(s.created_at).toLocaleString("ru-RU")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span
+                          className={`text-sm ${
+                            s.status === "approved" ? "text-emerald-600" : "text-red-600"
+                          }`}
+                        >
+                          {s.status === "approved" ? "Одобрено" : "Отклонено"}
+                        </span>
+                        {s.status === "rejected" && (
+                          <button
+                            type="button"
+                            disabled={processing === s.id}
+                            onClick={() => handleDeleteRejected(s.id)}
+                            className="text-sm px-2 py-1 rounded-md border border-zinc-300 text-zinc-700 hover:bg-red-50 hover:border-red-200 hover:text-red-800 disabled:opacity-50"
+                          >
+                            Удалить
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-zinc-500 mt-1">
-                      {new Date(s.created_at).toLocaleString("ru-RU")}
-                    </p>
                   </div>
                 ))}
               </div>
@@ -257,7 +290,7 @@ function SubmissionCard({
           </button>
           {expanded && (
             <div
-              className="mt-3 p-3 bg-zinc-50 rounded-lg text-sm text-zinc-700 prose prose-sm max-w-none break-words"
+              className="knowledge-prose mt-3 p-3 bg-zinc-50 rounded-lg text-sm text-zinc-700 prose prose-sm max-w-none break-words overflow-x-auto"
               dangerouslySetInnerHTML={{ __html: html }}
             />
           )}

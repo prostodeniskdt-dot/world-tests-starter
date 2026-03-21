@@ -1,5 +1,5 @@
 import "server-only";
-import sanitizeHtml from "sanitize-html";
+import sanitizeHtml, { type Attributes } from "sanitize-html";
 import { getS3PublicUrlPrefixes } from "@/lib/s3";
 
 function normalizeSrc(src: string): string {
@@ -45,11 +45,44 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     "code",
     "pre",
     "span",
+    "hr",
+    "table",
+    "thead",
+    "tbody",
+    "tfoot",
+    "tr",
+    "th",
+    "td",
+    "div",
+    "colgroup",
+    "col",
   ],
   allowedAttributes: {
     a: ["href", "title", "target", "rel", "class"],
     img: ["src", "alt", "width", "height"],
     span: ["class"],
+    table: ["class"],
+    thead: ["class"],
+    tbody: ["class"],
+    tfoot: ["class"],
+    tr: ["class"],
+    th: ["colspan", "rowspan", "style", "class", "data-colwidth"],
+    td: ["colspan", "rowspan", "style", "class", "data-colwidth"],
+    div: ["class"],
+    colgroup: ["span"],
+    col: ["span", "style"],
+    p: ["style", "class"],
+    h1: ["style", "class"],
+    h2: ["style", "class"],
+    h3: ["style", "class"],
+    h4: ["style", "class"],
+  },
+  allowedStyles: {
+    "*": {
+      "text-align": [/^left$/, /^right$/, /^center$/, /^justify$/],
+      width: [/^\d+(?:px|%|rem|em)?$/],
+      "min-width": [/^\d+(?:px|%|rem|em)?$/],
+    },
   },
   allowedSchemes: ["http", "https", "mailto"],
   allowedSchemesByTag: {
@@ -71,6 +104,14 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
           ...(attribs.height ? { height: attribs.height } : {}),
         },
       };
+    },
+    div: (tagName, attribs) => {
+      const cls = attribs.class || "";
+      if (cls === "tableWrapper" || cls.split(/\s+/).includes("tableWrapper")) {
+        return { tagName, attribs: { class: "tableWrapper" } };
+      }
+      const strip: Attributes = {};
+      return { tagName: "span", text: " ", attribs: strip };
     },
   },
 };

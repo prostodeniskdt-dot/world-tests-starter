@@ -62,7 +62,7 @@ export default async function KnowledgeArticlePage({
           </div>
 
           <div
-            className="prose prose-zinc max-w-none prose-headings:font-bold prose-p:text-zinc-700 prose-img:rounded-lg"
+            className="knowledge-prose prose prose-zinc max-w-none prose-headings:font-bold prose-p:text-zinc-700 prose-img:rounded-lg overflow-x-auto"
             dangerouslySetInnerHTML={{ __html: safeHtml }}
           />
         </div>
