@@ -78,3 +78,16 @@ export function isS3Configured(): boolean {
     process.env.S3_BUCKET
   );
 }
+
+/** Префиксы публичных URL объектов (для проверки src в HTML и обложек). */
+export function getS3PublicUrlPrefixes(): string[] {
+  const accessKey = process.env.S3_ACCESS_KEY;
+  const secretKey = process.env.S3_SECRET_KEY;
+  const bucket = process.env.S3_BUCKET;
+  const endpoint = process.env.S3_ENDPOINT || "https://s3.twcstorage.ru";
+  if (!accessKey || !secretKey || !bucket) return [];
+  const publicUrl =
+    process.env.S3_PUBLIC_URL ||
+    `${endpoint.replace(/^https:\/\//, `https://${bucket}.`)}`;
+  return [publicUrl.replace(/\/$/, "")];
+}

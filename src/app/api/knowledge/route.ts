@@ -9,18 +9,18 @@ export async function GET(req: NextRequest) {
   const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
   try {
-    let where = " WHERE is_published = true";
+    let where = " WHERE a.is_published = true";
     const values: unknown[] = [];
     let i = 1;
 
     if (categoryId) {
-      where += ` AND category_id = $${i}`;
+      where += ` AND a.category_id = $${i}`;
       values.push(parseInt(categoryId, 10));
       i++;
     }
 
     if (search) {
-      where += ` AND (title ILIKE $${i} OR excerpt ILIKE $${i} OR content ILIKE $${i})`;
+      where += ` AND (a.title ILIKE $${i} OR a.excerpt ILIKE $${i} OR a.content ILIKE $${i})`;
       values.push(`%${search}%`);
       i++;
     }
@@ -30,13 +30,16 @@ export async function GET(req: NextRequest) {
 
     const [rowsResult, countResult] = await Promise.all([
       db.query(
-        `SELECT id, title, slug, excerpt, author_name, category_id, created_at
-         FROM knowledge_articles${where}
-         ORDER BY created_at DESC
+        `SELECT a.id, a.title, a.slug, a.excerpt, a.author_name, a.category_id, a.cover_image_url, a.created_at,
+                c.name AS category_name, c.slug AS category_slug
+         FROM knowledge_articles a
+         LEFT JOIN knowledge_categories c ON c.id = a.category_id
+         ${where}
+         ORDER BY a.created_at DESC
          LIMIT $${i} OFFSET $${i + 1}`,
         values
       ),
-      db.query(`SELECT COUNT(*) AS c FROM knowledge_articles${where}`, countValues),
+      db.query(`SELECT COUNT(*) AS c FROM knowledge_articles a${where}`, countValues),
     ]);
 
     const total = parseInt((countResult.rows[0] as { c: string })?.c || "0", 10);

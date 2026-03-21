@@ -24,12 +24,20 @@ export default async function AdminKnowledgePage() {
         <p className="text-zinc-600 mb-4">
           Управление статьями. UGC-заявки модерируются в разделе «Заявки на статьи».
         </p>
-        <Link
-          href="/admin/knowledge/submissions"
-          className="inline-flex items-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-        >
-          Заявки на публикацию
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/admin/knowledge/submissions"
+            className="inline-flex items-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          >
+            Заявки на публикацию
+          </Link>
+          <Link
+            href="/admin/knowledge/categories"
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+          >
+            Категории
+          </Link>
+        </div>
       </div>
     </div>
   );

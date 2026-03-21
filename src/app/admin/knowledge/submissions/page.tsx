@@ -16,9 +16,12 @@ export default async function AdminSubmissionsPage() {
 
   const { rows } = await db.query(
     `SELECT s.id, s.title, s.slug, s.excerpt, s.content, s.status, s.created_at, s.user_id,
-            u.first_name, u.last_name, u.email
+            s.category_id, s.cover_image_url,
+            u.first_name, u.last_name, u.email,
+            c.name AS category_name
      FROM article_submissions s
      LEFT JOIN users u ON u.id = s.user_id
+     LEFT JOIN knowledge_categories c ON c.id = s.category_id
      ORDER BY s.created_at DESC`
   );
 

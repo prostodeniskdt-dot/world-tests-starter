@@ -1,5 +1,5 @@
 import "server-only";
-import { Pool, type QueryResult } from "pg";
+import { Pool, type PoolClient, type QueryResult } from "pg";
 
 function required(name: string): string {
   const v = process.env[name];
@@ -55,3 +55,19 @@ export const db = {
     return queryWithRetry(args[0], args[1]);
   },
 };
+
+/** Одна транзакция на одном соединении из пула (BEGIN/COMMIT/ROLLBACK). */
+export async function withTransaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (e) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
+}

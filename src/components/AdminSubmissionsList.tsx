@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Submission = {
   id: number;
@@ -14,21 +14,41 @@ type Submission = {
   first_name: string | null;
   last_name: string | null;
   email: string | null;
+  category_id: number | null;
+  category_name: string | null;
+  cover_image_url: string | null;
 };
+
+type Category = { id: number; name: string };
 
 export function AdminSubmissionsList({ submissions }: { submissions: Submission[] }) {
   const [items, setItems] = useState(submissions);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [processing, setProcessing] = useState<number | null>(null);
 
-  const handleApprove = async (id: number) => {
+  useEffect(() => {
+    fetch("/api/knowledge/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok) setCategories(data.items || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleApprove = async (id: number, categoryId: number) => {
     setProcessing(id);
     try {
       const res = await fetch(`/api/admin/knowledge/submissions/${id}/approve`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ categoryId }),
       });
       const data = await res.json();
       if (data.ok) {
         setItems((prev) => prev.filter((s) => s.id !== id));
+      } else {
+        alert(data.error || "Ошибка одобрения");
       }
     } finally {
       setProcessing(null);
@@ -40,6 +60,7 @@ export function AdminSubmissionsList({ submissions }: { submissions: Submission[
     try {
       const res = await fetch(`/api/admin/knowledge/submissions/${id}/reject`, {
         method: "POST",
+        credentials: "same-origin",
       });
       const data = await res.json();
       if (data.ok) {
@@ -69,7 +90,8 @@ export function AdminSubmissionsList({ submissions }: { submissions: Submission[
                   <SubmissionCard
                     key={s.id}
                     s={s}
-                    onApprove={() => handleApprove(s.id)}
+                    categories={categories}
+                    onApprove={(catId) => handleApprove(s.id, catId)}
                     onReject={() => handleReject(s.id)}
                     processing={processing === s.id}
                   />
@@ -86,10 +108,10 @@ export function AdminSubmissionsList({ submissions }: { submissions: Submission[
                     key={s.id}
                     className="rounded-lg border border-zinc-200 bg-white p-4 opacity-75"
                   >
-                    <div className="flex justify-between">
+                    <div className="flex justify-between gap-4">
                       <span className="font-medium">{s.title}</span>
                       <span
-                        className={`text-sm ${
+                        className={`text-sm flex-shrink-0 ${
                           s.status === "approved" ? "text-emerald-600" : "text-red-600"
                         }`}
                       >
@@ -112,60 +134,111 @@ export function AdminSubmissionsList({ submissions }: { submissions: Submission[
 
 function SubmissionCard({
   s,
+  categories,
   onApprove,
   onReject,
   processing,
 }: {
   s: Submission;
-  onApprove: () => void;
+  categories: Category[];
+  onApprove: (categoryId: number) => void;
   onReject: () => void;
   processing: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [publishCategoryId, setPublishCategoryId] = useState<number | "">("");
+
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const next =
+      s.category_id && categories.some((c) => c.id === s.category_id)
+        ? s.category_id
+        : categories[0].id;
+    setPublishCategoryId((prev) => (prev === "" ? next : prev));
+  }, [categories, s.category_id, s.id]);
+
   const author = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email || "—";
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4">
-      <div className="flex justify-between items-start gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
+        {s.cover_image_url ? (
+          <div className="flex-shrink-0 w-full sm:w-40 h-28 rounded-lg overflow-hidden border border-zinc-100 bg-zinc-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={s.cover_image_url} alt="" className="w-full h-full object-cover" />
+          </div>
+        ) : null}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-zinc-900">{s.title}</h3>
-          <p className="text-sm text-zinc-500 mt-1">Автор: {author}</p>
-          <p className="text-xs text-zinc-400 mt-1">
-            {new Date(s.created_at).toLocaleString("ru-RU")}
-          </p>
-          {s.excerpt && (
-            <p className="text-sm text-zinc-600 mt-2 line-clamp-2">{s.excerpt}</p>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+            <div>
+              <h3 className="font-semibold text-zinc-900">{s.title}</h3>
+              <p className="text-sm text-zinc-500 mt-1">Автор: {author}</p>
+              <p className="text-xs text-zinc-400 mt-1">
+                {new Date(s.created_at).toLocaleString("ru-RU")}
+              </p>
+              {s.category_name ? (
+                <p className="text-xs text-primary-700 mt-1">Категория автора: {s.category_name}</p>
+              ) : null}
+              {s.excerpt && (
+                <p className="text-sm text-zinc-600 mt-2 line-clamp-2">{s.excerpt}</p>
+              )}
+            </div>
+            <div className="flex flex-col gap-2 flex-shrink-0 sm:min-w-[200px]">
+              <label className="text-xs text-zinc-600">
+                Категория при публикации
+                <select
+                  className="mt-1 w-full px-2 py-1.5 rounded-lg border border-zinc-300 text-sm bg-white"
+                  value={publishCategoryId === "" ? "" : String(publishCategoryId)}
+                  onChange={(e) => setPublishCategoryId(parseInt(e.target.value, 10))}
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (publishCategoryId === "") {
+                      alert("Выберите категорию");
+                      return;
+                    }
+                    onApprove(publishCategoryId);
+                  }}
+                  disabled={processing || categories.length === 0 || publishCategoryId === ""}
+                  className="flex-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  Одобрить
+                </button>
+                <button
+                  type="button"
+                  onClick={onReject}
+                  disabled={processing}
+                  className="flex-1 px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                >
+                  Отклонить
+                </button>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="mt-3 text-sm text-primary-600 hover:underline"
+          >
+            {expanded ? "Свернуть" : "Показать содержание"}
+          </button>
+          {expanded && (
+            <div
+              className="mt-3 p-3 bg-zinc-50 rounded-lg text-sm text-zinc-700 prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: s.content }}
+            />
           )}
         </div>
-        <div className="flex gap-2 flex-shrink-0">
-          <button
-            onClick={onApprove}
-            disabled={processing}
-            className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-          >
-            Одобрить
-          </button>
-          <button
-            onClick={onReject}
-            disabled={processing}
-            className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-          >
-            Отклонить
-          </button>
-        </div>
       </div>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="mt-3 text-sm text-primary-600 hover:underline"
-      >
-        {expanded ? "Свернуть" : "Показать содержание"}
-      </button>
-      {expanded && (
-        <div
-          className="mt-3 p-3 bg-zinc-50 rounded-lg text-sm text-zinc-700 prose prose-sm max-w-none"
-          dangerouslySetInnerHTML={{ __html: s.content }}
-        />
-      )}
     </div>
   );
 }
