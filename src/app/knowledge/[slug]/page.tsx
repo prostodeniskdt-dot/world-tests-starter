@@ -6,18 +6,21 @@ import { verifyToken } from "@/lib/jwt";
 import { ArrowLeft, ClipboardCheck, UserCircle } from "lucide-react";
 import { sanitizeArticleHtml } from "@/lib/sanitizeArticleHtml";
 
+/** Не кэшировать как статику — slug и содержимое из БД. */
+export const dynamic = "force-dynamic";
+
 export default async function KnowledgeArticlePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug).trim();
+
   const { rows } = await db.query(
-    `SELECT a.*, c.name AS category_name,
-            t.id AS practice_test_id_resolved, t.title AS practice_test_title
+    `SELECT a.*, c.name AS category_name
      FROM knowledge_articles a
      LEFT JOIN knowledge_categories c ON c.id = a.category_id
-     LEFT JOIN tests t ON t.id = a.practice_test_id AND t.is_published = true
      WHERE a.slug = $1 AND a.is_published = true`,
     [slug]
   );
@@ -27,12 +30,25 @@ export default async function KnowledgeArticlePage({
   const safeHtml = sanitizeArticleHtml(String(item.content || ""));
   const cover = item.cover_image_url ? String(item.cover_image_url) : null;
   const categoryName = item.category_name ? String(item.category_name) : null;
-  const practiceTestId = item.practice_test_id_resolved
-    ? String(item.practice_test_id_resolved)
-    : null;
-  const practiceTestTitle = item.practice_test_title
-    ? String(item.practice_test_title)
-    : null;
+
+  let practiceTestId: string | null = null;
+  let practiceTestTitle: string | null = null;
+  const rawPracticeId = item.practice_test_id != null ? String(item.practice_test_id).trim() : "";
+  if (rawPracticeId) {
+    try {
+      const tr = await db.query(
+        `SELECT id, title FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
+        [rawPracticeId]
+      );
+      const trow = tr.rows[0] as { id: string; title: string } | undefined;
+      if (trow) {
+        practiceTestId = String(trow.id);
+        practiceTestTitle = String(trow.title);
+      }
+    } catch {
+      /* колонка practice_test_id или таблица tests — кнопку теста просто не показываем */
+    }
+  }
 
   const authorId = item.author_id != null ? String(item.author_id) : null;
   const cookieStore = await cookies();
