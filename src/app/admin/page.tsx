@@ -99,6 +99,16 @@ export default async function AdminPage() {
     pendingAlcoholCount = 0;
   }
 
+  let pendingNaCount = 0;
+  try {
+    const { rows: pn } = await db.query(
+      `SELECT COUNT(*) AS c FROM na_submissions WHERE status = 'pending'`
+    );
+    pendingNaCount = parseInt((pn[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingNaCount = 0;
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -112,7 +122,10 @@ export default async function AdminPage() {
           </p>
         </div>
 
-        {(pendingCount > 0 || pendingCocktailCount > 0 || pendingAlcoholCount > 0) && (
+        {(pendingCount > 0 ||
+          pendingCocktailCount > 0 ||
+          pendingAlcoholCount > 0 ||
+          pendingNaCount > 0) && (
           <div className="mb-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
             {pendingCount > 0 && (
               <div>
@@ -141,6 +154,16 @@ export default async function AdminPage() {
                   className="font-semibold text-amber-900 hover:underline"
                 >
                   Ожидают модерации алкоголя: {pendingAlcoholCount}. Открыть заявки →
+                </Link>
+              </div>
+            )}
+            {pendingNaCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/na/submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Ожидают модерации Б/А: {pendingNaCount}. Открыть заявки →
                 </Link>
               </div>
             )}
@@ -208,6 +231,21 @@ export default async function AdminPage() {
               <div className="font-semibold text-zinc-900">Алкоголь</div>
               <div className="text-sm text-zinc-500">Каталог</div>
             </div>
+          </Link>
+          <Link
+            href="/admin/na/submissions"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all relative"
+          >
+            <Coffee className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Заявки на Б/А</div>
+              <div className="text-sm text-zinc-500">Модерация UGC</div>
+            </div>
+            {pendingNaCount > 0 && (
+              <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {pendingNaCount}
+              </span>
+            )}
           </Link>
           <Link
             href="/admin/na"

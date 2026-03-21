@@ -11,7 +11,11 @@ const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
     listColumns:
       "id, name, slug, image_url, category_id, drink_type, abv, country, region, producer, description",
   },
-  na: { table: "na_products", listColumns: "id, name, slug, image_url, category_id" },
+  na: {
+    table: "na_products",
+    listColumns:
+      "id, name, slug, image_url, category_id, tags, subcategory_text, description, producer, country",
+  },
   technique: { table: "equipment", listColumns: "id, name, slug, image_url, category_id" },
   cocktails: {
     table: "cocktails",
@@ -69,6 +73,13 @@ export async function GET(
         values.push(dt);
         i++;
       }
+    }
+
+    const tagParam = searchParams.get("tag")?.trim().toLowerCase();
+    if (section === "na" && tagParam && tagParam.length <= 64) {
+      where += ` AND $${i} = ANY(tags)`;
+      values.push(tagParam);
+      i++;
     }
 
     const countValues = [...values];

@@ -86,7 +86,14 @@ export default async function CocktailPage({
 
   if (rows.length === 0) notFound();
   const item = rows[0] as Row;
-  const ingredients = item.ingredients as { name: string; amount: string }[] | null;
+  const ingredients = item.ingredients as
+    | {
+        name: string;
+        amount: string;
+        alcohol_product_slug?: string;
+        na_product_slug?: string;
+      }[]
+    | null;
   const flavorProfile = item.flavor_profile as Record<string, number> | null;
   const tags = item.tags as string[] | null;
   const gallery = parseGallery(item.gallery_urls);
@@ -225,11 +232,33 @@ export default async function CocktailPage({
             <div id="ingredients" className="border-t border-zinc-200 p-6 scroll-mt-24">
               <h2 className="font-semibold text-zinc-900 mb-3">Ингредиенты</h2>
               <ul className="space-y-1">
-                {ingredients.map((ing, i) => (
-                  <li key={i} className="text-zinc-700">
-                    {String(ing?.amount ?? "")} {String(ing?.name ?? "")}
-                  </li>
-                ))}
+                {ingredients.map((ing, i) => {
+                  const alSlug = ing?.alcohol_product_slug?.trim();
+                  const naSlug = ing?.na_product_slug?.trim();
+                  const nameNode =
+                    alSlug ? (
+                      <Link
+                        href={`/alcohol/${encodeURIComponent(alSlug)}`}
+                        className="text-primary-600 hover:underline"
+                      >
+                        {String(ing?.name ?? "")}
+                      </Link>
+                    ) : naSlug ? (
+                      <Link
+                        href={`/na/${encodeURIComponent(naSlug)}`}
+                        className="text-primary-600 hover:underline"
+                      >
+                        {String(ing?.name ?? "")}
+                      </Link>
+                    ) : (
+                      <span>{String(ing?.name ?? "")}</span>
+                    );
+                  return (
+                    <li key={i} className="text-zinc-700">
+                      {String(ing?.amount ?? "")} {nameNode}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

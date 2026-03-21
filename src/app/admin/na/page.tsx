@@ -21,9 +21,16 @@ export default async function AdminNAPage() {
           <Coffee className="h-8 w-8 text-primary-600" />
           <h1 className="text-2xl font-bold text-zinc-900">Каталог Б/а</h1>
         </div>
-        <p className="text-zinc-600">
-          Добавление и редактирование продуктов — раздел в разработке. Пока можно добавлять записи в БД (таблица na_products, na_categories).
+        <p className="text-zinc-600 mb-4">
+          Публикация карточек — через заявки пользователей и модерацию. Прямое редактирование в админке можно
+          добавить позже.
         </p>
+        <Link
+          href="/admin/na/submissions"
+          className="inline-flex rounded-lg bg-primary-600 text-white text-sm font-medium px-4 py-2.5 hover:bg-primary-700"
+        >
+          Заявки на карточки Б/А
+        </Link>
       </div>
     </div>
   );

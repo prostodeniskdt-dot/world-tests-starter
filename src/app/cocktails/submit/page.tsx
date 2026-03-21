@@ -7,7 +7,12 @@ import { useLocalUser } from "@/components/UserGate";
 import { LoginModal } from "@/components/LoginModal";
 import { slugify } from "@/lib/slugify";
 
-type IngredientRow = { name: string; amount: string; alcohol_product_slug: string };
+type IngredientRow = {
+  name: string;
+  amount: string;
+  alcohol_product_slug: string;
+  na_product_slug: string;
+};
 
 export default function CocktailSubmitPage() {
   const { user } = useLocalUser();
@@ -21,7 +26,7 @@ export default function CocktailSubmitPage() {
   const [garnish, setGarnish] = useState("");
   const [ice, setIce] = useState("");
   const [ingredients, setIngredients] = useState<IngredientRow[]>([
-    { name: "", amount: "", alcohol_product_slug: "" },
+    { name: "", amount: "", alcohol_product_slug: "", na_product_slug: "" },
   ]);
   const [instructions, setInstructions] = useState("");
   const [cordialsRecipe, setCordialsRecipe] = useState("");
@@ -73,7 +78,10 @@ export default function CocktailSubmitPage() {
   };
 
   const addIngredient = () => {
-    setIngredients((prev) => [...prev, { name: "", amount: "", alcohol_product_slug: "" }]);
+    setIngredients((prev) => [
+      ...prev,
+      { name: "", amount: "", alcohol_product_slug: "", na_product_slug: "" },
+    ]);
   };
 
   const setIngredient = (i: number, field: keyof IngredientRow, value: string) => {
@@ -110,10 +118,12 @@ export default function CocktailSubmitPage() {
       .filter((r) => r.name.trim() || r.amount.trim())
       .map((r) => {
         const slug = r.alcohol_product_slug.trim();
+        const naSlug = r.na_product_slug.trim();
         return {
           name: r.name.trim(),
           amount: r.amount.trim(),
           ...(slug ? { alcohol_product_slug: slug } : {}),
+          ...(naSlug ? { na_product_slug: naSlug } : {}),
         };
       });
     const tags = tagsInput
@@ -170,7 +180,7 @@ export default function CocktailSubmitPage() {
       setGlass("");
       setGarnish("");
       setIce("");
-      setIngredients([{ name: "", amount: "", alcohol_product_slug: "" }]);
+      setIngredients([{ name: "", amount: "", alcohol_product_slug: "", na_product_slug: "" }]);
       setInstructions("");
       setCordialsRecipe("");
       setBarName("");
@@ -317,8 +327,8 @@ export default function CocktailSubmitPage() {
               </button>
             </div>
             <p className="text-xs text-zinc-500 mb-2">
-              Опционально: slug карточки из раздела «Алкоголь» — тогда напиток появится в блоке «В коктейлях» на
-              карточке продукта.
+              Опционально: slug карточки «Алкоголь» и/или «Б/А» — рецепт появится в блоке «В коктейлях» на
+              соответствующей карточке.
             </p>
             <div className="space-y-3">
               {ingredients.map((row, i) => (
@@ -351,6 +361,12 @@ export default function CocktailSubmitPage() {
                     value={row.alcohol_product_slug}
                     onChange={(e) => setIngredient(i, "alcohol_product_slug", e.target.value)}
                     placeholder="slug карточки алкоголя (необязательно)"
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs font-mono bg-white"
+                  />
+                  <input
+                    value={row.na_product_slug}
+                    onChange={(e) => setIngredient(i, "na_product_slug", e.target.value)}
+                    placeholder="slug карточки Б/А (необязательно)"
                     className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-xs font-mono bg-white"
                   />
                 </div>
