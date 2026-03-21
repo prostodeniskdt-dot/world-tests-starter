@@ -58,7 +58,7 @@ export default function TechniqueSkillsListPage() {
     id == null ? null : categories.find((c) => c.id === id)?.name ?? null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <Link
         href="/technique"
         className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline mb-6"
@@ -140,7 +140,7 @@ export default function TechniqueSkillsListPage() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/technique/skills/${item.slug}`}
+              href={`/technique/skills/${encodeURIComponent(item.slug)}`}
               className="group rounded-xl border border-zinc-200 bg-white p-4 hover:shadow-lg hover:border-primary-300 transition-all"
             >
               <h3 className="font-semibold text-zinc-900 group-hover:text-primary-700 mb-1">

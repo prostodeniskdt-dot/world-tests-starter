@@ -68,7 +68,7 @@ export default function AlcoholPage() {
   const applySearch = () => setQ(searchDraft);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -158,7 +158,7 @@ export default function AlcoholPage() {
             return (
               <Link
                 key={item.id}
-                href={`/alcohol/${item.slug}`}
+                href={`/alcohol/${encodeURIComponent(item.slug)}`}
                 className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
               >
                 <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">

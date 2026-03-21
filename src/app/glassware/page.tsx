@@ -61,7 +61,7 @@ export default function GlasswarePage() {
     id == null ? null : categories.find((c) => c.id === id)?.name ?? null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -135,10 +135,10 @@ export default function GlasswarePage() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/glassware/${item.slug}`}
-              className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all"
+              href={`/glassware/${encodeURIComponent(item.slug)}`}
+              className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
             >
-              <div className="aspect-square bg-zinc-100 flex items-center justify-center">
+              <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">
                 {item.image_url ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
@@ -150,8 +150,8 @@ export default function GlasswarePage() {
                   <UtensilsCrossed className="h-12 w-12 text-zinc-300" />
                 )}
               </div>
-              <div className="p-3">
-                <h3 className="font-semibold text-zinc-900 truncate group-hover:text-primary-700">
+              <div className="p-3 flex flex-col flex-1 min-w-0">
+                <h3 className="font-semibold text-zinc-900 line-clamp-2 group-hover:text-primary-700">
                   {item.name}
                 </h3>
                 {item.subcategory_text || catName(item.category_id) ? (

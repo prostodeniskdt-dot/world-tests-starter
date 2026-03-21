@@ -128,7 +128,7 @@ export default async function KnowledgeArticlePage({
               </p>
               <Link
                 href={`/test?testId=${encodeURIComponent(practiceTestId)}`}
-                className="inline-flex items-center gap-2 rounded-xl gradient-primary px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-90 transition-opacity min-h-[44px]"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700 transition-colors min-h-[44px]"
               >
                 <ClipboardCheck className="h-5 w-5 flex-shrink-0" aria-hidden />
                 Перейти к тесту: {practiceTestTitle}

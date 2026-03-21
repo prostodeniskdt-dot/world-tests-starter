@@ -338,7 +338,7 @@ export default async function NAProductPage({
                 {practiceTest ? (
                   <Link
                     href={`/test?testId=${encodeURIComponent(practiceTest.id)}`}
-                    className="inline-flex items-center gap-2 rounded-lg gradient-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors"
                   >
                     <ClipboardCheck className="h-4 w-4 shrink-0" />
                     Тест: {practiceTest.title}

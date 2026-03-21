@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { SITE_NAME } from "@/lib/constants";
+import { SECTIONS } from "@/lib/sections";
 import { DocModal } from "./DocModal";
 
 const DOC_LINKS: { slug: string; label: string }[] = [
@@ -19,9 +21,20 @@ export function Footer() {
   return (
     <>
       <footer className="border-t border-zinc-200 bg-white/95 backdrop-blur-sm py-6 sm:py-8 mt-8 sm:mt-12">
-        <div className="max-w-7xl mx-auto px-4 text-xs sm:text-sm text-zinc-600">
+        <div className="max-w-6xl mx-auto px-4 text-xs sm:text-sm text-zinc-600">
           <div className="flex items-center justify-center mb-3">
             <span className="text-base sm:text-lg font-bold text-gradient">{SITE_NAME}</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-3">
+            {SECTIONS.map((s) => (
+              <Link
+                key={s.id}
+                href={s.href}
+                className="text-primary-600 hover:text-primary-700 hover:underline"
+              >
+                {s.title}
+              </Link>
+            ))}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-2">
             {DOC_LINKS.map(({ slug, label }) => (

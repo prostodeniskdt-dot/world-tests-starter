@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 type PairingsMap = Record<string, string[]>;
@@ -112,13 +112,14 @@ export default function PairingsConstructorPage() {
     : [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8">
         <Link
           href="/pairings"
-          className="text-sm text-primary-600 hover:underline mb-4 inline-block"
+          className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline mb-4"
         >
-          ← Сочетания
+          <ArrowLeft className="h-4 w-4" />
+          Сочетания
         </Link>
         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-2">
           Конструктор идей
@@ -245,7 +246,9 @@ export default function PairingsConstructorPage() {
 
         {selected.length === 0 && (
           <p className="text-zinc-500">
-            Добавь ингредиенты, чтобы увидеть сочетания и идеи.
+            {ingredients.length === 0
+              ? "Раздел сочетаний пока наполняется. Попробуйте позже."
+              : "Добавь ингредиенты, чтобы увидеть сочетания и идеи."}
           </p>
         )}
       </div>

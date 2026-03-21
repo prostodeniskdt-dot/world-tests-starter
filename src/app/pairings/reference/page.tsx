@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { PairingsSearch } from "@/components/pairings/PairingsSearch";
 import { PairingsResult } from "@/components/pairings/PairingsResult";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 type FlavorPairingResult = {
@@ -46,13 +46,14 @@ export default function PairingsReferencePage() {
   }, [selectedIngredient]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8">
         <Link
           href="/pairings"
-          className="text-sm text-primary-600 hover:underline mb-4 inline-block"
+          className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline mb-4"
         >
-          ← Сочетания
+          <ArrowLeft className="h-4 w-4" />
+          Сочетания
         </Link>
         <div className="flex items-center gap-3 mb-2">
           <BookOpen className="h-8 w-8 text-primary-600" aria-hidden="true" />

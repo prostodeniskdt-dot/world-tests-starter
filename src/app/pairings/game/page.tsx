@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 type GameState = "loading" | "playing" | "result";
@@ -115,12 +115,13 @@ export default function PairingsGamePage() {
     question && !question.correct.includes(opt);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <Link
         href="/pairings"
-        className="text-sm text-primary-600 hover:underline mb-6 inline-block"
+        className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline mb-6"
       >
-        ← Сочетания
+        <ArrowLeft className="h-4 w-4" />
+        Сочетания
       </Link>
 
       <div className="mb-8">
@@ -175,7 +176,7 @@ export default function PairingsGamePage() {
             </div>
             <button
               onClick={checkAnswer}
-              className="w-full rounded-lg gradient-primary px-6 py-3 text-base font-semibold text-white hover:opacity-90 shadow-md"
+              className="w-full rounded-lg bg-primary-600 px-6 py-3 text-base font-semibold text-white hover:bg-primary-700 transition-colors"
             >
               Проверить
             </button>
@@ -216,7 +217,7 @@ export default function PairingsGamePage() {
             </div>
             <button
               onClick={nextQuestion}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-lg gradient-primary px-6 py-3 text-base font-semibold text-white hover:opacity-90 shadow-md"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-base font-semibold text-white hover:bg-primary-700 transition-colors"
             >
               <RefreshCw className="h-5 w-5" />
               {questionNum + 1 >= TOTAL_QUESTIONS ? "Начать заново" : "Следующий вопрос"}
@@ -227,10 +228,10 @@ export default function PairingsGamePage() {
 
       {!question && state === "playing" && (
         <div className="rounded-xl border-2 border-zinc-200 bg-white p-12 text-center text-zinc-500">
-          Не удалось загрузить вопрос.{" "}
+          <p className="mb-3">Не удалось загрузить вопрос. Раздел сочетаний может быть ещё пуст.</p>
           <button
             onClick={loadQuestion}
-            className="text-primary-600 hover:underline"
+            className="text-primary-600 hover:underline font-medium"
           >
             Попробовать снова
           </button>

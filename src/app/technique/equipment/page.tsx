@@ -60,7 +60,7 @@ export default function TechniqueEquipmentListPage() {
     id == null ? null : categories.find((c) => c.id === id)?.name ?? null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <Link
         href="/technique"
         className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline mb-6"
@@ -142,7 +142,7 @@ export default function TechniqueEquipmentListPage() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/technique/equipment/${item.slug}`}
+              href={`/technique/equipment/${encodeURIComponent(item.slug)}`}
               className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
             >
               <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">

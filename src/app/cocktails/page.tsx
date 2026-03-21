@@ -36,7 +36,7 @@ export default function CocktailsPage() {
   }, [filter]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -69,10 +69,10 @@ export default function CocktailsPage() {
             key={key}
             type="button"
             onClick={() => setFilter(key)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
               filter === key
                 ? "bg-primary-600 text-white"
-                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                : "bg-white border border-zinc-200 text-zinc-700 hover:border-primary-300"
             }`}
           >
             {label}
@@ -97,7 +97,7 @@ export default function CocktailsPage() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/cocktails/${item.slug}`}
+              href={`/cocktails/${encodeURIComponent(item.slug)}`}
               className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
             >
               <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">
