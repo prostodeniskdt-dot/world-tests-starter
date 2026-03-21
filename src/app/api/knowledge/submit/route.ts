@@ -3,13 +3,23 @@ import sanitizeHtml from "sanitize-html";
 import { requireAuth } from "@/lib/auth-middleware";
 import { db } from "@/lib/db";
 import { sanitizeArticleHtml, isAllowedKnowledgeMediaUrl } from "@/lib/sanitizeArticleHtml";
+import { userMessageFromDbError } from "@/lib/pg-api-errors";
 
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
   if (auth instanceof NextResponse) return auth;
 
+  let body: Record<string, unknown>;
   try {
-    const body = await req.json();
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "Некорректный формат запроса (тело не JSON)" },
+      { status: 400 }
+    );
+  }
+
+  try {
     const title = String(body?.title || "").trim();
     const excerptRaw = body?.excerpt != null ? String(body.excerpt).trim() : "";
     const excerpt = excerptRaw
@@ -58,8 +68,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Knowledge submit error:", err);
+    const mapped = userMessageFromDbError(err);
+    if (mapped) {
+      return NextResponse.json({ ok: false, error: mapped.message }, { status: mapped.status });
+    }
     return NextResponse.json(
-      { ok: false, error: "Ошибка сохранения" },
+      { ok: false, error: "Ошибка сохранения. Если проблема повторяется, сообщите администратору." },
       { status: 500 }
     );
   }

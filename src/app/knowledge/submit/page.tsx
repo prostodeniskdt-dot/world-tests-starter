@@ -126,10 +126,28 @@ export default function KnowledgeSubmitPage() {
         }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { ok?: boolean; error?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { ok?: boolean; error?: string };
+        } catch {
+          setError(
+            res.ok
+              ? "Сервер вернул неожиданный ответ. Попробуйте ещё раз или обновите страницу."
+              : `Ошибка сервера (код ${res.status}). Попробуйте позже или обратитесь к администратору.`
+          );
+          return;
+        }
+      }
 
-      if (!data.ok) {
-        setError(data.error || "Ошибка отправки");
+      if (!res.ok || data.ok !== true) {
+        setError(
+          data.error ||
+            (res.status >= 500
+              ? "Сервер временно недоступен. Попробуйте позже."
+              : `Не удалось отправить (${res.status || "ошибка"})`)
+        );
         return;
       }
 
