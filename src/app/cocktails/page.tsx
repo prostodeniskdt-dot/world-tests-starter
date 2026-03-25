@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Martini, Search } from "lucide-react";
+import { Martini, Search, Loader2 } from "lucide-react";
 import { CatalogEmpty } from "@/components/catalog/CatalogEmpty";
 
 type CatalogItem = {
@@ -20,31 +20,57 @@ type Filter = "all" | "classic" | "author";
 export default function CocktailsPage() {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
+  const [total, setTotal] = useState(0);
+  const limit = 50;
+  const [offset, setOffset] = useState(0);
+
+  const fetchPage = useCallback(
+    (nextOffset: number, mode: "replace" | "append") => {
+      const params = new URLSearchParams();
+      if (filter === "classic") params.set("classic", "true");
+      else if (filter === "author") params.set("classic", "false");
+      if (q.trim()) params.set("q", q.trim());
+      params.set("limit", String(limit));
+      params.set("offset", String(nextOffset));
+      const qs = params.toString();
+      return fetch(`/api/catalog/cocktails?${qs}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (!data?.ok) return;
+          const newItems: CatalogItem[] = data.items || [];
+          setTotal(Number(data.total) || 0);
+          setOffset(Number(data.offset) || nextOffset);
+          setItems((prev) => (mode === "append" ? [...prev, ...newItems] : newItems));
+        });
+    },
+    [filter, q]
+  );
 
   const load = useCallback(() => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (filter === "classic") params.set("classic", "true");
-    else if (filter === "author") params.set("classic", "false");
-    if (q.trim()) params.set("q", q.trim());
-    const qs = params.toString();
-    fetch(`/api/catalog/cocktails${qs ? `?${qs}` : ""}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.ok) setItems(data.items || []);
-      })
+    fetchPage(0, "replace")
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [filter, q]);
+  }, [fetchPage]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const applySearch = () => setQ(searchDraft);
+
+  const canLoadMore = items.length < total;
+  const loadMore = () => {
+    if (loadingMore || !canLoadMore) return;
+    setLoadingMore(true);
+    fetchPage(offset + limit, "append")
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -123,40 +149,56 @@ export default function CocktailsPage() {
           description="В этом фильтре нет коктейлей. Загляните позже или предложите свой рецепт."
         />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {items.map((item) => (
-            <Link
-              key={item.id}
-              href={`/cocktails/${item.slug}`}
-              className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
-            >
-              <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">
-                {item.image_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Martini className="h-12 w-12 text-zinc-300" />
-                )}
-              </div>
-              <div className="p-3 flex flex-col flex-1 min-h-[4.5rem]">
-                <h3 className="font-semibold text-zinc-900 line-clamp-2 group-hover:text-primary-700">
-                  {item.name}
-                </h3>
-                <span
-                  className={`text-xs mt-1 ${item.is_classic ? "text-primary-600" : "text-zinc-500"}`}
-                >
-                  {item.is_classic ? "Классика" : "Авторский"}
-                </span>
-                {item.description ? (
-                  <p className="text-xs text-zinc-500 line-clamp-2 mt-1 flex-1">{item.description}</p>
-                ) : null}
-              </div>
-            </Link>
-          ))}
+        <div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {items.map((item) => (
+              <Link
+                key={item.id}
+                href={`/cocktails/id/${item.id}`}
+                className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
+              >
+                <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">
+                  {item.image_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={item.image_url}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Martini className="h-12 w-12 text-zinc-300" />
+                  )}
+                </div>
+                <div className="p-3 flex flex-col flex-1 min-h-[4.5rem]">
+                  <h3 className="font-semibold text-zinc-900 line-clamp-2 group-hover:text-primary-700">
+                    {item.name}
+                  </h3>
+                  <span
+                    className={`text-xs mt-1 ${item.is_classic ? "text-primary-600" : "text-zinc-500"}`}
+                  >
+                    {item.is_classic ? "Классика" : "Авторский"}
+                  </span>
+                  {item.description ? (
+                    <p className="text-xs text-zinc-500 line-clamp-2 mt-1 flex-1">{item.description}</p>
+                  ) : null}
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {canLoadMore && (
+            <div className="flex justify-center mt-6">
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50 disabled:opacity-50"
+              >
+                {loadingMore && <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />}
+                Показать ещё ({items.length} из {total})
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

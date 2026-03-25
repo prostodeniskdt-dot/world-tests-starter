@@ -119,11 +119,11 @@ export default async function CocktailPage({
   if (item.nutrition_note) navItems.push({ id: "nutrition", label: "Питание" });
   if (item.alcohol_content_note) navItems.push({ id: "alcohol", label: "Алкоголь" });
 
-  let related: { name: string; slug: string; image_url: string | null; description: string | null }[] =
+  let related: { id: number; name: string; slug: string; image_url: string | null; description: string | null }[] =
     [];
   try {
     const rel = await db.query(
-      `SELECT name, slug, image_url, description FROM cocktails
+      `SELECT id, name, slug, image_url, description FROM cocktails
        WHERE is_published = true AND slug <> $1
        ORDER BY random() LIMIT 4`,
       [slug]
@@ -426,7 +426,7 @@ export default async function CocktailPage({
               {related.map((r) => (
                 <li key={r.slug}>
                   <Link
-                    href={`/cocktails/${r.slug}`}
+                    href={`/cocktails/id/${r.id}`}
                     className="flex gap-2 group rounded-lg border border-zinc-100 p-2 hover:border-primary-200 hover:bg-primary-50/30 transition-colors"
                   >
                     <div className="w-14 h-14 shrink-0 bg-zinc-100 rounded overflow-hidden">
