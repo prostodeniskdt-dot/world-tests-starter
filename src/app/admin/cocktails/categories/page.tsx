@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2, Plus, Pencil, Trash2, Check, X } from "lucide-react";
-import { useLocalUser } from "@/components/useLocalUser";
+import { useLocalUser } from "@/components/UserGate";
 
 type Category = { id: number; name: string; slug: string; sort_order: number };
 
 export default function AdminCocktailCategoriesPage() {
-  const { user, loading: authLoading } = useLocalUser();
+  const { user, isLoading: authLoading } = useLocalUser();
   const [cats, setCats] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState<number | null>(null);

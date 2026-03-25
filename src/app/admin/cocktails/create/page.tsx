@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2, Martini } from "lucide-react";
-import { useLocalUser } from "@/components/useLocalUser";
+import { useLocalUser } from "@/components/UserGate";
 import { AdminCocktailEditForm } from "@/components/AdminCocktailEditForm";
 
 type Category = { id: number; name: string };
 
 export default function AdminCocktailCreatePage() {
-  const { user, loading: authLoading } = useLocalUser();
+  const { user, isLoading: authLoading } = useLocalUser();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 

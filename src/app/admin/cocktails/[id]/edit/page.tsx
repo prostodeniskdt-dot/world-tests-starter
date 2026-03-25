@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Martini } from "lucide-react";
-import { useLocalUser } from "@/components/useLocalUser";
+import { useLocalUser } from "@/components/UserGate";
 import { AdminCocktailEditForm } from "@/components/AdminCocktailEditForm";
 
 type Category = { id: number; name: string };
@@ -12,7 +12,7 @@ type Category = { id: number; name: string };
 export default function AdminCocktailEditPage() {
   const params = useParams();
   const cocktailId = params.id as string;
-  const { user, loading: authLoading } = useLocalUser();
+  const { user, isLoading: authLoading } = useLocalUser();
   const [item, setItem] = useState<Record<string, unknown> | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);

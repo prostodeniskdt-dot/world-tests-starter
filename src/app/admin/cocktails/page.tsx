@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Martini, Search, Plus, Pencil, Loader2 } from "lucide-react";
-import { useLocalUser } from "@/components/useLocalUser";
+import { useLocalUser } from "@/components/UserGate";
 
 type Item = {
   id: number;
@@ -18,7 +18,7 @@ type Item = {
 type Category = { id: number; name: string; slug: string };
 
 export default function AdminCocktailsPage() {
-  const { user, loading: authLoading } = useLocalUser();
+  const { user, isLoading: authLoading } = useLocalUser();
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
