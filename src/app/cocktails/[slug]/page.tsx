@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import { Martini, ArrowLeft } from "lucide-react";
+import { Martini, ArrowLeft, Send, Youtube } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
 
 type Row = Record<string, unknown>;
@@ -358,19 +358,50 @@ export default async function CocktailPage({
             </div>
           ) : null}
 
-          {(item.author != null || item.bar_name != null) ? (
-            <div className="border-t border-zinc-200 p-6">
-              <h2 className="font-semibold text-zinc-900 mb-2">Автор и бар</h2>
-              <p className="text-zinc-700 text-sm">
-                {[item.author, item.bar_name, item.bar_city].filter(Boolean).map(String).join(" · ")}
-              </p>
-              {item.bar_description ? (
-                <p className="text-zinc-600 text-sm mt-2 whitespace-pre-wrap">
-                  {String(item.bar_description)}
+          {(item.author != null || item.bar_name != null) ? (() => {
+            const social = item.social_links as Record<string, string> | null;
+            const links = social && typeof social === "object" ? Object.entries(social).filter(([, v]) => v) : [];
+            return (
+              <div className="border-t border-zinc-200 p-6">
+                <h2 className="font-semibold text-zinc-900 mb-2">
+                  {item.is_classic ? "Рецепт предоставлен" : "Автор рецепта"}
+                </h2>
+                <p className="text-zinc-700 text-sm">
+                  {[item.author, item.bar_name, item.bar_city].filter(Boolean).map(String).join(" · ")}
                 </p>
-              ) : null}
-            </div>
-          ) : null}
+                {item.bar_description ? (
+                  <p className="text-zinc-600 text-sm mt-2 whitespace-pre-wrap">
+                    {String(item.bar_description)}
+                  </p>
+                ) : null}
+                {links.length > 0 && (
+                  <div className="flex gap-2 mt-3">
+                    {links.map(([key, url]) => (
+                      <a
+                        key={key}
+                        href={String(url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-zinc-100 text-zinc-600 hover:bg-primary-100 hover:text-primary-700 transition-colors"
+                        title={key}
+                      >
+                        {key === "telegram" && <Send className="h-4 w-4" />}
+                        {key === "youtube" && <Youtube className="h-4 w-4" />}
+                        {key === "dzen" && (
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.1 0 2.08.4 2.87 1.06C13.65 7.39 12.87 9.12 12 11c-.87-1.88-1.65-3.61-2.87-4.94A4.96 4.96 0 0112 5zm-5 7c0-1.1.4-2.08 1.06-2.87C9.39 10.35 11.12 11.13 13 12c-1.88.87-3.61 1.65-4.94 2.87A4.96 4.96 0 017 12zm5 5c-1.1 0-2.08-.4-2.87-1.06C10.35 14.61 11.13 12.88 12 11c.87 1.88 1.65 3.61 2.87 4.94A4.96 4.96 0 0112 17zm5-5c0 1.1-.4 2.08-1.06 2.87C14.61 13.65 12.88 12.87 11 12c1.88-.87 3.61-1.65 4.94-2.87A4.96 4.96 0 0117 12z"/>
+                          </svg>
+                        )}
+                        {!["telegram", "youtube", "dzen"].includes(key) && (
+                          <span className="text-xs font-medium">{key.slice(0, 2).toUpperCase()}</span>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })() : null}
 
           {tags && tags.length > 0 && (
             <div className="border-t border-zinc-200 p-6">

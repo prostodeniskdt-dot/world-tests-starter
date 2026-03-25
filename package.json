@@ -25,7 +25,8 @@
     "reset-points": "tsx scripts/reset-points.ts",
     "reset-attempts": "tsx scripts/reset-attempts.ts",
     "seed-flavor-pairings": "tsx scripts/seed-flavor-pairings.ts",
-    "seed-knowledge-categories": "tsx scripts/seed-knowledge-categories.ts"
+    "seed-knowledge-categories": "tsx scripts/seed-knowledge-categories.ts",
+    "seed-cocktails": "tsx scripts/seed-cocktails-from-xlsx.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1013.0",
@@ -56,6 +57,7 @@
     "sanitize-html": "^2.17.2",
     "server-only": "^0.0.1",
     "sharp": "^0.34.5",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

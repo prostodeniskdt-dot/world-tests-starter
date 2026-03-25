@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Martini } from "lucide-react";
+import { Martini, Search } from "lucide-react";
 import { CatalogEmpty } from "@/components/catalog/CatalogEmpty";
 
 type CatalogItem = {
@@ -21,19 +21,30 @@ export default function CocktailsPage() {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
+  const [q, setQ] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setLoading(true);
-    const q =
-      filter === "classic" ? "?classic=true" : filter === "author" ? "?classic=false" : "";
-    fetch(`/api/catalog/cocktails${q}`)
+    const params = new URLSearchParams();
+    if (filter === "classic") params.set("classic", "true");
+    else if (filter === "author") params.set("classic", "false");
+    if (q.trim()) params.set("q", q.trim());
+    const qs = params.toString();
+    fetch(`/api/catalog/cocktails${qs ? `?${qs}` : ""}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.ok) setItems(data.items || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [filter]);
+  }, [filter, q]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const applySearch = () => setQ(searchDraft);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -57,27 +68,46 @@ export default function CocktailsPage() {
         </Link>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {(
-          [
-            { key: "all" as const, label: "Все" },
-            { key: "classic" as const, label: "Классика" },
-            { key: "author" as const, label: "Авторские" },
-          ] as const
-        ).map(({ key, label }) => (
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              { key: "all" as const, label: "Все" },
+              { key: "classic" as const, label: "Классика" },
+              { key: "author" as const, label: "Авторские" },
+            ] as const
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === key
+                  ? "bg-primary-600 text-white"
+                  : "bg-white border border-zinc-200 text-zinc-700 hover:border-primary-300"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Найти коктейль…"
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && applySearch()}
+            className="flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          />
           <button
-            key={key}
             type="button"
-            onClick={() => setFilter(key)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              filter === key
-                ? "bg-primary-600 text-white"
-                : "bg-white border border-zinc-200 text-zinc-700 hover:border-primary-300"
-            }`}
+            onClick={applySearch}
+            className="rounded-lg bg-primary-600 text-white px-3 py-2 hover:bg-primary-700 transition-colors"
           >
-            {label}
+            <Search className="h-4 w-4" />
           </button>
-        ))}
+        </div>
       </div>
 
       {loading ? (
@@ -97,7 +127,7 @@ export default function CocktailsPage() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/cocktails/${encodeURIComponent(item.slug)}`}
+              href={`/cocktails/${item.slug}`}
               className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
             >
               <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">
