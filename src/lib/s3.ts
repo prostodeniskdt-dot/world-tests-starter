@@ -4,6 +4,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 import { getS3PublicUrlPrefixes } from "@/lib/knowledgeMediaUrl";
 
 function getS3Config() {
@@ -24,6 +25,10 @@ function getS3Config() {
       endpoint,
       credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
       forcePathStyle: true,
+      requestHandler: new NodeHttpHandler({
+        connectionTimeout: 10_000,
+        socketTimeout: 30_000,
+      }),
     }),
     bucket,
     publicUrl: publicUrl || `${endpoint.replace("https://", `https://${bucket}.`)}`,

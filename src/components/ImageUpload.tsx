@@ -33,10 +33,14 @@ export function ImageUpload({
       formData.append("file", file);
       formData.append("prefix", prefix);
 
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 30_000);
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+      window.clearTimeout(timeoutId);
 
       const data = await res.json();
 
@@ -47,7 +51,7 @@ export function ImageUpload({
 
       onChange(data.url);
     } catch {
-      setError("Ошибка сети");
+      setError("Загрузка не завершилась (проверьте интернет/сервер) и попробуйте ещё раз");
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";

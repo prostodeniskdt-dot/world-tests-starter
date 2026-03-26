@@ -57,6 +57,7 @@ const MIGRATION_FILES = [
   "20260325_alcohol_ugc.sql",
   "20260326_alcohol_drink_types.sql",
   "20260327_na_ingredients_ugc.sql",
+  "20260327_cocktails_author_rework.sql",
   "20260328_technique_skills.sql",
   "20260329_na_products_country.sql",
   "20260330_glassware_full.sql",

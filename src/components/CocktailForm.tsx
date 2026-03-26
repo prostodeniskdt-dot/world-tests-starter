@@ -235,7 +235,15 @@ export function CocktailForm({
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch(uploadEndpoint, { method: "POST", body: fd, credentials: "same-origin" });
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 30_000);
+      const res = await fetch(uploadEndpoint, {
+        method: "POST",
+        body: fd,
+        credentials: "same-origin",
+        signal: controller.signal,
+      });
+      window.clearTimeout(timeoutId);
       const json = await res.json();
       const url = json?.url ? String(json.url) : null;
       if (json?.ok && url) {
@@ -248,7 +256,7 @@ export function CocktailForm({
         setError(json?.error || "Не удалось загрузить изображение");
       }
     } catch {
-      setError("Ошибка сети при загрузке");
+      setError("Загрузка не завершилась (таймаут/сеть/сервер). Попробуйте ещё раз.");
     } finally {
       setUploading(false);
     }
