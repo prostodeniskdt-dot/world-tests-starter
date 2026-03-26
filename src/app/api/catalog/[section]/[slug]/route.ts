@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-const SECTIONS = ["alcohol", "na", "technique", "skills", "cocktails", "glassware"] as const;
+const SECTIONS = ["alcohol", "na", "technique", "skills", "cocktails", "glassware", "preps"] as const;
 type Section = (typeof SECTIONS)[number];
 
 const TABLE_MAP: Record<Section, string> = {
@@ -11,6 +11,7 @@ const TABLE_MAP: Record<Section, string> = {
   skills: "technique_guides",
   cocktails: "cocktails",
   glassware: "glassware",
+  preps: "preps",
 };
 
 export async function GET(

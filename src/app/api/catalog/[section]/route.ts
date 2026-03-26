@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { DRINK_TYPES } from "@/lib/alcoholDrinkTypes";
 
-const SECTIONS = ["alcohol", "na", "technique", "skills", "cocktails", "glassware"] as const;
+const SECTIONS = ["alcohol", "na", "technique", "skills", "cocktails", "glassware", "preps"] as const;
 type Section = (typeof SECTIONS)[number];
 
 const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
@@ -34,6 +34,10 @@ const TABLE_MAP: Record<Section, { table: string; listColumns: string }> = {
     listColumns:
       "id, name, slug, image_url, category_id, subcategory_text, producer, price_segment, tags, description",
   },
+  preps: {
+    table: "preps",
+    listColumns: "id, name, slug, image_url, category_id, tags, composition",
+  },
 };
 
 export async function GET(
@@ -64,7 +68,11 @@ export async function GET(
     }
 
     if (search) {
-      where += ` AND (name ILIKE $${i} OR slug ILIKE $${i})`;
+      if (section === "preps") {
+        where += ` AND (name ILIKE $${i} OR slug ILIKE $${i} OR composition ILIKE $${i} OR ingredients::text ILIKE $${i})`;
+      } else {
+        where += ` AND (name ILIKE $${i} OR slug ILIKE $${i})`;
+      }
       values.push(`%${search}%`);
       i++;
     }
@@ -89,7 +97,11 @@ export async function GET(
 
     const tagParam = searchParams.get("tag")?.trim().toLowerCase();
     if (
-      (section === "na" || section === "technique" || section === "skills" || section === "glassware") &&
+      (section === "na" ||
+        section === "technique" ||
+        section === "skills" ||
+        section === "glassware" ||
+        section === "preps") &&
       tagParam &&
       tagParam.length <= 64
     ) {

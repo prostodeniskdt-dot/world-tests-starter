@@ -7,6 +7,7 @@ import {
   Wrench,
   Martini,
   UtensilsCrossed,
+  Package,
   type LucideIcon,
 } from "lucide-react";
 
@@ -74,5 +75,12 @@ export const SECTIONS: Section[] = [
     description: "Бокалы, инвентарь, кухонная посуда",
     href: "/glassware",
     icon: UtensilsCrossed,
+  },
+  {
+    id: "preps",
+    title: "Заготовки",
+    description: "Сиропы, кордиалы, гарниши и другие заготовки для бара и кухни",
+    href: "/preps",
+    icon: Package,
   },
 ];

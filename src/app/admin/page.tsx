@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { verifyToken } from "@/lib/jwt";
 import { AdminUsersTable } from "@/components/AdminUsersTable";
 import { db } from "@/lib/db";
-import { Shield, Users, FileText, Wine, Coffee, Wrench, Martini, UtensilsCrossed, Library, Bell, Star } from "lucide-react";
+import { Shield, Users, FileText, Wine, Coffee, Wrench, Martini, UtensilsCrossed, Library, Bell, Star, Package } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminPage() {
@@ -87,6 +87,16 @@ export default async function AdminPage() {
     pendingCocktailCount = parseInt((pc[0] as { c: string })?.c || "0", 10);
   } catch {
     pendingCocktailCount = 0;
+  }
+
+  let pendingPrepCount = 0;
+  try {
+    const { rows: pp } = await db.query(
+      `SELECT COUNT(*) AS c FROM prep_submissions WHERE status = 'pending'`
+    );
+    pendingPrepCount = parseInt((pp[0] as { c: string })?.c || "0", 10);
+  } catch {
+    pendingPrepCount = 0;
   }
 
   let pendingAlcoholCount = 0;
@@ -180,6 +190,7 @@ export default async function AdminPage() {
 
         {(pendingCount > 0 ||
           pendingCocktailCount > 0 ||
+          pendingPrepCount > 0 ||
           pendingAlcoholCount > 0 ||
           pendingNaCount > 0 ||
           pendingEquipmentSubmissionCount > 0 ||
@@ -205,6 +216,16 @@ export default async function AdminPage() {
                   className="font-semibold text-amber-900 hover:underline"
                 >
                   Ожидают модерации коктейлей: {pendingCocktailCount}. Открыть заявки →
+                </Link>
+              </div>
+            )}
+            {pendingPrepCount > 0 && (
+              <div>
+                <Link
+                  href="/admin/preps/submissions"
+                  className="font-semibold text-amber-900 hover:underline"
+                >
+                  Ожидают модерации заготовок: {pendingPrepCount}. Открыть заявки →
                 </Link>
               </div>
             )}
@@ -406,6 +427,31 @@ export default async function AdminPage() {
             <Martini className="h-8 w-8 text-primary-600" />
             <div>
               <div className="font-semibold text-zinc-900">Коктейли</div>
+              <div className="text-sm text-zinc-500">Каталог</div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/preps/submissions"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all relative"
+          >
+            <Package className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Заявки на заготовки</div>
+              <div className="text-sm text-zinc-500">Модерация UGC</div>
+            </div>
+            {pendingPrepCount > 0 && (
+              <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {pendingPrepCount}
+              </span>
+            )}
+          </Link>
+          <Link
+            href="/admin/preps"
+            className="flex items-center gap-3 bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:border-primary-300 hover:shadow-md transition-all"
+          >
+            <Package className="h-8 w-8 text-primary-600" />
+            <div>
+              <div className="font-semibold text-zinc-900">Заготовки</div>
               <div className="text-sm text-zinc-500">Каталог</div>
             </div>
           </Link>
