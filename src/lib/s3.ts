@@ -25,6 +25,9 @@ function getS3Config() {
       endpoint,
       credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
       forcePathStyle: true,
+      // Если S3/сеть "подлагивает", стандартные ретраи могут растягивать ожидание до десятков секунд.
+      // Ограничиваем число попыток, чтобы быстрее возвращать ошибку пользователю.
+      maxAttempts: 2,
       requestHandler: new NodeHttpHandler({
         connectionTimeout: 10_000,
         socketTimeout: 30_000,

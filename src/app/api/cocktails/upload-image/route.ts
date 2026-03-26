@@ -9,6 +9,9 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_DIMENSION = 2560;
 
 export async function POST(req: NextRequest) {
+  const t0 = Date.now();
+  const mark = () => Date.now();
+
   const auth = await requireAuth(req);
   if (auth instanceof NextResponse) return auth;
 
@@ -20,7 +23,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const tAuth = mark();
     const formData = await req.formData();
+    const tForm = mark();
     const file = formData.get("file") as File | null;
 
     if (!file || !(file instanceof File)) {
@@ -42,16 +47,23 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer()) as Buffer;
+    const tRead = mark();
     let outBuf: Buffer = buffer;
     let contentType = file.type;
     let ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    let metaW = 0;
+    let metaH = 0;
+    let didResize = false;
 
     try {
       const meta = await sharp(buffer).metadata();
       const w = meta.width ?? 0;
       const h = meta.height ?? 0;
+      metaW = w;
+      metaH = h;
       const maxDim = Math.max(w, h);
       if (maxDim > MAX_DIMENSION) {
+        didResize = true;
         const resized = await sharp(buffer)
           .rotate()
           .resize(MAX_DIMENSION, MAX_DIMENSION, {
@@ -70,9 +82,11 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    const tSharp = mark();
 
     const key = `cocktails/submissions/${auth.userId}/${randomUUID()}.${ext}`;
     const url = await uploadToS3(outBuf, key, contentType);
+    const tS3 = mark();
     if (!url) {
       return NextResponse.json(
         { ok: false, error: "Ошибка загрузки в хранилище" },
@@ -80,7 +94,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ ok: true, url, key });
+    const timing = {
+      totalMs: tS3 - t0,
+      authMs: tAuth - t0,
+      formDataMs: tForm - tAuth,
+      readMs: tRead - tForm,
+      sharpMs: tSharp - tRead,
+      s3Ms: tS3 - tSharp,
+    };
+
+    console.info("cocktails/upload-image", {
+      fileSize: file.size,
+      fileType: file.type,
+      metaW,
+      metaH,
+      didResize,
+      outSize: outBuf.byteLength,
+      contentType,
+      ext,
+      ...timing,
+    });
+
+    return NextResponse.json(
+      { ok: true, url, key, timing },
+      {
+        headers: {
+          "x-upload-total-ms": String(timing.totalMs),
+          "x-upload-s3-ms": String(timing.s3Ms),
+          "x-upload-sharp-ms": String(timing.sharpMs),
+        },
+      }
+    );
   } catch (err) {
     console.error("Cocktails upload-image error:", err);
     return NextResponse.json({ ok: false, error: "Ошибка сервера" }, { status: 500 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ImageUploadProps = {
   value?: string | null;
@@ -18,8 +18,19 @@ export function ImageUpload({
   className = "",
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [uploadSeconds, setUploadSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!uploading) {
+      setUploadSeconds(0);
+      return;
+    }
+    setUploadSeconds(0);
+    const id = window.setInterval(() => setUploadSeconds((s) => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [uploading]);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,7 +99,9 @@ export function ImageUpload({
         </div>
       )}
       {uploading && (
-        <p className="text-sm text-zinc-500">Загрузка...</p>
+        <p className="text-sm text-zinc-500">
+          Загрузка… {uploadSeconds > 0 ? `${uploadSeconds}с` : ""}
+        </p>
       )}
       {error && (
         <p className="text-sm text-red-600">{error}</p>

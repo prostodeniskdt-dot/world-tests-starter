@@ -185,6 +185,7 @@ export function CocktailForm({
   const [data, setData] = useState<CocktailFormData>(init);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadSeconds, setUploadSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [tagDraft, setTagDraft] = useState("");
@@ -196,6 +197,16 @@ export function CocktailForm({
     setSuccess(false);
     setError(null);
   }, [init]);
+
+  useEffect(() => {
+    if (!uploading) {
+      setUploadSeconds(0);
+      return;
+    }
+    setUploadSeconds(0);
+    const id = window.setInterval(() => setUploadSeconds((s) => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [uploading]);
 
   const inputCls =
     "rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
@@ -253,7 +264,9 @@ export function CocktailForm({
           set("image_url", url);
         }
       } else {
-        setError(json?.error || "Не удалось загрузить изображение");
+        const timingHint =
+          json?.timing?.totalMs != null ? ` (сервер: ${Math.round(Number(json.timing.totalMs))} мс)` : "";
+        setError((json?.error || "Не удалось загрузить изображение") + timingHint);
       }
     } catch {
       setError("Загрузка не завершилась (таймаут/сеть/сервер). Попробуйте ещё раз.");
@@ -675,7 +688,11 @@ export function CocktailForm({
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-zinc-900">Фото</h2>
-          {uploading && <span className="text-xs text-zinc-500">Загрузка…</span>}
+          {uploading && (
+            <span className="text-xs text-zinc-500">
+              Загрузка… {uploadSeconds > 0 ? `${uploadSeconds}с` : ""}
+            </span>
+          )}
         </div>
         <div className="flex flex-wrap gap-3 items-center">
           <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-300 cursor-pointer hover:bg-zinc-50 text-sm">
