@@ -253,6 +253,15 @@ function cell(row: unknown[], idx: number): string {
   return String(v).trim();
 }
 
+function sanitizeIngredientName(raw: string): string {
+  const cleaned = raw
+    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  // Иногда в исходнике встречается артефакт вида "ааТёмный..."
+  return cleaned.replace(/^аа(?=[A-ZА-ЯЁ])/u, "");
+}
+
 function parseSheet(data: unknown[][]): Recipe[] {
   const recipes: Recipe[] = [];
   let cur: Recipe | null = null;
@@ -314,7 +323,7 @@ function parseSheet(data: unknown[][]): Recipe[] {
     // Ingredient: c1 is any amount (number, "?", range) AND c2 or c3 present
     if (cur && c1 && !KNOWN_PROPS.has(c1) && (c2 || c3) && c3) {
       const amountStr = c2 ? `${c1} ${c2}` : c1;
-      cur.ingredients.push({ name: c3, amount: amountStr });
+      cur.ingredients.push({ name: sanitizeIngredientName(c3), amount: amountStr });
       continue;
     }
 

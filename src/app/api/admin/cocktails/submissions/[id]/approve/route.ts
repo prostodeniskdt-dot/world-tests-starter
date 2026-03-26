@@ -93,14 +93,14 @@ export async function POST(
       await client.query(
         `INSERT INTO cocktails (
           category_id, name, slug, image_url, description, method, glass, garnish, ice,
-          ingredients, instructions, cordials_recipe, bar_name, bar_city, bar_description, author,
+          ingredients, instructions, cordials_recipe, bar_name, bar_city, bar_description, author, classic_original_author,
           social_links, flavor_profile, tags, is_classic, is_published,
           history, allergens, strength_scale, taste_sweet_dry_scale, gallery_urls, nutrition_note, alcohol_content_note
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9,
-          $10::jsonb, $11, $12, $13, $14, $15, $16,
-          $17::jsonb, $18::jsonb, $19, $20, true,
-          $21, $22, $23, $24, $25::jsonb, $26, $27
+          $10::jsonb, $11, $12, $13, $14, $15, $16, $17,
+          $18::jsonb, $19::jsonb, $20, $21, true,
+          $22, $23, $24, $25, $26::jsonb, $27, $28
         )`,
         [
           catId,
@@ -119,6 +119,7 @@ export async function POST(
           sub.bar_city ?? null,
           sub.bar_description ?? null,
           sub.author ?? null,
+          sub.classic_original_author ?? null,
           social_links,
           flavor_profile,
           sub.tags ?? [],

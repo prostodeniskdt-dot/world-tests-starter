@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       `INSERT INTO cocktails (
          name, slug, category_id, description, method, glass, garnish, ice,
          ingredients, instructions, cordials_recipe,
-         bar_name, bar_city, bar_description, author,
+         bar_name, bar_city, bar_description, author, classic_original_author,
          social_links, flavor_profile, tags, image_url, gallery_urls,
          is_classic, is_published,
          strength_scale, taste_sweet_dry_scale,
@@ -82,11 +82,11 @@ export async function POST(req: NextRequest) {
        ) VALUES (
          $1,$2,$3,$4,$5,$6,$7,$8,
          $9::jsonb,$10,$11,
-         $12,$13,$14,$15,
-         $16::jsonb,$17::jsonb,$18,$19,$20::jsonb,
-         $21,$22,
-         $23,$24,
-         $25,$26,$27,$28
+         $12,$13,$14,$15,$16,
+         $17::jsonb,$18::jsonb,$19,$20,$21::jsonb,
+         $22,$23,
+         $24,$25,
+         $26,$27,$28,$29
        ) RETURNING id`,
       [
         name, slug,
@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
         body.garnish || null, body.ice || null,
         ingredientsJson, body.instructions || null, body.cordials_recipe || null,
         body.bar_name || null, body.bar_city || null, body.bar_description || null, body.author || null,
+        body.classic_original_author || null,
         socialJson, flavorJson, tags, body.image_url || null, galleryJson,
         body.is_classic === true || body.is_classic === "true",
         body.is_published !== false && body.is_published !== "false",

@@ -22,7 +22,7 @@ export default async function AdminCocktailSubmissionsPage() {
     const [subRes, catRes] = await Promise.all([
       db.query(`
         SELECT s.id, s.name, s.slug, s.description, s.status, s.created_at, s.user_id,
-               s.image_url, s.author, s.bar_name, s.bar_city, s.photo_rights_confirmed,
+               s.image_url, s.author, s.classic_original_author, s.is_classic, s.bar_name, s.bar_city, s.photo_rights_confirmed,
                u.first_name, u.last_name, u.email
         FROM cocktail_submissions s
         LEFT JOIN users u ON u.id = s.user_id

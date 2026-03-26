@@ -25,15 +25,11 @@ function normalizeIngredients(
 ): {
   name: string;
   amount: string;
-  alcohol_product_slug?: string;
-  na_product_slug?: string;
 }[] | null {
   if (!Array.isArray(raw)) return null;
   const out: {
     name: string;
     amount: string;
-    alcohol_product_slug?: string;
-    na_product_slug?: string;
   }[] = [];
   for (const row of raw) {
     if (!row || typeof row !== "object") continue;
@@ -41,25 +37,10 @@ function normalizeIngredients(
     const name = sanitizeHtml(String(o.name ?? "").trim(), { allowedTags: [], allowedAttributes: {} });
     const amount = sanitizeHtml(String(o.amount ?? "").trim(), { allowedTags: [], allowedAttributes: {} });
     if (!name && !amount) continue;
-    const slugRaw = o.alcohol_product_slug != null ? String(o.alcohol_product_slug).trim() : "";
-    const alcohol_product_slug = slugRaw
-      ? sanitizeHtml(slugRaw, { allowedTags: [], allowedAttributes: {} }).slice(0, 120) || undefined
-      : undefined;
-    const naSlugRaw = o.na_product_slug != null ? String(o.na_product_slug).trim() : "";
-    const na_product_slug = naSlugRaw
-      ? sanitizeHtml(naSlugRaw, { allowedTags: [], allowedAttributes: {} }).slice(0, 120) || undefined
-      : undefined;
-    const entry: {
-      name: string;
-      amount: string;
-      alcohol_product_slug?: string;
-      na_product_slug?: string;
-    } = {
+    const entry: { name: string; amount: string } = {
       name: name.slice(0, 200),
       amount: amount.slice(0, 120),
     };
-    if (alcohol_product_slug) entry.alcohol_product_slug = alcohol_product_slug;
-    if (na_product_slug) entry.na_product_slug = na_product_slug;
     out.push(entry);
     if (out.length >= 40) break;
   }
@@ -189,6 +170,8 @@ export async function POST(req: NextRequest) {
   const bar_city = trimText(body.bar_city, 120);
   const bar_description = trimText(body.bar_description, 2000);
   const author = trimText(body.author, 200);
+  const classic_original_author = trimText(body.classic_original_author, 200);
+  const is_classic = body.is_classic === true || body.is_classic === "true";
   const history = trimText(body.history, 8000);
   const allergens = trimText(body.allergens, 2000);
   const nutrition_note = trimText(body.nutrition_note, 2000);
@@ -211,14 +194,16 @@ export async function POST(req: NextRequest) {
       `INSERT INTO cocktail_submissions (
         user_id, name, slug, description, method, glass, garnish, ice,
         ingredients, instructions, cordials_recipe, bar_name, bar_city, bar_description, author,
+        classic_original_author, is_classic,
         social_links, flavor_profile, tags, image_url, gallery_urls,
         history, allergens, strength_scale, taste_sweet_dry_scale, nutrition_note, alcohol_content_note,
         photo_rights_confirmed, status
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
         $9::jsonb, $10, $11, $12, $13, $14, $15,
-        $16::jsonb, $17::jsonb, $18, $19, $20::jsonb,
-        $21, $22, $23, $24, $25, $26,
+        $16, $17,
+        $18::jsonb, $19::jsonb, $20, $21, $22::jsonb,
+        $23, $24, $25, $26, $27, $28,
         true, 'pending'
       )`,
       [
@@ -237,6 +222,8 @@ export async function POST(req: NextRequest) {
         bar_city,
         bar_description,
         author,
+        classic_original_author,
+        is_classic,
         socialJson,
         flavorJson,
         tags,

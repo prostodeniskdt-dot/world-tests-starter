@@ -63,13 +63,13 @@ export async function PUT(
       `UPDATE cocktails SET
          name=$1, slug=$2, category_id=$3, description=$4, method=$5, glass=$6, garnish=$7, ice=$8,
          ingredients=$9::jsonb, instructions=$10, cordials_recipe=$11,
-         bar_name=$12, bar_city=$13, bar_description=$14, author=$15,
-         social_links=$16::jsonb, flavor_profile=$17::jsonb, tags=$18, image_url=$19, gallery_urls=$20::jsonb,
-         is_classic=$21, is_published=$22,
-         strength_scale=$23, taste_sweet_dry_scale=$24,
-         history=$25, allergens=$26, nutrition_note=$27, alcohol_content_note=$28,
+         bar_name=$12, bar_city=$13, bar_description=$14, author=$15, classic_original_author=$16,
+         social_links=$17::jsonb, flavor_profile=$18::jsonb, tags=$19, image_url=$20, gallery_urls=$21::jsonb,
+         is_classic=$22, is_published=$23,
+         strength_scale=$24, taste_sweet_dry_scale=$25,
+         history=$26, allergens=$27, nutrition_note=$28, alcohol_content_note=$29,
          updated_at=now()
-       WHERE id=$29`,
+       WHERE id=$30`,
       [
         name,
         body.slug ? String(body.slug).trim() : undefined,
@@ -78,6 +78,7 @@ export async function PUT(
         body.garnish || null, body.ice || null,
         ingredientsJson, body.instructions || null, body.cordials_recipe || null,
         body.bar_name || null, body.bar_city || null, body.bar_description || null, body.author || null,
+        body.classic_original_author || null,
         socialJson, flavorJson, tags, body.image_url || null, galleryJson,
         body.is_classic === true || body.is_classic === "true",
         body.is_published !== false && body.is_published !== "false",

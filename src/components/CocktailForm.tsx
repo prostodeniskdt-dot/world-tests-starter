@@ -7,8 +7,6 @@ import { slugify } from "@/lib/slugify";
 export type CocktailIngredient = {
   name: string;
   amount: string;
-  alcohol_product_slug?: string;
-  na_product_slug?: string;
 };
 
 export type CocktailFormMode = "ugc" | "admin";
@@ -37,6 +35,7 @@ export type CocktailFormData = {
   tags: string[];
   // author & bar
   author: string;
+  classic_original_author: string;
   bar_name: string;
   bar_city: string;
   bar_description: string;
@@ -55,7 +54,7 @@ const EMPTY: CocktailFormData = {
   glass: "",
   garnish: "",
   ice: "",
-  ingredients: [{ name: "", amount: "", alcohol_product_slug: "", na_product_slug: "" }],
+  ingredients: [{ name: "", amount: "" }],
   instructions: "",
   cordials_recipe: "",
   image_url: null,
@@ -68,6 +67,7 @@ const EMPTY: CocktailFormData = {
   alcohol_content_note: "",
   tags: [],
   author: "",
+  classic_original_author: "",
   bar_name: "",
   bar_city: "",
   bar_description: "",
@@ -96,8 +96,6 @@ function normalizeIngredients(raw: unknown): CocktailIngredient[] {
     out.push({
       name: asString(r.name),
       amount: asString(r.amount),
-      ...(r.alcohol_product_slug ? { alcohol_product_slug: asString(r.alcohol_product_slug) } : {}),
-      ...(r.na_product_slug ? { na_product_slug: asString(r.na_product_slug) } : {}),
     });
   }
   return out.length > 0 ? out : [...EMPTY.ingredients];
@@ -173,6 +171,7 @@ export function CocktailForm({
       alcohol_content_note: asString(initial.alcohol_content_note),
       tags: normalizeTags(initial.tags),
       author: asString(initial.author),
+      classic_original_author: asString(initial.classic_original_author),
       bar_name: asString(initial.bar_name),
       bar_city: asString(initial.bar_city),
       bar_description: asString(initial.bar_description),
@@ -214,10 +213,7 @@ export function CocktailForm({
   };
 
   const addIngredient = () =>
-    set("ingredients", [
-      ...data.ingredients,
-      { name: "", amount: "", alcohol_product_slug: "", na_product_slug: "" },
-    ]);
+    set("ingredients", [...data.ingredients, { name: "", amount: "" }]);
 
   const removeIngredient = (idx: number) =>
     set("ingredients", data.ingredients.filter((_, i) => i !== idx));
@@ -274,17 +270,7 @@ export function CocktailForm({
 
     const cleanedIngredients = data.ingredients
       .filter((r) => r.name.trim() || r.amount.trim())
-      .map((r) => {
-        const out: Record<string, unknown> = {
-          name: r.name.trim(),
-          amount: r.amount.trim(),
-        };
-        const al = (r.alcohol_product_slug || "").trim();
-        const na = (r.na_product_slug || "").trim();
-        if (al) out.alcohol_product_slug = al;
-        if (na) out.na_product_slug = na;
-        return out;
-      });
+      .map((r) => ({ name: r.name.trim(), amount: r.amount.trim() }));
 
     const payload: Record<string, unknown> = {
       name: data.name.trim(),
@@ -307,6 +293,7 @@ export function CocktailForm({
       alcohol_content_note: data.alcohol_content_note.trim() || null,
       tags: data.tags,
       author: data.author.trim() || null,
+      classic_original_author: data.classic_original_author.trim() || null,
       bar_name: data.bar_name.trim() || null,
       bar_city: data.bar_city.trim() || null,
       bar_description: data.bar_description.trim() || null,
@@ -315,9 +302,9 @@ export function CocktailForm({
 
     if (mode === "admin") {
       payload.category_id = data.category_id;
-      payload.is_classic = data.is_classic;
       payload.is_published = data.is_published;
     }
+    payload.is_classic = data.is_classic;
     if (mode === "ugc") {
       payload.photo_rights_confirmed = true;
     }
@@ -402,6 +389,19 @@ export function CocktailForm({
               </label>
             </div>
           )}
+          {mode === "ugc" && (
+            <div className="pt-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={data.is_classic}
+                  onChange={(e) => set("is_classic", e.target.checked)}
+                  className="rounded"
+                />
+                Это классический рецепт (не авторский)
+              </label>
+            </div>
+          )}
         </div>
         <div>
           <label className={labelCls}>Описание</label>
@@ -449,22 +449,18 @@ export function CocktailForm({
             <Plus className="h-3.5 w-3.5" /> Добавить
           </button>
         </div>
-        <p className="text-xs text-zinc-500">
-          Опционально: `alcohol_product_slug`/`na_product_slug` — тогда ингредиент будет ссылкой на карточку
-          в каталоге.
-        </p>
         <div className="space-y-3">
           {data.ingredients.map((ing, i) => (
             <div key={i} className="rounded-lg border border-zinc-100 p-3 bg-zinc-50/50">
               <div className="flex gap-2 items-start">
                 <input
-                  placeholder="Кол-во (например: 45 мл)"
+                  placeholder="Количество (например: 45 мл, 1 дэш, 10 гр)"
                   value={ing.amount}
                   onChange={(e) => setIngredient(i, { amount: e.target.value })}
-                  className={`${inputCls} w-32`}
+                  className={`${inputCls} w-64`}
                 />
                 <input
-                  placeholder="Ингредиент"
+                  placeholder="Название ингредиента"
                   value={ing.name}
                   onChange={(e) => setIngredient(i, { name: e.target.value })}
                   className={`${inputCls} flex-1`}
@@ -479,20 +475,6 @@ export function CocktailForm({
                     <Trash2 className="h-4 w-4" />
                   </button>
                 )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                <input
-                  value={ing.alcohol_product_slug || ""}
-                  onChange={(e) => setIngredient(i, { alcohol_product_slug: e.target.value })}
-                  placeholder="alcohol_product_slug (необязательно)"
-                  className={`${inputCls} font-mono text-xs`}
-                />
-                <input
-                  value={ing.na_product_slug || ""}
-                  onChange={(e) => setIngredient(i, { na_product_slug: e.target.value })}
-                  placeholder="na_product_slug (необязательно)"
-                  className={`${inputCls} font-mono text-xs`}
-                />
               </div>
             </div>
           ))}
@@ -524,10 +506,28 @@ export function CocktailForm({
 
       {/* Автор и бар */}
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
-        <h2 className="font-semibold text-zinc-900">Автор и бар</h2>
+        <h2 className="font-semibold text-zinc-900">
+          {data.is_classic ? "Источник и автор классики" : "Автор и бар"}
+        </h2>
+        {data.is_classic && (
+          <div>
+            <label className={labelCls}>Автор оригинального классического рецепта</label>
+            <input
+              value={data.classic_original_author}
+              onChange={(e) => set("classic_original_author", e.target.value)}
+              placeholder="Например: Jerry Thomas"
+              className={inputCls}
+            />
+          </div>
+        )}
+        <p className="text-xs text-zinc-500">
+          {data.is_classic
+            ? "Кто нашел и загрузил этот классический рецепт на сайт."
+            : "Данные автора авторского рецепта и бара."}
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Автор</label>
+            <label className={labelCls}>{data.is_classic ? "Рецепт нашел и загрузил" : "Автор"}</label>
             <input value={data.author} onChange={(e) => set("author", e.target.value)} className={inputCls} />
           </div>
           <div>

@@ -15,6 +15,8 @@ export type CocktailSubmissionRow = {
   email: string | null;
   image_url: string | null;
   author: string | null;
+  classic_original_author: string | null;
+  is_classic: boolean;
   bar_name: string | null;
   bar_city: string | null;
   photo_rights_confirmed: boolean;
@@ -181,6 +183,10 @@ function PendingCard({
 
   const who = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email || s.user_id;
 
+  useEffect(() => {
+    setIsClassic(Boolean(s.is_classic));
+  }, [s.is_classic]);
+
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -203,6 +209,11 @@ function PendingCard({
           {(s.author || s.bar_name) && (
             <p className="text-xs text-zinc-600 mt-1">
               {[s.author, s.bar_name, s.bar_city].filter(Boolean).join(" · ")}
+            </p>
+          )}
+          {s.classic_original_author && (
+            <p className="text-xs text-zinc-600 mt-1">
+              Автор оригинального классического рецепта: {s.classic_original_author}
             </p>
           )}
         </div>

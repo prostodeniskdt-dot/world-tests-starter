@@ -90,8 +90,6 @@ export default async function CocktailPage({
     | {
         name: string;
         amount: string;
-        alcohol_product_slug?: string;
-        na_product_slug?: string;
       }[]
     | null;
   const flavorProfile = item.flavor_profile as Record<string, number> | null;
@@ -232,33 +230,11 @@ export default async function CocktailPage({
             <div id="ingredients" className="border-t border-zinc-200 p-6 scroll-mt-24">
               <h2 className="font-semibold text-zinc-900 mb-3">Ингредиенты</h2>
               <ul className="space-y-1">
-                {ingredients.map((ing, i) => {
-                  const alSlug = ing?.alcohol_product_slug?.trim();
-                  const naSlug = ing?.na_product_slug?.trim();
-                  const nameNode =
-                    alSlug ? (
-                      <Link
-                        href={`/alcohol/${encodeURIComponent(alSlug)}`}
-                        className="text-primary-600 hover:underline"
-                      >
-                        {String(ing?.name ?? "")}
-                      </Link>
-                    ) : naSlug ? (
-                      <Link
-                        href={`/na/${encodeURIComponent(naSlug)}`}
-                        className="text-primary-600 hover:underline"
-                      >
-                        {String(ing?.name ?? "")}
-                      </Link>
-                    ) : (
-                      <span>{String(ing?.name ?? "")}</span>
-                    );
-                  return (
-                    <li key={i} className="text-zinc-700">
-                      {String(ing?.amount ?? "")} {nameNode}
-                    </li>
-                  );
-                })}
+                {ingredients.map((ing, i) => (
+                  <li key={i} className="text-zinc-700">
+                    {String(ing?.amount ?? "")} {String(ing?.name ?? "")}
+                  </li>
+                ))}
               </ul>
             </div>
           )}
@@ -363,10 +339,14 @@ export default async function CocktailPage({
             const links = social && typeof social === "object" ? Object.entries(social).filter(([, v]) => v) : [];
             return (
               <div className="border-t border-zinc-200 p-6">
-                <h2 className="font-semibold text-zinc-900 mb-2">
-                  {item.is_classic ? "Рецепт предоставлен" : "Автор рецепта"}
-                </h2>
-                <p className="text-zinc-700 text-sm">
+                <h2 className="font-semibold text-zinc-900 mb-2">Информация об авторстве</h2>
+                {item.is_classic && item.classic_original_author ? (
+                  <p className="text-zinc-700 text-sm">
+                    Автор оригинального классического рецепта: {String(item.classic_original_author)}
+                  </p>
+                ) : null}
+                <p className="text-zinc-700 text-sm mt-1">
+                  {item.is_classic ? "Классический рецепт нашел и загрузил: " : "Автор рецепта: "}
                   {[item.author, item.bar_name, item.bar_city].filter(Boolean).map(String).join(" · ")}
                 </p>
                 {item.bar_description ? (
