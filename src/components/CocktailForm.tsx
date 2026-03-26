@@ -198,7 +198,7 @@ export function CocktailForm({
   }, [init]);
 
   const inputCls =
-    "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
+    "rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
   const labelCls = "block text-sm font-medium text-zinc-700 mb-1";
 
   const set = <K extends keyof CocktailFormData>(key: K, val: CocktailFormData[K]) =>
@@ -339,14 +339,14 @@ export function CocktailForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Название *</label>
-            <input value={data.name} onChange={(e) => set("name", e.target.value)} className={inputCls} />
+            <input value={data.name} onChange={(e) => set("name", e.target.value)} className={`${inputCls} w-full`} />
           </div>
           <div>
             <label className={labelCls}>Slug</label>
             <input
               value={data.slug}
               onChange={(e) => set("slug", e.target.value)}
-              className={inputCls}
+              className={`${inputCls} w-full`}
               placeholder="Авто из названия"
             />
           </div>
@@ -356,7 +356,7 @@ export function CocktailForm({
               <select
                 value={data.category_id ?? ""}
                 onChange={(e) => set("category_id", e.target.value ? Number(e.target.value) : null)}
-                className={inputCls}
+                className={`${inputCls} w-full`}
               >
                 <option value="">Без категории</option>
                 {categories.map((c) => (
@@ -409,7 +409,7 @@ export function CocktailForm({
             value={data.description}
             onChange={(e) => set("description", e.target.value)}
             rows={3}
-            className={inputCls}
+            className={`${inputCls} w-full`}
           />
         </div>
       </section>
@@ -420,19 +420,19 @@ export function CocktailForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Метод</label>
-            <input value={data.method} onChange={(e) => set("method", e.target.value)} className={inputCls} />
+            <input value={data.method} onChange={(e) => set("method", e.target.value)} className={`${inputCls} w-full`} />
           </div>
           <div>
             <label className={labelCls}>Бокал</label>
-            <input value={data.glass} onChange={(e) => set("glass", e.target.value)} className={inputCls} />
+            <input value={data.glass} onChange={(e) => set("glass", e.target.value)} className={`${inputCls} w-full`} />
           </div>
           <div>
             <label className={labelCls}>Гарнир</label>
-            <input value={data.garnish} onChange={(e) => set("garnish", e.target.value)} className={inputCls} />
+            <input value={data.garnish} onChange={(e) => set("garnish", e.target.value)} className={`${inputCls} w-full`} />
           </div>
           <div>
             <label className={labelCls}>Лёд</label>
-            <input value={data.ice} onChange={(e) => set("ice", e.target.value)} className={inputCls} />
+            <input value={data.ice} onChange={(e) => set("ice", e.target.value)} className={`${inputCls} w-full`} />
           </div>
         </div>
       </section>
@@ -457,13 +457,13 @@ export function CocktailForm({
                   placeholder="Количество (например: 45 мл, 1 дэш, 10 гр)"
                   value={ing.amount}
                   onChange={(e) => setIngredient(i, { amount: e.target.value })}
-                  className={`${inputCls} w-64`}
+                  className={`${inputCls} flex-none w-40 sm:w-48`}
                 />
                 <input
                   placeholder="Название ингредиента"
                   value={ing.name}
                   onChange={(e) => setIngredient(i, { name: e.target.value })}
-                  className={`${inputCls} flex-1`}
+                  className={`${inputCls} flex-1 min-w-0 w-full`}
                 />
                 {data.ingredients.length > 1 && (
                   <button
@@ -490,7 +490,7 @@ export function CocktailForm({
             value={data.instructions}
             onChange={(e) => set("instructions", e.target.value)}
             rows={5}
-            className={inputCls}
+            className={`${inputCls} w-full`}
           />
         </div>
         <div>
@@ -499,7 +499,7 @@ export function CocktailForm({
             value={data.cordials_recipe}
             onChange={(e) => set("cordials_recipe", e.target.value)}
             rows={2}
-            className={inputCls}
+            className={`${inputCls} w-full`}
           />
         </div>
       </section>
@@ -516,7 +516,7 @@ export function CocktailForm({
               value={data.classic_original_author}
               onChange={(e) => set("classic_original_author", e.target.value)}
               placeholder="Например: Jerry Thomas"
-              className={inputCls}
+              className={`${inputCls} w-full`}
             />
           </div>
         )}
@@ -528,14 +528,14 @@ export function CocktailForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>{data.is_classic ? "Рецепт нашел и загрузил" : "Автор"}</label>
-            <input value={data.author} onChange={(e) => set("author", e.target.value)} className={inputCls} />
+            <input value={data.author} onChange={(e) => set("author", e.target.value)} className={`${inputCls} w-full`} />
           </div>
           <div>
             <label className={labelCls}>Бар</label>
             <input
               value={data.bar_name}
               onChange={(e) => set("bar_name", e.target.value)}
-              className={inputCls}
+              className={`${inputCls} w-full`}
             />
           </div>
           <div>
@@ -543,7 +543,7 @@ export function CocktailForm({
             <input
               value={data.bar_city}
               onChange={(e) => set("bar_city", e.target.value)}
-              className={inputCls}
+              className={`${inputCls} w-full`}
             />
           </div>
         </div>
@@ -553,7 +553,7 @@ export function CocktailForm({
             value={data.bar_description}
             onChange={(e) => set("bar_description", e.target.value)}
             rows={2}
-            className={inputCls}
+            className={`${inputCls} w-full`}
           />
         </div>
         <div className="space-y-2">
@@ -565,7 +565,7 @@ export function CocktailForm({
                 value={data.social_links[key] || ""}
                 onChange={(e) => setSocialLink(key, e.target.value)}
                 placeholder="https://..."
-                className={`${inputCls} flex-1`}
+                className={`${inputCls} w-full flex-1`}
               />
             </div>
           ))}
@@ -577,11 +577,11 @@ export function CocktailForm({
         <h2 className="font-semibold text-zinc-900">Дополнительно</h2>
         <div>
           <label className={labelCls}>История</label>
-          <textarea value={data.history} onChange={(e) => set("history", e.target.value)} rows={3} className={inputCls} />
+          <textarea value={data.history} onChange={(e) => set("history", e.target.value)} rows={3} className={`${inputCls} w-full`} />
         </div>
         <div>
           <label className={labelCls}>Аллергены</label>
-          <textarea value={data.allergens} onChange={(e) => set("allergens", e.target.value)} rows={2} className={inputCls} />
+          <textarea value={data.allergens} onChange={(e) => set("allergens", e.target.value)} rows={2} className={`${inputCls} w-full`} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -592,7 +592,7 @@ export function CocktailForm({
               max={10}
               value={data.strength_scale}
               onChange={(e) => set("strength_scale", e.target.value === "" ? "" : Number(e.target.value))}
-              className={inputCls}
+              className={`${inputCls} w-full`}
             />
           </div>
           <div>
@@ -605,7 +605,7 @@ export function CocktailForm({
               onChange={(e) =>
                 set("taste_sweet_dry_scale", e.target.value === "" ? "" : Number(e.target.value))
               }
-              className={inputCls}
+              className={`${inputCls} w-full`}
             />
           </div>
         </div>
@@ -615,7 +615,7 @@ export function CocktailForm({
             value={data.nutrition_note}
             onChange={(e) => set("nutrition_note", e.target.value)}
             rows={2}
-            className={inputCls}
+            className={`${inputCls} w-full`}
           />
         </div>
         <div>
@@ -624,7 +624,7 @@ export function CocktailForm({
             value={data.alcohol_content_note}
             onChange={(e) => set("alcohol_content_note", e.target.value)}
             rows={2}
-            className={inputCls}
+            className={`${inputCls} w-full`}
           />
         </div>
       </section>
@@ -655,7 +655,7 @@ export function CocktailForm({
             onChange={(e) => setTagDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
             placeholder="Новый тег"
-            className={`${inputCls} max-w-xs`}
+            className={`${inputCls} w-full max-w-xs`}
           />
           <button onClick={addTag} type="button" className="text-sm text-primary-600 hover:underline">
             Добавить
