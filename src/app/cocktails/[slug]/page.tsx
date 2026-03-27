@@ -7,6 +7,14 @@ import { SITE_NAME } from "@/lib/constants";
 
 type Row = Record<string, unknown>;
 
+function safeDecodeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function parseGallery(raw: unknown): string[] {
   if (Array.isArray(raw)) {
     return raw.filter((u) => typeof u === "string" && u.trim()).map(String);
@@ -52,7 +60,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
   try {
     const { rows } = await db.query(
       "SELECT name, description, image_url FROM cocktails WHERE slug = $1 AND is_published = true",
@@ -78,7 +87,8 @@ export default async function CocktailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
   const { rows } = await db.query(
     "SELECT * FROM cocktails WHERE slug = $1 AND is_published = true",
     [slug]

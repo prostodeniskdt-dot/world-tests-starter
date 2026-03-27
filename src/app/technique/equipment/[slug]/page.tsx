@@ -45,12 +45,21 @@ function parseGallery(raw: unknown): string[] {
   return raw.filter((u) => typeof u === "string" && u.trim()).map(String);
 }
 
+function safeDecodeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
   try {
     const { rows } = await db.query(
       "SELECT name, description, image_url FROM equipment WHERE slug = $1 AND is_published = true",
@@ -72,7 +81,8 @@ export default async function EquipmentProductPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
   const { rows } = await db.query(
     `SELECT e.*, c.name AS category_name
      FROM equipment e

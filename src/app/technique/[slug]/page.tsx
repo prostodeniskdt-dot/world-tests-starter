@@ -1,6 +1,14 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 
+function safeDecodeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 /**
  * Старые ссылки /technique/:slug вели на карточку оборудования.
  */
@@ -9,7 +17,8 @@ export default async function LegacyTechniqueSlugPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
   try {
     const { rows } = await db.query(
       `SELECT 1 FROM equipment WHERE slug = $1 AND is_published = true LIMIT 1`,

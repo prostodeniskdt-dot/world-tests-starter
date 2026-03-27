@@ -6,6 +6,14 @@ import { verifyToken } from "@/lib/jwt";
 import { ArrowLeft, ClipboardCheck, UserCircle } from "lucide-react";
 import { sanitizeArticleHtml } from "@/lib/sanitizeArticleHtml";
 
+function safeDecodeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 /** Не кэшировать как статику — slug и содержимое из БД. */
 export const dynamic = "force-dynamic";
 
@@ -15,7 +23,7 @@ export default async function KnowledgeArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: rawSlug } = await params;
-  const slug = decodeURIComponent(rawSlug).trim();
+  const slug = safeDecodeSlug(rawSlug).trim();
 
   const { rows } = await db.query(
     `SELECT a.*, c.name AS category_name

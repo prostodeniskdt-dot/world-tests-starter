@@ -34,8 +34,17 @@ function normalizeIngredientRows(raw: unknown): { name: string; amount: string }
   return out;
 }
 
+function safeDecodeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 export default async function PrepPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
 
   const { rows } = await db.query(
     `SELECT * FROM preps WHERE slug = $1 AND is_published = true`,

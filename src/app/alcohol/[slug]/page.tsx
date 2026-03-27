@@ -22,6 +22,14 @@ export const dynamic = "force-dynamic";
 
 type Row = Record<string, unknown>;
 
+function safeDecodeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function orderedSensoryKeys(sensory: Record<string, number>, dt: DrinkType): string[] {
   const preferred = [...sensoryKeysForDrinkType(dt)];
   const valid = Object.entries(sensory)
@@ -46,7 +54,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
   try {
     const { rows } = await db.query(
       "SELECT name, description, image_url FROM alcohol_products WHERE slug = $1 AND is_published = true",
@@ -72,7 +81,8 @@ export default async function AlcoholProductPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = safeDecodeSlug(rawSlug);
   const { rows } = await db.query(
     "SELECT * FROM alcohol_products WHERE slug = $1 AND is_published = true",
     [slug]
