@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-middleware";
 import { withTransaction } from "@/lib/db";
+import { slugify } from "@/lib/slugify";
 
 function asJsonbParam(v: unknown): string {
   if (v == null) return "{}";
@@ -71,10 +72,17 @@ export async function POST(
 
       const sub = rows[0] as Record<string, unknown>;
 
-      let slug = String(sub.slug || "").trim();
+      const rawSlug = String(sub.slug ?? "").trim();
+      const rawName = String(sub.name ?? "").trim();
+
+      // Normalize: avoid inserting "bad" slugs that would never match routing reliably.
+      // Fallback order: submission slug -> name -> synthetic.
+      let slug = slugify(rawSlug || rawName || `na-${submissionId}`).slice(0, 120);
+      if (!slug) slug = `na-${submissionId}`;
+
       const existing = await client.query("SELECT id FROM na_products WHERE slug = $1", [slug]);
       if (existing.rows.length > 0) {
-        slug = `${slug}-${submissionId}`;
+        slug = slugify(`${slug}-${submissionId}`).slice(0, 120) || `na-${submissionId}`;
       }
 
       let catId = categoryIdOverride ?? (sub.category_id as number);

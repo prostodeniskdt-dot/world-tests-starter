@@ -158,12 +158,9 @@ export default function NAPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {items.map((item) => {
             const cat = categoryName(item.category_id);
-            return (
-              <Link
-                key={item.id}
-                href={`/na/${encodeURIComponent(item.slug)}`}
-                className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
-              >
+            const safeSlug = typeof item.slug === "string" ? item.slug.trim() : "";
+            const CardInner = (
+              <>
                 <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">
                   {item.image_url ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
@@ -191,6 +188,27 @@ export default function NAPage() {
                     <p className="text-xs text-zinc-500 line-clamp-2 mt-1">{item.description}</p>
                   ) : null}
                 </div>
+              </>
+            );
+
+            if (!safeSlug) {
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-xl border border-zinc-200 bg-white overflow-hidden flex flex-col opacity-60 cursor-not-allowed"
+                  title="У карточки отсутствует корректный URL (slug)"
+                >
+                  {CardInner}
+                </div>
+              );
+            }
+            return (
+              <Link
+                key={item.id}
+                href={`/na/${encodeURIComponent(safeSlug)}`}
+                className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
+              >
+                {CardInner}
               </Link>
             );
           })}
