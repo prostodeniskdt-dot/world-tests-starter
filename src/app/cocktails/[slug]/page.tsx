@@ -344,21 +344,24 @@ export default async function CocktailPage({
             </div>
           ) : null}
 
-          {(item.author != null || item.bar_name != null) ? (() => {
+          {(item.author != null || item.bar_name != null || item.classic_original_author != null) ? (() => {
             const social = item.social_links as Record<string, string> | null;
             const links = social && typeof social === "object" ? Object.entries(social).filter(([, v]) => v) : [];
+            const authorLine = [item.author, item.bar_name, item.bar_city].filter(Boolean).map(String).join(" · ");
             return (
               <div className="border-t border-zinc-200 p-6">
                 <h2 className="font-semibold text-zinc-900 mb-2">Информация об авторстве</h2>
                 {item.is_classic && item.classic_original_author ? (
                   <p className="text-zinc-700 text-sm">
-                    Автор оригинального классического рецепта: {String(item.classic_original_author)}
+                    Автор оригинального рецепта: {String(item.classic_original_author)}
                   </p>
                 ) : null}
-                <p className="text-zinc-700 text-sm mt-1">
-                  {item.is_classic ? "Классический рецепт нашел и загрузил: " : "Автор рецепта: "}
-                  {[item.author, item.bar_name, item.bar_city].filter(Boolean).map(String).join(" · ")}
-                </p>
+                {authorLine && (
+                  <p className="text-zinc-700 text-sm mt-1">
+                    {item.is_classic ? "Рецепт для сайта подготовил: " : "Автор рецепта: "}
+                    {authorLine}
+                  </p>
+                )}
                 {item.bar_description ? (
                   <p className="text-zinc-600 text-sm mt-2 whitespace-pre-wrap">
                     {String(item.bar_description)}

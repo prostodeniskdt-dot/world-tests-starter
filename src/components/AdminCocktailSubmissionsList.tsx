@@ -184,8 +184,8 @@ function PendingCard({
   const who = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email || s.user_id;
 
   useEffect(() => {
-    setIsClassic(Boolean(s.is_classic));
-  }, [s.is_classic]);
+    setIsClassic(Boolean(s.is_classic || s.classic_original_author));
+  }, [s.is_classic, s.classic_original_author]);
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
@@ -212,9 +212,14 @@ function PendingCard({
             </p>
           )}
           {s.classic_original_author && (
-            <p className="text-xs text-zinc-600 mt-1">
-              Автор оригинального классического рецепта: {s.classic_original_author}
-            </p>
+            <div className="mt-1">
+              <p className="text-xs text-zinc-600">
+                Автор оригинального классического рецепта: {s.classic_original_author}
+              </p>
+              <p className="text-xs text-amber-600 font-medium">
+                Пользователь указал оригинального автора — возможно классический рецепт
+              </p>
+            </div>
           )}
         </div>
       </div>

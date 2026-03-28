@@ -324,8 +324,8 @@ export function CocktailForm({
     if (mode === "admin") {
       payload.category_id = data.category_id;
       payload.is_published = data.is_published;
+      payload.is_classic = data.is_classic;
     }
-    payload.is_classic = data.is_classic;
     if (mode === "ugc") {
       payload.photo_rights_confirmed = true;
     }
@@ -410,19 +410,7 @@ export function CocktailForm({
               </label>
             </div>
           )}
-          {mode === "ugc" && (
-            <div className="pt-2">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={data.is_classic}
-                  onChange={(e) => set("is_classic", e.target.checked)}
-                  className="rounded"
-                />
-                Это классический рецепт (не авторский)
-              </label>
-            </div>
-          )}
+          {/* is_classic для UGC убран — тип определяет модератор */}
         </div>
         <div>
           <label className={labelCls}>Описание</label>
@@ -527,28 +515,30 @@ export function CocktailForm({
 
       {/* Автор и бар */}
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
-        <h2 className="font-semibold text-zinc-900">
-          {data.is_classic ? "Источник и автор классики" : "Автор и бар"}
-        </h2>
-        {data.is_classic && (
-          <div>
-            <label className={labelCls}>Автор оригинального классического рецепта</label>
-            <input
-              value={data.classic_original_author}
-              onChange={(e) => set("classic_original_author", e.target.value)}
-              placeholder="Например: Jerry Thomas"
-              className={`${inputCls} w-full`}
-            />
-          </div>
-        )}
+        <h2 className="font-semibold text-zinc-900">Автор и бар</h2>
+        <div>
+          <label className={labelCls}>
+            Автор оригинального классического рецепта
+            {mode === "ugc" && <span className="font-normal text-zinc-400 ml-1">(если классический)</span>}
+          </label>
+          <input
+            value={data.classic_original_author}
+            onChange={(e) => set("classic_original_author", e.target.value)}
+            placeholder="Например: Jerry Thomas"
+            className={`${inputCls} w-full`}
+          />
+          {mode === "ugc" && (
+            <p className="text-xs text-zinc-400 mt-1">
+              Заполняйте, только если это известный классический коктейль — модератор учтёт при публикации.
+            </p>
+          )}
+        </div>
         <p className="text-xs text-zinc-500">
-          {data.is_classic
-            ? "Кто нашел и загрузил этот классический рецепт на сайт."
-            : "Данные автора авторского рецепта и бара."}
+          Автор рецепта и бар, где он был создан или подаётся.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>{data.is_classic ? "Рецепт нашел и загрузил" : "Автор"}</label>
+            <label className={labelCls}>Автор / кто подготовил рецепт</label>
             <input value={data.author} onChange={(e) => set("author", e.target.value)} className={`${inputCls} w-full`} />
           </div>
           <div>

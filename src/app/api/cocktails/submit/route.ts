@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
   const bar_description = trimText(body.bar_description, 2000);
   const author = trimText(body.author, 200);
   const classic_original_author = trimText(body.classic_original_author, 200);
-  const is_classic = body.is_classic === true || body.is_classic === "true";
+  const is_classic = false;
   const history = trimText(body.history, 8000);
   const allergens = trimText(body.allergens, 2000);
   const nutrition_note = trimText(body.nutrition_note, 2000);
