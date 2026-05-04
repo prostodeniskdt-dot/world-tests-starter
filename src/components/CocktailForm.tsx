@@ -413,24 +413,26 @@ export function CocktailForm({
       {/* Основное */}
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
         <h2 className="font-semibold text-zinc-900">Основное</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-8 gap-y-5 md:items-start">
+          <div className="flex flex-col min-w-0">
             <label className={labelCls}>Название *</label>
             <input value={data.name} onChange={(e) => set("name", e.target.value)} className={`${inputCls} w-full`} />
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <label className={labelCls}>Slug</label>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-end justify-between gap-3 mb-1 min-h-[1.25rem]">
+              <span className="text-sm font-medium text-zinc-700">Slug</span>
               <button
                 type="button"
                 onClick={() => setSlugOpen((v) => !v)}
-                className="text-xs text-primary-700 hover:underline"
+                className="text-xs text-primary-700 hover:underline shrink-0 pb-0.5"
               >
                 {slugOpen ? "Скрыть" : "Изменить"}
               </button>
             </div>
             {!slugOpen ? (
-              <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
+              <div
+                className={`${inputCls} w-full min-h-10 flex items-center text-sm text-zinc-700 bg-zinc-50/80 text-left`}
+              >
                 {(data.slug.trim() || slugify(data.name.trim()) || "—").trim()}
               </div>
             ) : (
@@ -443,58 +445,57 @@ export function CocktailForm({
             )}
           </div>
           {mode === "admin" && (
-            <div>
-              <label className={labelCls}>Категория</label>
-              <select
-                value={data.category_id ?? ""}
-                onChange={(e) => set("category_id", e.target.value ? Number(e.target.value) : null)}
-                className={`${inputCls} w-full`}
-              >
-                <option value="">Без категории</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          {mode === "admin" && (
-            <div className="space-y-3 md:pt-6">
+            <div className="space-y-5 min-w-0">
               <div>
-                <p className={labelCls}>Тип</p>
-                <div className="inline-flex rounded-lg border border-zinc-200 bg-white overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => set("is_classic", true)}
-                    className={`px-3 py-2 text-sm font-medium transition-colors ${
-                      data.is_classic ? "bg-primary-600 text-white" : "bg-white text-zinc-700 hover:bg-zinc-50"
-                    }`}
-                  >
-                    Классический (IBA)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => set("is_classic", false)}
-                    className={`px-3 py-2 text-sm font-medium transition-colors border-l border-zinc-200 ${
-                      !data.is_classic ? "bg-primary-600 text-white" : "bg-white text-zinc-700 hover:bg-zinc-50"
-                    }`}
-                  >
-                    Авторский
-                  </button>
-                </div>
+                <label className={labelCls}>Категория</label>
+                <select
+                  value={data.category_id ?? ""}
+                  onChange={(e) => set("category_id", e.target.value ? Number(e.target.value) : null)}
+                  className={`${inputCls} w-full`}
+                >
+                  <option value="">Без категории</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-
               <div>
                 <label className={labelCls}>Опубликован</label>
                 <select
                   value={data.is_published ? "true" : "false"}
                   onChange={(e) => set("is_published", e.target.value === "true")}
-                  className={`${inputCls} w-full`}
+                  className={`${inputCls} w-full md:max-w-[14rem]`}
                 >
                   <option value="true">Да</option>
                   <option value="false">Нет</option>
                 </select>
+              </div>
+            </div>
+          )}
+          {mode === "admin" && (
+            <div className="min-w-0">
+              <label className={labelCls}>Тип</label>
+              <div className="inline-flex w-full max-w-full rounded-lg border border-zinc-200 bg-white overflow-hidden shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => set("is_classic", true)}
+                  className={`flex-1 min-w-0 px-3 py-2.5 text-sm font-medium transition-colors ${
+                    data.is_classic ? "bg-primary-600 text-white" : "bg-white text-zinc-700 hover:bg-zinc-50"
+                  }`}
+                >
+                  Классический (IBA)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => set("is_classic", false)}
+                  className={`flex-1 min-w-0 px-3 py-2.5 text-sm font-medium transition-colors border-l border-zinc-200 ${
+                    !data.is_classic ? "bg-primary-600 text-white" : "bg-white text-zinc-700 hover:bg-zinc-50"
+                  }`}
+                >
+                  Авторский
+                </button>
               </div>
             </div>
           )}
