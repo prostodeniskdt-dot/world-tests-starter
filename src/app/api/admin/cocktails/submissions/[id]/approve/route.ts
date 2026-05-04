@@ -97,6 +97,7 @@ export async function POST(
           social_links, flavor_profile, tags, is_classic, is_published,
           history, allergens, strength_scale, taste_sweet_dry_scale, gallery_urls, nutrition_note, alcohol_content_note,
           taste_notes, aroma_notes, pairing_notes,
+          prepared_by,
           submitted_by_user_id
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9,
@@ -104,7 +105,8 @@ export async function POST(
           $18::jsonb, $19::jsonb, $20, $21, true,
           $22, $23, $24, $25, $26::jsonb, $27, $28,
           $29, $30, $31,
-          $32
+          $32,
+          $33
         )`,
         [
           catId,
@@ -138,6 +140,7 @@ export async function POST(
           sub.taste_notes ?? null,
           sub.aroma_notes ?? null,
           sub.pairing_notes ?? null,
+          sub.prepared_by ?? null,
           sub.user_id ?? null,
         ]
       );

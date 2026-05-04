@@ -126,6 +126,7 @@ export default async function CocktailPage({
   const tasteNotes = item.taste_notes ? String(item.taste_notes).trim() : "";
   const aromaNotes = item.aroma_notes ? String(item.aroma_notes).trim() : "";
   const pairingNotes = item.pairing_notes ? String(item.pairing_notes).trim() : "";
+  const preparedBy = item.prepared_by ? String(item.prepared_by).trim() : "";
   const hasPalateText = Boolean(tasteNotes || aromaNotes || pairingNotes);
   const hasScales =
     strength != null ||
@@ -430,12 +431,14 @@ export default async function CocktailPage({
           {(item.author != null ||
             item.bar_name != null ||
             item.classic_original_author != null ||
-            item.submitted_by_display_name) ? (() => {
+            item.submitted_by_display_name ||
+            item.prepared_by != null) ? (() => {
             const social = item.social_links as Record<string, string> | null;
             const links = social && typeof social === "object" ? Object.entries(social).filter(([, v]) => v) : [];
             const authorLine = [item.author, item.bar_name, item.bar_city].filter(Boolean).map(String).join(" · ");
             const submittedBy =
               item.submitted_by_display_name != null ? String(item.submitted_by_display_name).trim() : "";
+            const preparedByLine = [preparedBy, item.bar_name, item.bar_city].filter(Boolean).join(" · ");
             return (
               <div className="border-t border-zinc-100 p-6 sm:p-8 bg-gradient-to-b from-zinc-50/60 to-white">
                 <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
@@ -451,10 +454,14 @@ export default async function CocktailPage({
                   ) : null}
                   {authorLine && (
                     <p className="text-zinc-800 text-sm leading-relaxed">
-                      <span className="font-medium text-zinc-900">
-                        {item.is_classic ? "Рецепт для сайта подготовил: " : "Автор рецепта: "}
-                      </span>
+                      <span className="font-medium text-zinc-900">Автор рецепта: </span>
                       {authorLine}
+                    </p>
+                  )}
+                  {preparedByLine && (
+                    <p className="text-zinc-800 text-sm leading-relaxed">
+                      <span className="font-medium text-zinc-900">Рецепт для сайта подготовил: </span>
+                      {preparedByLine}
                     </p>
                   )}
                   {submittedBy ? (

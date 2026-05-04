@@ -79,7 +79,8 @@ export async function POST(req: NextRequest) {
          is_classic, is_published,
          strength_scale, taste_sweet_dry_scale,
          history, allergens, nutrition_note, alcohol_content_note,
-         taste_notes, aroma_notes, pairing_notes
+         taste_notes, aroma_notes, pairing_notes,
+         prepared_by
        ) VALUES (
          $1,$2,$3,$4,$5,$6,$7,$8,
          $9::jsonb,$10,$11,
@@ -88,7 +89,8 @@ export async function POST(req: NextRequest) {
          $22,$23,
          $24,$25,
          $26,$27,$28,$29,
-         $30,$31,$32
+         $30,$31,$32,
+         $33
        ) RETURNING id`,
       [
         name, slug,
@@ -108,6 +110,7 @@ export async function POST(req: NextRequest) {
         body.taste_notes || null,
         body.aroma_notes || null,
         body.pairing_notes || null,
+        body.prepared_by || null,
       ]
     );
     return NextResponse.json({ ok: true, id: rows[0].id });

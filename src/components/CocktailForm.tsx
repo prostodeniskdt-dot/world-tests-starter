@@ -39,6 +39,7 @@ export type CocktailFormData = {
   flavor_profile: Record<string, number>;
   // author & bar
   author: string;
+  prepared_by: string;
   classic_original_author: string;
   bar_name: string;
   bar_city: string;
@@ -75,6 +76,7 @@ const EMPTY: CocktailFormData = {
   pairing_notes: "",
   flavor_profile: {},
   author: "",
+  prepared_by: "",
   classic_original_author: "",
   bar_name: "",
   bar_city: "",
@@ -207,6 +209,7 @@ export function CocktailForm({
       pairing_notes: asString(initial.pairing_notes),
       flavor_profile: normalizeFlavorProfile(initial.flavor_profile),
       author: asString(initial.author),
+      prepared_by: asString(initial.prepared_by),
       classic_original_author: asString(initial.classic_original_author),
       bar_name: asString(initial.bar_name),
       bar_city: asString(initial.bar_city),
@@ -226,6 +229,7 @@ export function CocktailForm({
   const [success, setSuccess] = useState(false);
   const [tagDraft, setTagDraft] = useState("");
   const [photoRights, setPhotoRights] = useState(false);
+  const [slugOpen, setSlugOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -354,6 +358,7 @@ export function CocktailForm({
       pairing_notes: data.pairing_notes.trim() || null,
       flavor_profile: data.flavor_profile,
       author: data.author.trim() || null,
+      prepared_by: data.prepared_by.trim() || null,
       classic_original_author: data.classic_original_author.trim() || null,
       bar_name: data.bar_name.trim() || null,
       bar_city: data.bar_city.trim() || null,
@@ -401,11 +406,7 @@ export function CocktailForm({
           <div className="rounded-xl border border-primary-200 bg-primary-50/80 px-4 py-3 text-sm text-primary-900">
             <span className="font-medium">Заявку на публикацию подал пользователь: </span>
             {String((initial as Record<string, unknown>).submitted_by_display_name).trim()}
-            <span className="text-primary-700/90">
-              {" "}
-              (это не обязательно автор рецепта; подпись для гостей настраивается ниже в блоке «Авторство и
-              бар»).
-            </span>
+            <span className="text-primary-700/90"> {" "}(может не совпадать с автором рецепта).</span>
           </div>
         )}
 
@@ -417,14 +418,29 @@ export function CocktailForm({
             <label className={labelCls}>Название *</label>
             <input value={data.name} onChange={(e) => set("name", e.target.value)} className={`${inputCls} w-full`} />
           </div>
-          <div>
-            <label className={labelCls}>Slug</label>
-            <input
-              value={data.slug}
-              onChange={(e) => set("slug", e.target.value)}
-              className={`${inputCls} w-full`}
-              placeholder="Авто из названия"
-            />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <label className={labelCls}>Slug</label>
+              <button
+                type="button"
+                onClick={() => setSlugOpen((v) => !v)}
+                className="text-xs text-primary-700 hover:underline"
+              >
+                {slugOpen ? "Скрыть" : "Изменить"}
+              </button>
+            </div>
+            {!slugOpen ? (
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
+                {(data.slug.trim() || slugify(data.name.trim()) || "—").trim()}
+              </div>
+            ) : (
+              <input
+                value={data.slug}
+                onChange={(e) => set("slug", e.target.value)}
+                className={`${inputCls} w-full`}
+                placeholder="Авто из названия"
+              />
+            )}
           </div>
           {mode === "admin" && (
             <div>
@@ -444,25 +460,42 @@ export function CocktailForm({
             </div>
           )}
           {mode === "admin" && (
-            <div className="flex gap-6 items-center pt-6">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={data.is_classic}
-                  onChange={(e) => set("is_classic", e.target.checked)}
-                  className="rounded"
-                />
-                Классический (IBA)
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={data.is_published}
-                  onChange={(e) => set("is_published", e.target.checked)}
-                  className="rounded"
-                />
-                Опубликован
-              </label>
+            <div className="space-y-3 md:pt-6">
+              <div>
+                <p className={labelCls}>Тип</p>
+                <div className="inline-flex rounded-lg border border-zinc-200 bg-white overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => set("is_classic", true)}
+                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                      data.is_classic ? "bg-primary-600 text-white" : "bg-white text-zinc-700 hover:bg-zinc-50"
+                    }`}
+                  >
+                    Классический (IBA)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set("is_classic", false)}
+                    className={`px-3 py-2 text-sm font-medium transition-colors border-l border-zinc-200 ${
+                      !data.is_classic ? "bg-primary-600 text-white" : "bg-white text-zinc-700 hover:bg-zinc-50"
+                    }`}
+                  >
+                    Авторский
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className={labelCls}>Опубликован</label>
+                <select
+                  value={data.is_published ? "true" : "false"}
+                  onChange={(e) => set("is_published", e.target.value === "true")}
+                  className={`${inputCls} w-full`}
+                >
+                  <option value="true">Да</option>
+                  <option value="false">Нет</option>
+                </select>
+              </div>
             </div>
           )}
           {/* is_classic для UGC убран — тип определяет модератор */}
@@ -571,9 +604,6 @@ export function CocktailForm({
       {/* Сенсорика */}
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
         <h2 className="font-semibold text-zinc-900">Вкус, аромат и сочетания</h2>
-        <p className="text-xs text-zinc-500 -mt-2">
-          Текст для гостей: впечатления на языке, без обязательной привязки к шкалам ниже в «Дополнительно».
-        </p>
         <div>
           <label className={labelCls}>Вкус</label>
           <textarea
@@ -659,11 +689,6 @@ export function CocktailForm({
       {/* Авторство и бар */}
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
         <h2 className="font-semibold text-zinc-900">Авторство и бар</h2>
-        <p className="text-xs text-zinc-600 leading-relaxed">
-          На сайте показываются разные подписи для классики и авторских рецептов. Бар и соцсети — про место и
-          контакты; поле «автор на карточке» — про то, как подписать рецепт для читателя (не путайте с
-          аккаунтом, с которого подали заявку — он указан в блоке выше, если есть).
-        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -720,35 +745,25 @@ export function CocktailForm({
               placeholder="Например: Jerry Thomas"
               className={`${inputCls} w-full`}
             />
-            <p className="text-xs text-zinc-500 mt-1">
-              Показывается на карточке отдельной строкой. Включите «Классический (IBA)» в блоке «Основное».
-            </p>
           </div>
         )}
 
-        {mode === "admin" && !data.is_classic && (
-          <p className="text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-lg px-3 py-2">
-            Для классического коктейля включите «Классический (IBA)» вверху — тогда появится поле исторического
-            автора.
-          </p>
-        )}
-
         <div>
-          <label className={labelCls}>
-            {data.is_classic && mode === "admin"
-              ? "Подпись на сайте: кто подготовил текст рецепта (часто бармен, бар или редактор)"
-              : "Автор рецепта (имя в подписи на сайте)"}
-          </label>
+          <label className={labelCls}>Автор рецепта (имя в подписи на сайте)</label>
           <input
             value={data.author}
             onChange={(e) => set("author", e.target.value)}
             className={`${inputCls} w-full`}
           />
-          <p className="text-xs text-zinc-400 mt-1">
-            {data.is_classic
-              ? "На карточке: «Рецепт для сайта подготовил: …» плюс бар и город, если указаны."
-              : "На карточке: «Автор рецепта: …» плюс бар и город, если указаны."}
-          </p>
+        </div>
+
+        <div>
+          <label className={labelCls}>Рецепт для сайта подготовил / оформил</label>
+          <input
+            value={data.prepared_by}
+            onChange={(e) => set("prepared_by", e.target.value)}
+            className={`${inputCls} w-full`}
+          />
         </div>
 
         <div className="space-y-2">

@@ -76,8 +76,9 @@ export async function PUT(
          strength_scale=$24, taste_sweet_dry_scale=$25,
          history=$26, allergens=$27, nutrition_note=$28, alcohol_content_note=$29,
          taste_notes=$30, aroma_notes=$31, pairing_notes=$32,
+         prepared_by=$33,
          updated_at=now()
-       WHERE id=$33`,
+       WHERE id=$34`,
       [
         name,
         body.slug ? String(body.slug).trim() : undefined,
@@ -97,6 +98,7 @@ export async function PUT(
         body.taste_notes || null,
         body.aroma_notes || null,
         body.pairing_notes || null,
+        body.prepared_by || null,
         numId,
       ]
     );

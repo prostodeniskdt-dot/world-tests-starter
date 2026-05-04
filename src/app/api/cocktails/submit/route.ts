@@ -170,6 +170,7 @@ export async function POST(req: NextRequest) {
   const bar_city = trimText(body.bar_city, 120);
   const bar_description = trimText(body.bar_description, 2000);
   const author = trimText(body.author, 200);
+  const prepared_by = trimText(body.prepared_by, 200);
   const classic_original_author = trimText(body.classic_original_author, 200);
   const is_classic = false;
   const history = trimText(body.history, 8000);
@@ -197,7 +198,7 @@ export async function POST(req: NextRequest) {
       `INSERT INTO cocktail_submissions (
         user_id, name, slug, description, method, glass, garnish, ice,
         ingredients, instructions, cordials_recipe, bar_name, bar_city, bar_description, author,
-        classic_original_author, is_classic,
+        prepared_by, classic_original_author, is_classic,
         social_links, flavor_profile, tags, image_url, gallery_urls,
         history, allergens, strength_scale, taste_sweet_dry_scale, nutrition_note, alcohol_content_note,
         taste_notes, aroma_notes, pairing_notes,
@@ -205,10 +206,10 @@ export async function POST(req: NextRequest) {
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
         $9::jsonb, $10, $11, $12, $13, $14, $15,
-        $16, $17,
-        $18::jsonb, $19::jsonb, $20, $21, $22::jsonb,
-        $23, $24, $25, $26, $27, $28,
-        $29, $30, $31,
+        $16, $17, $18,
+        $19::jsonb, $20::jsonb, $21, $22, $23::jsonb,
+        $24, $25, $26, $27, $28, $29,
+        $30, $31, $32,
         true, 'pending'
       )`,
       [
@@ -227,6 +228,7 @@ export async function POST(req: NextRequest) {
         bar_city,
         bar_description,
         author,
+        prepared_by,
         classic_original_author,
         is_classic,
         socialJson,
