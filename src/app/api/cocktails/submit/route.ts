@@ -176,6 +176,9 @@ export async function POST(req: NextRequest) {
   const allergens = trimText(body.allergens, 2000);
   const nutrition_note = trimText(body.nutrition_note, 2000);
   const alcohol_content_note = trimText(body.alcohol_content_note, 2000);
+  const taste_notes = trimText(body.taste_notes, 4000);
+  const aroma_notes = trimText(body.aroma_notes, 4000);
+  const pairing_notes = trimText(body.pairing_notes, 4000);
 
   const strength_scale = parseScale(body.strength_scale);
   const taste_sweet_dry_scale = parseScale(body.taste_sweet_dry_scale);
@@ -197,6 +200,7 @@ export async function POST(req: NextRequest) {
         classic_original_author, is_classic,
         social_links, flavor_profile, tags, image_url, gallery_urls,
         history, allergens, strength_scale, taste_sweet_dry_scale, nutrition_note, alcohol_content_note,
+        taste_notes, aroma_notes, pairing_notes,
         photo_rights_confirmed, status
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
@@ -204,6 +208,7 @@ export async function POST(req: NextRequest) {
         $16, $17,
         $18::jsonb, $19::jsonb, $20, $21, $22::jsonb,
         $23, $24, $25, $26, $27, $28,
+        $29, $30, $31,
         true, 'pending'
       )`,
       [
@@ -235,6 +240,9 @@ export async function POST(req: NextRequest) {
         taste_sweet_dry_scale,
         nutrition_note,
         alcohol_content_note,
+        taste_notes,
+        aroma_notes,
+        pairing_notes,
       ]
     );
 

@@ -96,13 +96,15 @@ export async function POST(
           ingredients, instructions, cordials_recipe, bar_name, bar_city, bar_description, author, classic_original_author,
           social_links, flavor_profile, tags, is_classic, is_published,
           history, allergens, strength_scale, taste_sweet_dry_scale, gallery_urls, nutrition_note, alcohol_content_note,
+          taste_notes, aroma_notes, pairing_notes,
           submitted_by_user_id
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9,
           $10::jsonb, $11, $12, $13, $14, $15, $16, $17,
           $18::jsonb, $19::jsonb, $20, $21, true,
           $22, $23, $24, $25, $26::jsonb, $27, $28,
-          $29
+          $29, $30, $31,
+          $32
         )`,
         [
           catId,
@@ -133,6 +135,9 @@ export async function POST(
           gallery_urls,
           sub.nutrition_note ?? null,
           sub.alcohol_content_note ?? null,
+          sub.taste_notes ?? null,
+          sub.aroma_notes ?? null,
+          sub.pairing_notes ?? null,
           sub.user_id ?? null,
         ]
       );

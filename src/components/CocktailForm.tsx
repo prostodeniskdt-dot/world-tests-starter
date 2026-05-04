@@ -33,6 +33,10 @@ export type CocktailFormData = {
   nutrition_note: string;
   alcohol_content_note: string;
   tags: string[];
+  taste_notes: string;
+  aroma_notes: string;
+  pairing_notes: string;
+  flavor_profile: Record<string, number>;
   // author & bar
   author: string;
   classic_original_author: string;
@@ -66,6 +70,10 @@ const EMPTY: CocktailFormData = {
   nutrition_note: "",
   alcohol_content_note: "",
   tags: [],
+  taste_notes: "",
+  aroma_notes: "",
+  pairing_notes: "",
+  flavor_profile: {},
   author: "",
   classic_original_author: "",
   bar_name: "",
@@ -126,6 +134,30 @@ function normalizeSocialLinks(raw: unknown): Record<string, string> {
   };
 }
 
+function normalizeFlavorProfile(raw: unknown): Record<string, number> {
+  if (!raw || typeof raw !== "object") return {};
+  const o = raw as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(o)) {
+    const key = String(k).slice(0, 48).trim();
+    if (!key) continue;
+    const n = Number(v);
+    if (Number.isFinite(n)) out[key] = Math.min(100, Math.max(0, Math.round(n)));
+  }
+  return out;
+}
+
+const FLAVOR_PRESET_LABELS = [
+  "Горечь",
+  "Цитрус",
+  "Сладость",
+  "Кислотность",
+  "Специи",
+  "Травы",
+  "Цветочные ноты",
+  "Дым / выдержка",
+] as const;
+
 export function CocktailForm({
   mode,
   categories,
@@ -170,6 +202,10 @@ export function CocktailForm({
       nutrition_note: asString(initial.nutrition_note),
       alcohol_content_note: asString(initial.alcohol_content_note),
       tags: normalizeTags(initial.tags),
+      taste_notes: asString(initial.taste_notes),
+      aroma_notes: asString(initial.aroma_notes),
+      pairing_notes: asString(initial.pairing_notes),
+      flavor_profile: normalizeFlavorProfile(initial.flavor_profile),
       author: asString(initial.author),
       classic_original_author: asString(initial.classic_original_author),
       bar_name: asString(initial.bar_name),
@@ -313,6 +349,10 @@ export function CocktailForm({
       nutrition_note: data.nutrition_note.trim() || null,
       alcohol_content_note: data.alcohol_content_note.trim() || null,
       tags: data.tags,
+      taste_notes: data.taste_notes.trim() || null,
+      aroma_notes: data.aroma_notes.trim() || null,
+      pairing_notes: data.pairing_notes.trim() || null,
+      flavor_profile: data.flavor_profile,
       author: data.author.trim() || null,
       classic_original_author: data.classic_original_author.trim() || null,
       bar_name: data.bar_name.trim() || null,
@@ -353,6 +393,21 @@ export function CocktailForm({
           Сохранено
         </div>
       )}
+
+      {mode === "admin" &&
+        initial &&
+        typeof (initial as Record<string, unknown>).submitted_by_display_name === "string" &&
+        String((initial as Record<string, unknown>).submitted_by_display_name).trim() && (
+          <div className="rounded-xl border border-primary-200 bg-primary-50/80 px-4 py-3 text-sm text-primary-900">
+            <span className="font-medium">Заявку на публикацию подал пользователь: </span>
+            {String((initial as Record<string, unknown>).submitted_by_display_name).trim()}
+            <span className="text-primary-700/90">
+              {" "}
+              (это не обязательно автор рецепта; подпись для гостей настраивается ниже в блоке «Авторство и
+              бар»).
+            </span>
+          </div>
+        )}
 
       {/* Основное */}
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
@@ -513,34 +568,104 @@ export function CocktailForm({
         </div>
       </section>
 
-      {/* Автор и бар */}
+      {/* Сенсорика */}
       <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
-        <h2 className="font-semibold text-zinc-900">Автор и бар</h2>
+        <h2 className="font-semibold text-zinc-900">Вкус, аромат и сочетания</h2>
+        <p className="text-xs text-zinc-500 -mt-2">
+          Текст для гостей: впечатления на языке, без обязательной привязки к шкалам ниже в «Дополнительно».
+        </p>
         <div>
-          <label className={labelCls}>
-            Автор оригинального классического рецепта
-            {mode === "ugc" && <span className="font-normal text-zinc-400 ml-1">(если классический)</span>}
-          </label>
-          <input
-            value={data.classic_original_author}
-            onChange={(e) => set("classic_original_author", e.target.value)}
-            placeholder="Например: Jerry Thomas"
+          <label className={labelCls}>Вкус</label>
+          <textarea
+            value={data.taste_notes}
+            onChange={(e) => set("taste_notes", e.target.value)}
+            rows={3}
+            placeholder="Текстура, баланс, послевкусие…"
             className={`${inputCls} w-full`}
           />
-          {mode === "ugc" && (
-            <p className="text-xs text-zinc-400 mt-1">
-              Заполняйте, только если это известный классический коктейль — модератор учтёт при публикации.
-            </p>
-          )}
         </div>
-        <p className="text-xs text-zinc-500">
-          Автор рецепта и бар, где он был создан или подаётся.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Автор / кто подготовил рецепт</label>
-            <input value={data.author} onChange={(e) => set("author", e.target.value)} className={`${inputCls} w-full`} />
+        <div>
+          <label className={labelCls}>Аромат</label>
+          <textarea
+            value={data.aroma_notes}
+            onChange={(e) => set("aroma_notes", e.target.value)}
+            rows={3}
+            placeholder="Первый нос, раскрытие…"
+            className={`${inputCls} w-full`}
+          />
+        </div>
+        <div>
+          <label className={labelCls}>Пейринг</label>
+          <textarea
+            value={data.pairing_notes}
+            onChange={(e) => set("pairing_notes", e.target.value)}
+            rows={3}
+            placeholder="Закуски, кухня, сезон, настроение…"
+            className={`${inputCls} w-full`}
+          />
+        </div>
+        <div className="border-t border-zinc-100 pt-4 space-y-3">
+          <p className="text-sm font-medium text-zinc-800">Ноты профиля (0–100)</p>
+          <p className="text-xs text-zinc-500">
+            Дополняют шкалы крепости и сладости. Добавьте ноту и двигайте ползунок; на карточке отобразятся
+            полосками.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {FLAVOR_PRESET_LABELS.map((label) =>
+              data.flavor_profile[label] != null ? null : (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => set("flavor_profile", { ...data.flavor_profile, [label]: 40 })}
+                  className="text-xs rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-zinc-700 hover:border-primary-300 hover:bg-primary-50"
+                >
+                  + {label}
+                </button>
+              )
+            )}
           </div>
+          <div className="space-y-3">
+            {Object.entries(data.flavor_profile).map(([key, val]) => (
+              <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-sm text-zinc-700 shrink-0 w-40">{key}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={val}
+                  onChange={(e) =>
+                    set("flavor_profile", { ...data.flavor_profile, [key]: Number(e.target.value) })
+                  }
+                  className="flex-1 accent-primary-600"
+                />
+                <span className="text-xs text-zinc-500 w-8 tabular-nums">{val}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = { ...data.flavor_profile };
+                    delete next[key];
+                    set("flavor_profile", next);
+                  }}
+                  className="text-xs text-red-600 hover:underline shrink-0"
+                >
+                  убрать
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Авторство и бар */}
+      <section className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4">
+        <h2 className="font-semibold text-zinc-900">Авторство и бар</h2>
+        <p className="text-xs text-zinc-600 leading-relaxed">
+          На сайте показываются разные подписи для классики и авторских рецептов. Бар и соцсети — про место и
+          контакты; поле «автор на карточке» — про то, как подписать рецепт для читателя (не путайте с
+          аккаунтом, с которого подали заявку — он указан в блоке выше, если есть).
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Бар</label>
             <input
@@ -567,8 +692,68 @@ export function CocktailForm({
             className={`${inputCls} w-full`}
           />
         </div>
+
+        {mode === "ugc" && (
+          <div>
+            <label className={labelCls}>
+              Исторический автор классического рецепта
+              <span className="font-normal text-zinc-400 ml-1">(если это классика)</span>
+            </label>
+            <input
+              value={data.classic_original_author}
+              onChange={(e) => set("classic_original_author", e.target.value)}
+              placeholder="Например: Harry Craddock"
+              className={`${inputCls} w-full`}
+            />
+            <p className="text-xs text-zinc-400 mt-1">
+              Тип «классика / авторский» на сайте выставит модератор; это поле помогает ему при проверке.
+            </p>
+          </div>
+        )}
+
+        {mode === "admin" && data.is_classic && (
+          <div>
+            <label className={labelCls}>Автор оригинального классического рецепта</label>
+            <input
+              value={data.classic_original_author}
+              onChange={(e) => set("classic_original_author", e.target.value)}
+              placeholder="Например: Jerry Thomas"
+              className={`${inputCls} w-full`}
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Показывается на карточке отдельной строкой. Включите «Классический (IBA)» в блоке «Основное».
+            </p>
+          </div>
+        )}
+
+        {mode === "admin" && !data.is_classic && (
+          <p className="text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-lg px-3 py-2">
+            Для классического коктейля включите «Классический (IBA)» вверху — тогда появится поле исторического
+            автора.
+          </p>
+        )}
+
+        <div>
+          <label className={labelCls}>
+            {data.is_classic && mode === "admin"
+              ? "Подпись на сайте: кто подготовил текст рецепта (часто бармен, бар или редактор)"
+              : "Автор рецепта (имя в подписи на сайте)"}
+          </label>
+          <input
+            value={data.author}
+            onChange={(e) => set("author", e.target.value)}
+            className={`${inputCls} w-full`}
+          />
+          <p className="text-xs text-zinc-400 mt-1">
+            {data.is_classic
+              ? "На карточке: «Рецепт для сайта подготовил: …» плюс бар и город, если указаны."
+              : "На карточке: «Автор рецепта: …» плюс бар и город, если указаны."}
+          </p>
+        </div>
+
         <div className="space-y-2">
-          <p className="text-sm font-medium text-zinc-700">Ссылки автора</p>
+          <p className="text-sm font-medium text-zinc-700">Соцсети</p>
+          <p className="text-xs text-zinc-500">Ссылки автора или бара — что уместнее для этой карточки.</p>
           {["telegram", "youtube", "dzen"].map((key) => (
             <div key={key} className="flex gap-2 items-center">
               <span className="text-sm text-zinc-500 w-20 capitalize">{key}</span>

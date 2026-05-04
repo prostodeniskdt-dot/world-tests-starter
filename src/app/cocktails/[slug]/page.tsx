@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import { Martini, ArrowLeft, Send, Youtube } from "lucide-react";
+import { Martini, ArrowLeft, Send, Youtube, Sparkles, Wind, UtensilsCrossed } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
 
 type Row = Record<string, unknown>;
@@ -42,9 +42,13 @@ function ScaleBar({
         <span>{leftLabel}</span>
         <span>{rightLabel}</span>
       </div>
-      <div className="relative h-3 bg-zinc-200 rounded-full overflow-visible">
+      <div className="relative h-2.5 bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-100 rounded-full overflow-visible ring-1 ring-zinc-200/80">
         <div
-          className="absolute top-1/2 h-4 w-4 -mt-2 rounded-full bg-primary-600 border-2 border-white shadow"
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 opacity-35"
+          style={{ width: `${pct}%` }}
+        />
+        <div
+          className="absolute top-1/2 h-4 w-4 -mt-2 rounded-full bg-primary-600 border-2 border-white shadow-md"
           style={{ left: `calc(${pct}% - 8px)` }}
         />
       </div>
@@ -90,7 +94,11 @@ export default async function CocktailPage({
   const { slug: rawSlug } = await params;
   const slug = safeDecodeSlug(rawSlug);
   const { rows } = await db.query(
-    "SELECT * FROM cocktails WHERE slug = $1 AND is_published = true",
+    `SELECT c.*,
+      NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), '') AS submitted_by_display_name
+     FROM cocktails c
+     LEFT JOIN users u ON u.id = c.submitted_by_user_id
+     WHERE c.slug = $1 AND c.is_published = true`,
     [slug]
   );
 
@@ -115,12 +123,21 @@ export default async function CocktailPage({
       ? Number(item.taste_sweet_dry_scale)
       : null;
 
+  const tasteNotes = item.taste_notes ? String(item.taste_notes).trim() : "";
+  const aromaNotes = item.aroma_notes ? String(item.aroma_notes).trim() : "";
+  const pairingNotes = item.pairing_notes ? String(item.pairing_notes).trim() : "";
+  const hasPalateText = Boolean(tasteNotes || aromaNotes || pairingNotes);
+  const hasScales =
+    strength != null ||
+    tasteDry != null ||
+    (flavorProfile && Object.keys(flavorProfile).length > 0);
+
   const navItems: { id: string; label: string }[] = [];
   if (ingredients && ingredients.length > 0) navItems.push({ id: "ingredients", label: "Ингредиенты" });
   if (item.instructions) navItems.push({ id: "howto", label: "Приготовление" });
   if (item.allergens) navItems.push({ id: "allergens", label: "Аллергены" });
-  if (strength != null || tasteDry != null || (flavorProfile && Object.keys(flavorProfile).length > 0)) {
-    navItems.push({ id: "taste", label: "Крепость и вкус" });
+  if (hasPalateText || hasScales) {
+    navItems.push({ id: "palate", label: "Вкус, аромат и пейринг" });
   }
   if (item.image_url || gallery.length > 0) navItems.push({ id: "gallery", label: "Галерея" });
   if (item.history) navItems.push({ id: "history", label: "История" });
@@ -177,72 +194,101 @@ export default async function CocktailPage({
           </aside>
         )}
 
-        <article className="rounded-xl border border-zinc-200 bg-white overflow-hidden shadow-soft min-w-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-            <div id="gallery" className="scroll-mt-24 space-y-3">
-              <div className="aspect-square max-h-80 md:max-h-none bg-zinc-100 rounded-lg flex items-center justify-center overflow-hidden">
-                {item.image_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={item.image_url as string}
-                    alt={item.name as string}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <Martini className="h-24 w-24 text-zinc-300" />
-                )}
-              </div>
-              {gallery.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {gallery.map((u) => (
+        <article className="rounded-2xl border border-zinc-200/90 bg-white overflow-hidden min-w-0 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.18)] ring-1 ring-zinc-900/[0.04]">
+          <div className="bg-gradient-to-br from-primary-500/[0.08] via-white to-amber-400/[0.06] px-5 pt-5 pb-1 sm:px-7 sm:pt-7">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <div id="gallery" className="scroll-mt-24 space-y-3">
+                <div className="aspect-square max-h-80 md:max-h-none rounded-2xl bg-zinc-100 flex items-center justify-center overflow-hidden ring-1 ring-zinc-900/5 shadow-inner">
+                  {item.image_url ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
-                      key={u}
-                      src={u}
-                      alt=""
-                      className="h-16 w-16 object-cover rounded-md border border-zinc-200"
+                      src={item.image_url as string}
+                      alt={item.name as string}
+                      className="w-full h-full object-cover"
                     />
-                  ))}
+                  ) : (
+                    <Martini className="h-24 w-24 text-zinc-300" />
+                  )}
                 </div>
-              )}
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <h1 className="text-2xl font-bold text-zinc-900">{String(item.name)}</h1>
-                {item.is_classic ? (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary-100 text-primary-700">
-                    Классика
-                  </span>
-                ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700">
-                    Авторский
-                  </span>
+                {gallery.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {gallery.map((u) => (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        key={u}
+                        src={u}
+                        alt=""
+                        className="h-16 w-16 object-cover rounded-xl border border-zinc-200/80 shadow-sm"
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
-              {item.method ? (
-                <p className="text-sm text-zinc-600 mb-1">Метод: {String(item.method)}</p>
-              ) : null}
-              {item.glass ? (
-                <p className="text-sm text-zinc-600 mb-1">Бокал: {String(item.glass)}</p>
-              ) : null}
-              {item.garnish ? (
-                <p className="text-sm text-zinc-600 mb-4">Гарнир: {String(item.garnish)}</p>
-              ) : null}
-              {item.description ? (
-                <div className="prose prose-sm text-zinc-700 max-w-none">
-                  <p>{String(item.description)}</p>
+              <div className="flex flex-col justify-center pb-4 md:pb-2">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+                    {String(item.name)}
+                  </h1>
+                  {item.is_classic ? (
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-600 text-white shadow-sm">
+                      Классика
+                    </span>
+                  ) : (
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-900/[0.06] text-zinc-700 ring-1 ring-zinc-900/10">
+                      Авторский
+                    </span>
+                  )}
                 </div>
-              ) : null}
+                {(Boolean(item.method) ||
+                  Boolean(item.glass) ||
+                  Boolean(item.garnish) ||
+                  Boolean(item.ice)) && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {item.method ? (
+                      <span className="inline-flex items-center rounded-lg bg-white/90 px-2.5 py-1 text-xs font-medium text-zinc-700 ring-1 ring-zinc-200 shadow-sm">
+                        {String(item.method)}
+                      </span>
+                    ) : null}
+                    {item.glass ? (
+                      <span className="inline-flex items-center rounded-lg bg-white/90 px-2.5 py-1 text-xs font-medium text-zinc-700 ring-1 ring-zinc-200 shadow-sm">
+                        {String(item.glass)}
+                      </span>
+                    ) : null}
+                    {item.garnish ? (
+                      <span className="inline-flex items-center rounded-lg bg-white/90 px-2.5 py-1 text-xs font-medium text-zinc-700 ring-1 ring-zinc-200 shadow-sm">
+                        {String(item.garnish)}
+                      </span>
+                    ) : null}
+                    {item.ice ? (
+                      <span className="inline-flex items-center rounded-lg bg-white/90 px-2.5 py-1 text-xs font-medium text-zinc-700 ring-1 ring-zinc-200 shadow-sm">
+                        {String(item.ice)}
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+                {item.description ? (
+                  <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">{String(item.description)}</p>
+                ) : null}
+              </div>
             </div>
           </div>
 
           {ingredients && ingredients.length > 0 && (
-            <div id="ingredients" className="border-t border-zinc-200 p-6 scroll-mt-24">
-              <h2 className="font-semibold text-zinc-900 mb-3">Ингредиенты</h2>
-              <ul className="space-y-1">
+            <div id="ingredients" className="border-t border-zinc-100 p-6 sm:p-8 scroll-mt-24 bg-zinc-50/40">
+              <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
+                <span className="h-8 w-1 rounded-full bg-primary-500 shrink-0" aria-hidden />
+                Ингредиенты
+              </h2>
+              <ul className="space-y-2.5">
                 {ingredients.map((ing, i) => (
-                  <li key={i} className="text-zinc-700">
-                    {String(ing?.amount ?? "")} {String(ing?.name ?? "")}
+                  <li
+                    key={i}
+                    className="flex gap-3 text-zinc-800 rounded-xl bg-white/80 px-4 py-2.5 ring-1 ring-zinc-200/60"
+                  >
+                    <span className="font-medium text-primary-700 tabular-nums shrink-0 min-w-[4.5rem]">
+                      {String(ing?.amount ?? "").trim() || "—"}
+                    </span>
+                    <span className="text-zinc-700">{String(ing?.name ?? "").trim()}</span>
                   </li>
                 ))}
               </ul>
@@ -276,46 +322,83 @@ export default async function CocktailPage({
             </div>
           ) : null}
 
-          {(strength != null ||
-            tasteDry != null ||
-            (flavorProfile && Object.keys(flavorProfile).length > 0)) && (
-            <div id="taste" className="border-t border-zinc-200 p-6 scroll-mt-24">
-              <h2 className="font-semibold text-zinc-900 mb-4">Крепость и вкус</h2>
-              {strength != null && !Number.isNaN(strength) && (
-                <ScaleBar
-                  value={strength}
-                  leftLabel="Безалкогольно"
-                  rightLabel="Крепко"
-                  title="Крепость"
-                />
-              )}
-              {tasteDry != null && !Number.isNaN(tasteDry) && (
-                <ScaleBar
-                  value={tasteDry}
-                  leftLabel="Сладко"
-                  rightLabel="Сухо / кисло"
-                  title="Баланс сладости"
-                />
-              )}
-              {flavorProfile && Object.keys(flavorProfile).length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium text-zinc-800">Доп. ноты</p>
-                  {Object.entries(flavorProfile).map(([key, val]) => (
-                    <div key={key} className="flex items-center gap-3">
-                      <span className="text-sm text-zinc-600 w-28 capitalize">{key}</span>
-                      <div className="flex-1 h-2 bg-zinc-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary-500 rounded-full"
-                          style={{
-                            width: `${Math.min(100, Math.max(0, Number(val) || 0))}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs text-zinc-500 w-8">{Number(val) || 0}</span>
+          {(hasPalateText || hasScales) && (
+            <div id="palate" className="border-t border-zinc-100 p-6 sm:p-8 scroll-mt-24 space-y-8">
+              <h2 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
+                <span className="h-8 w-1 rounded-full bg-amber-500 shrink-0" aria-hidden />
+                Вкус, аромат и пейринг
+              </h2>
+
+              {tasteNotes ? (
+                <section className="rounded-2xl bg-gradient-to-br from-rose-50/80 to-white p-5 ring-1 ring-rose-100/80">
+                  <h3 className="text-sm font-semibold text-zinc-900 mb-2 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-rose-500 shrink-0" aria-hidden />
+                    Вкус
+                  </h3>
+                  <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{tasteNotes}</p>
+                </section>
+              ) : null}
+
+              {aromaNotes ? (
+                <section className="rounded-2xl bg-gradient-to-br from-violet-50/80 to-white p-5 ring-1 ring-violet-100/80">
+                  <h3 className="text-sm font-semibold text-zinc-900 mb-2 flex items-center gap-2">
+                    <Wind className="h-4 w-4 text-violet-500 shrink-0" aria-hidden />
+                    Аромат
+                  </h3>
+                  <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{aromaNotes}</p>
+                </section>
+              ) : null}
+
+              {pairingNotes ? (
+                <section className="rounded-2xl bg-gradient-to-br from-emerald-50/80 to-white p-5 ring-1 ring-emerald-100/80">
+                  <h3 className="text-sm font-semibold text-zinc-900 mb-2 flex items-center gap-2">
+                    <UtensilsCrossed className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden />
+                    Пейринг
+                  </h3>
+                  <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{pairingNotes}</p>
+                </section>
+              ) : null}
+
+              {hasScales ? (
+                <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-5 sm:p-6">
+                  <h3 className="text-sm font-semibold text-zinc-900 mb-4">Крепость и профиль</h3>
+                  {strength != null && !Number.isNaN(strength) && (
+                    <ScaleBar
+                      value={strength}
+                      leftLabel="Безалкогольно"
+                      rightLabel="Крепко"
+                      title="Крепость"
+                    />
+                  )}
+                  {tasteDry != null && !Number.isNaN(tasteDry) && (
+                    <ScaleBar
+                      value={tasteDry}
+                      leftLabel="Сладко"
+                      rightLabel="Сухо / кисло"
+                      title="Баланс сладости"
+                    />
+                  )}
+                  {flavorProfile && Object.keys(flavorProfile).length > 0 && (
+                    <div className="mt-2 space-y-3">
+                      <p className="text-sm font-medium text-zinc-800">Ноты профиля</p>
+                      {Object.entries(flavorProfile).map(([key, val]) => (
+                        <div key={key} className="flex items-center gap-3">
+                          <span className="text-sm text-zinc-600 w-32 sm:w-40 shrink-0 leading-snug">{key}</span>
+                          <div className="flex-1 h-2.5 bg-zinc-200 rounded-full overflow-hidden ring-1 ring-zinc-200/80">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-600"
+                              style={{
+                                width: `${Math.min(100, Math.max(0, Number(val) || 0))}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs text-zinc-500 w-8 tabular-nums text-right">{Number(val) || 0}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+              ) : null}
             </div>
           )}
 
@@ -344,65 +427,88 @@ export default async function CocktailPage({
             </div>
           ) : null}
 
-          {(item.author != null || item.bar_name != null || item.classic_original_author != null) ? (() => {
+          {(item.author != null ||
+            item.bar_name != null ||
+            item.classic_original_author != null ||
+            item.submitted_by_display_name) ? (() => {
             const social = item.social_links as Record<string, string> | null;
             const links = social && typeof social === "object" ? Object.entries(social).filter(([, v]) => v) : [];
             const authorLine = [item.author, item.bar_name, item.bar_city].filter(Boolean).map(String).join(" · ");
+            const submittedBy =
+              item.submitted_by_display_name != null ? String(item.submitted_by_display_name).trim() : "";
             return (
-              <div className="border-t border-zinc-200 p-6">
-                <h2 className="font-semibold text-zinc-900 mb-2">Информация об авторстве</h2>
-                {item.is_classic && item.classic_original_author ? (
-                  <p className="text-zinc-700 text-sm">
-                    Автор оригинального рецепта: {String(item.classic_original_author)}
-                  </p>
-                ) : null}
-                {authorLine && (
-                  <p className="text-zinc-700 text-sm mt-1">
-                    {item.is_classic ? "Рецепт для сайта подготовил: " : "Автор рецепта: "}
-                    {authorLine}
-                  </p>
-                )}
-                {item.bar_description ? (
-                  <p className="text-zinc-600 text-sm mt-2 whitespace-pre-wrap">
-                    {String(item.bar_description)}
-                  </p>
-                ) : null}
-                {links.length > 0 && (
-                  <div className="flex gap-2 mt-3">
-                    {links.map(([key, url]) => (
-                      <a
-                        key={key}
-                        href={String(url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-zinc-100 text-zinc-600 hover:bg-primary-100 hover:text-primary-700 transition-colors"
-                        title={key}
-                      >
-                        {key === "telegram" && <Send className="h-4 w-4" />}
-                        {key === "youtube" && <Youtube className="h-4 w-4" />}
-                        {key === "dzen" && (
-                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.1 0 2.08.4 2.87 1.06C13.65 7.39 12.87 9.12 12 11c-.87-1.88-1.65-3.61-2.87-4.94A4.96 4.96 0 0112 5zm-5 7c0-1.1.4-2.08 1.06-2.87C9.39 10.35 11.12 11.13 13 12c-1.88.87-3.61 1.65-4.94 2.87A4.96 4.96 0 017 12zm5 5c-1.1 0-2.08-.4-2.87-1.06C10.35 14.61 11.13 12.88 12 11c.87 1.88 1.65 3.61 2.87 4.94A4.96 4.96 0 0112 17zm5-5c0 1.1-.4 2.08-1.06 2.87C14.61 13.65 12.88 12.87 11 12c1.88-.87 3.61-1.65 4.94-2.87A4.96 4.96 0 0117 12z"/>
-                          </svg>
-                        )}
-                        {!["telegram", "youtube", "dzen"].includes(key) && (
-                          <span className="text-xs font-medium">{key.slice(0, 2).toUpperCase()}</span>
-                        )}
-                      </a>
-                    ))}
-                  </div>
-                )}
+              <div className="border-t border-zinc-100 p-6 sm:p-8 bg-gradient-to-b from-zinc-50/60 to-white">
+                <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
+                  <span className="h-8 w-1 rounded-full bg-zinc-400 shrink-0" aria-hidden />
+                  Авторство
+                </h2>
+                <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 space-y-3 shadow-sm">
+                  {item.is_classic && item.classic_original_author ? (
+                    <p className="text-zinc-800 text-sm leading-relaxed">
+                      <span className="font-medium text-zinc-900">Автор оригинального рецепта: </span>
+                      {String(item.classic_original_author)}
+                    </p>
+                  ) : null}
+                  {authorLine && (
+                    <p className="text-zinc-800 text-sm leading-relaxed">
+                      <span className="font-medium text-zinc-900">
+                        {item.is_classic ? "Рецепт для сайта подготовил: " : "Автор рецепта: "}
+                      </span>
+                      {authorLine}
+                    </p>
+                  )}
+                  {submittedBy ? (
+                    <p className="text-zinc-600 text-sm border-t border-zinc-100 pt-3 mt-1">
+                      <span className="font-medium text-zinc-700">Заявку на сайт подал: </span>
+                      {submittedBy}
+                      <span className="text-zinc-500">
+                        {" "}
+                        (аккаунт; может совпадать или не совпадать с автором рецепта).
+                      </span>
+                    </p>
+                  ) : null}
+                  {item.bar_description ? (
+                    <p className="text-zinc-600 text-sm whitespace-pre-wrap leading-relaxed">
+                      {String(item.bar_description)}
+                    </p>
+                  ) : null}
+                  {links.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {links.map(([key, url]) => (
+                        <a
+                          key={key}
+                          href={String(url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-zinc-100 text-zinc-600 hover:bg-primary-100 hover:text-primary-700 transition-colors ring-1 ring-zinc-200/80"
+                          title={key}
+                        >
+                          {key === "telegram" && <Send className="h-4 w-4" />}
+                          {key === "youtube" && <Youtube className="h-4 w-4" />}
+                          {key === "dzen" && (
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.1 0 2.08.4 2.87 1.06C13.65 7.39 12.87 9.12 12 11c-.87-1.88-1.65-3.61-2.87-4.94A4.96 4.96 0 0112 5zm-5 7c0-1.1.4-2.08 1.06-2.87C9.39 10.35 11.12 11.13 13 12c-1.88.87-3.61 1.65-4.94 2.87A4.96 4.96 0 017 12zm5 5c-1.1 0-2.08-.4-2.87-1.06C10.35 14.61 11.13 12.88 12 11c.87 1.88 1.65 3.61 2.87 4.94A4.96 4.96 0 0112 17zm5-5c0 1.1-.4 2.08-1.06 2.87C14.61 13.65 12.88 12.87 11 12c1.88-.87 3.61-1.65 4.94-2.87A4.96 4.96 0 0117 12z"/>
+                            </svg>
+                          )}
+                          {!["telegram", "youtube", "dzen"].includes(key) && (
+                            <span className="text-xs font-medium">{key.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })() : null}
 
           {tags && tags.length > 0 && (
-            <div className="border-t border-zinc-200 p-6">
+            <div className="border-t border-zinc-100 p-6 sm:p-8">
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2 py-1 rounded-md bg-zinc-100 text-zinc-600 text-sm"
+                    className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-700 text-sm font-medium ring-1 ring-zinc-200/60"
                   >
                     {tag}
                   </span>
@@ -413,16 +519,16 @@ export default async function CocktailPage({
         </article>
 
         {related.length > 0 && (
-          <aside className="mt-8 lg:mt-0 space-y-3">
-            <p className="text-sm font-semibold text-zinc-900">Ещё коктейли</p>
+          <aside className="mt-8 lg:mt-0 space-y-4">
+            <p className="text-sm font-semibold text-zinc-900 tracking-tight">Ещё коктейли</p>
             <ul className="space-y-3">
               {related.map((r) => (
                 <li key={r.slug}>
                   <Link
                     href={`/cocktails/id/${r.id}`}
-                    className="flex gap-2 group rounded-lg border border-zinc-100 p-2 hover:border-primary-200 hover:bg-primary-50/30 transition-colors"
+                    className="flex gap-3 group rounded-2xl border border-zinc-200/80 bg-white p-2.5 shadow-sm hover:shadow-md hover:border-primary-300/80 hover:-translate-y-0.5 transition-all duration-200"
                   >
-                    <div className="w-14 h-14 shrink-0 bg-zinc-100 rounded overflow-hidden">
+                    <div className="w-16 h-16 shrink-0 bg-zinc-100 rounded-xl overflow-hidden ring-1 ring-zinc-900/5">
                       {r.image_url ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
@@ -432,16 +538,16 @@ export default async function CocktailPage({
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Martini className="h-6 w-6 text-zinc-300" />
+                          <Martini className="h-7 w-7 text-zinc-300" />
                         </div>
                       )}
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-zinc-900 group-hover:text-primary-700 truncate">
+                    <div className="min-w-0 py-0.5">
+                      <p className="text-sm font-semibold text-zinc-900 group-hover:text-primary-700 transition-colors line-clamp-2">
                         {r.name}
                       </p>
                       {r.description ? (
-                        <p className="text-xs text-zinc-500 line-clamp-2 mt-0.5">{r.description}</p>
+                        <p className="text-xs text-zinc-500 line-clamp-2 mt-1 leading-snug">{r.description}</p>
                       ) : null}
                     </div>
                   </Link>

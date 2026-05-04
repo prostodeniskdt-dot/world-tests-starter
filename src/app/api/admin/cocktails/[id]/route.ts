@@ -16,7 +16,14 @@ export async function GET(
   }
 
   try {
-    const { rows } = await db.query("SELECT * FROM cocktails WHERE id = $1", [numId]);
+    const { rows } = await db.query(
+      `SELECT c.*,
+        NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), '') AS submitted_by_display_name
+       FROM cocktails c
+       LEFT JOIN users u ON u.id = c.submitted_by_user_id
+       WHERE c.id = $1`,
+      [numId]
+    );
     if (rows.length === 0) {
       return NextResponse.json({ ok: false, error: "Не найдено" }, { status: 404 });
     }
@@ -68,8 +75,9 @@ export async function PUT(
          is_classic=$22, is_published=$23,
          strength_scale=$24, taste_sweet_dry_scale=$25,
          history=$26, allergens=$27, nutrition_note=$28, alcohol_content_note=$29,
+         taste_notes=$30, aroma_notes=$31, pairing_notes=$32,
          updated_at=now()
-       WHERE id=$30`,
+       WHERE id=$33`,
       [
         name,
         body.slug ? String(body.slug).trim() : undefined,
@@ -86,6 +94,9 @@ export async function PUT(
         body.taste_sweet_dry_scale != null && body.taste_sweet_dry_scale !== "" ? Number(body.taste_sweet_dry_scale) : null,
         body.history || null, body.allergens || null,
         body.nutrition_note || null, body.alcohol_content_note || null,
+        body.taste_notes || null,
+        body.aroma_notes || null,
+        body.pairing_notes || null,
         numId,
       ]
     );

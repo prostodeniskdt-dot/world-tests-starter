@@ -150,36 +150,42 @@ export default function CocktailsPage() {
         />
       ) : (
         <div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
             {items.map((item) => (
               <Link
                 key={item.id}
                 href={`/cocktails/id/${item.id}`}
-                className="group rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all flex flex-col"
+                className="group rounded-2xl border border-zinc-200/90 bg-white overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:border-primary-400/40 hover:-translate-y-1 transition-all duration-300 ring-1 ring-transparent hover:ring-primary-500/10"
               >
-                <div className="aspect-square bg-zinc-100 flex items-center justify-center shrink-0">
+                <div className="relative aspect-square bg-gradient-to-br from-zinc-100 to-zinc-50 flex items-center justify-center shrink-0 overflow-hidden">
                   {item.image_url ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={item.image_url}
                       alt={item.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                     />
                   ) : (
                     <Martini className="h-12 w-12 text-zinc-300" />
                   )}
+                  <span
+                    className={`absolute left-2 top-2 text-[10px] sm:text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm ${
+                      item.is_classic
+                        ? "bg-primary-600 text-white"
+                        : "bg-white/95 text-zinc-700 ring-1 ring-zinc-200"
+                    }`}
+                  >
+                    {item.is_classic ? "Классика" : "Автор"}
+                  </span>
                 </div>
-                <div className="p-3 flex flex-col flex-1 min-h-[4.5rem]">
-                  <h3 className="font-semibold text-zinc-900 line-clamp-2 group-hover:text-primary-700">
+                <div className="p-3 sm:p-4 flex flex-col flex-1 min-h-[5rem] border-t border-zinc-100/80">
+                  <h3 className="font-semibold text-zinc-900 line-clamp-2 text-sm sm:text-base leading-snug group-hover:text-primary-700 transition-colors">
                     {item.name}
                   </h3>
-                  <span
-                    className={`text-xs mt-1 ${item.is_classic ? "text-primary-600" : "text-zinc-500"}`}
-                  >
-                    {item.is_classic ? "Классика" : "Авторский"}
-                  </span>
                   {item.description ? (
-                    <p className="text-xs text-zinc-500 line-clamp-2 mt-1 flex-1">{item.description}</p>
+                    <p className="text-[11px] sm:text-xs text-zinc-500 line-clamp-2 mt-2 flex-1 leading-relaxed">
+                      {item.description}
+                    </p>
                   ) : null}
                 </div>
               </Link>
