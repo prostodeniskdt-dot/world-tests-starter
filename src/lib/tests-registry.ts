@@ -14,13 +14,37 @@ export type SecretTest = {
   answerKey: Record<string, any>;
 };
 
+/** Контекст доступа к каталогу и прохождению тестов */
+export type TestAccessContext = {
+  userId: string | null;
+  isAdmin: boolean;
+};
+
+const defaultAccess: TestAccessContext = { userId: null, isAdmin: false };
+
+function publishedAccessSql(alias: string): string {
+  return `(
+    COALESCE(${alias}.visibility, 'public') = 'public'
+    OR $1 = true
+    OR ($2::uuid IS NOT NULL AND EXISTS (
+      SELECT 1 FROM test_user_access tua
+      WHERE tua.test_id = ${alias}.id AND tua.user_id = $2::uuid
+    ))
+  )`;
+}
+
 // === Функции загрузки из БД ===
 
-/** Получить все опубликованные тесты (публичная часть, без ответов) */
-export async function getPublicTests(): Promise<PublicTest[]> {
+/** Получить все опубликованные тесты, доступные в каталоге для данного контекста */
+export async function getPublicTests(ctx: TestAccessContext = defaultAccess): Promise<PublicTest[]> {
+  const { userId, isAdmin } = ctx;
   const { rows } = await db.query(
-    `SELECT id, title, description, category, difficulty_level, questions
-     FROM tests WHERE is_published = true ORDER BY category, difficulty_level`
+    `SELECT t.id, t.title, t.description, t.category, t.difficulty_level, t.questions
+     FROM tests t
+     WHERE t.is_published = true
+       AND ${publishedAccessSql("t")}
+     ORDER BY t.category, t.difficulty_level`,
+    [isAdmin, userId]
   );
   return rows.map((r: any) => ({
     id: r.id,
@@ -33,12 +57,19 @@ export async function getPublicTests(): Promise<PublicTest[]> {
   }));
 }
 
-/** Получить публичный тест по ID */
-export async function getPublicTest(testId: string): Promise<PublicTest | null> {
+/** Получить публичный тест по ID (с учётом restricted и списка доступа) */
+export async function getPublicTest(
+  testId: string,
+  ctx: TestAccessContext = defaultAccess
+): Promise<PublicTest | null> {
+  const { userId, isAdmin } = ctx;
   const { rows } = await db.query(
-    `SELECT id, title, description, category, difficulty_level, questions
-     FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
-    [testId]
+    `SELECT t.id, t.title, t.description, t.category, t.difficulty_level, t.questions
+     FROM tests t
+     WHERE t.id = $3 AND t.is_published = true
+       AND ${publishedAccessSql("t")}
+     LIMIT 1`,
+    [isAdmin, userId, testId]
   );
   if (rows.length === 0) return null;
   const r = rows[0];
@@ -63,7 +94,7 @@ export async function getTestById(testId: string): Promise<{ id: string; title: 
   return { id: rows[0].id, title: rows[0].title, category: rows[0].category };
 }
 
-/** Получить тест с вопросами по ID (без проверки is_published, для деталей попытки) */
+/** Получить тест с вопросами по ID (без проверки is_published, для деталей попытки — вызывать после проверки прав) */
 export async function getTestWithQuestionsById(testId: string): Promise<PublicTest | null> {
   const { rows } = await db.query(
     `SELECT id, title, description, category, difficulty_level, questions
@@ -83,12 +114,39 @@ export async function getTestWithQuestionsById(testId: string): Promise<PublicTe
   };
 }
 
-/** Получить секретный тест по ID (с ответами) */
-export async function getSecretTest(testId: string): Promise<SecretTest | null> {
+/**
+ * Показывать ли текст вопросов и ответы в деталях попытки в профиле.
+ * Для restricted-тестов чужие попытки (даже при consent_public_rating) не раскрывают формулировки.
+ */
+export async function canViewTestQuestionBreakdownInProfile(
+  testId: string,
+  viewerUserId: string,
+  attemptOwnerUserId: string,
+  viewerIsAdmin: boolean
+): Promise<boolean> {
+  if (viewerIsAdmin) return true;
+  if (viewerUserId === attemptOwnerUserId) return true;
   const { rows } = await db.query(
-    `SELECT id, base_points, difficulty_level, max_attempts, answer_key
-     FROM tests WHERE id = $1 AND is_published = true LIMIT 1`,
+    `SELECT COALESCE(visibility, 'public') AS v FROM tests WHERE id = $1`,
     [testId]
+  );
+  if (rows.length === 0) return false;
+  return rows[0].v !== "restricted";
+}
+
+/** Получить секретный тест по ID (с ответами), с учётом restricted */
+export async function getSecretTest(
+  testId: string,
+  ctx: TestAccessContext = defaultAccess
+): Promise<SecretTest | null> {
+  const { userId, isAdmin } = ctx;
+  const { rows } = await db.query(
+    `SELECT t.id, t.base_points, t.difficulty_level, t.max_attempts, t.answer_key
+     FROM tests t
+     WHERE t.id = $3 AND t.is_published = true
+       AND ${publishedAccessSql("t")}
+     LIMIT 1`,
+    [isAdmin, userId, testId]
   );
   if (rows.length === 0) return null;
   const r = rows[0];
@@ -101,17 +159,23 @@ export async function getSecretTest(testId: string): Promise<SecretTest | null> 
   };
 }
 
-/** Получить категории */
-export async function getCategories(): Promise<string[]> {
+/** Получить категории для доступных пользователю тестов */
+export async function getCategories(ctx: TestAccessContext = defaultAccess): Promise<string[]> {
+  const { userId, isAdmin } = ctx;
   const { rows } = await db.query(
-    `SELECT DISTINCT category FROM tests WHERE is_published = true ORDER BY category`
+    `SELECT DISTINCT t.category
+     FROM tests t
+     WHERE t.is_published = true
+       AND ${publishedAccessSql("t")}
+     ORDER BY t.category`,
+    [isAdmin, userId]
   );
   return rows.map((r: any) => r.category);
 }
 
 /** Получить тесты по категориям */
-export async function getTestsByCategory(): Promise<Record<string, PublicTest[]>> {
-  const tests = await getPublicTests();
+export async function getTestsByCategory(ctx: TestAccessContext = defaultAccess): Promise<Record<string, PublicTest[]>> {
+  const tests = await getPublicTests(ctx);
   const result: Record<string, PublicTest[]> = {};
   for (const test of tests) {
     if (!result[test.category]) result[test.category] = [];

@@ -40,3 +40,21 @@ export async function requireAuth(
 
   return { ok: true, userId: payload.userId, payload };
 }
+
+/** Авторизация без 401: для публичных эндпоинтов с опциональной персонализацией (каталог тестов). */
+export async function getAuthContextOptional(): Promise<{
+  userId: string;
+  isAdmin: boolean;
+  isBanned: boolean;
+} | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  if (!token) return null;
+  const payload = verifyToken(token);
+  if (!payload) return null;
+  return {
+    userId: payload.userId,
+    isAdmin: payload.isAdmin,
+    isBanned: payload.isBanned,
+  };
+}

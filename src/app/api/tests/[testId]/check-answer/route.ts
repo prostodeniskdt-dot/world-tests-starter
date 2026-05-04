@@ -3,13 +3,18 @@ import { getSecretTest, getPublicTest } from "@/lib/tests-registry";
 import type { PublicTestQuestion } from "@/tests/types";
 import { checkAnswer } from "@/lib/answer-checkers";
 import type { QuestionAnswer } from "@/tests/types";
+import { requireAuth } from "@/lib/auth-middleware";
 
 export async function POST(
   req: Request,
   { params }: { params: { testId: string } }
 ) {
+  const authResult = await requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   const { testId } = params;
-  
+  const access = { userId: authResult.userId, isAdmin: authResult.payload.isAdmin };
+
   let body: unknown;
   try {
     body = await req.json();
@@ -30,8 +35,8 @@ export async function POST(
   }
   
   const [testSecret, testPublic] = await Promise.all([
-    getSecretTest(testId),
-    getPublicTest(testId),
+    getSecretTest(testId, access),
+    getPublicTest(testId, access),
   ]);
   
   if (!testSecret || !testPublic) {

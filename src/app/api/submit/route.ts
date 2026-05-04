@@ -50,8 +50,9 @@ export async function POST(req: Request) {
     return authResult;
   }
 
-  const { userId } = authResult;
+  const { userId, payload } = authResult;
   const { testId, answers, idempotencyKey } = parsed.data;
+  const testAccess = { userId, isAdmin: payload.isAdmin };
 
   // Лимит по пользователю (в дополнение к лимиту по IP)
   const userRateLimit = await checkRateLimit(submitRateLimiterByUser, userId);
@@ -99,8 +100,8 @@ export async function POST(req: Request) {
 
   // Получаем тест из БД
   const [testPublic, testSecret] = await Promise.all([
-    getPublicTest(testId),
-    getSecretTest(testId),
+    getPublicTest(testId, testAccess),
+    getSecretTest(testId, testAccess),
   ]);
 
   if (!testSecret || !testPublic) {

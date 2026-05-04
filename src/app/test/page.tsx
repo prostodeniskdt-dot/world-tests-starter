@@ -23,7 +23,7 @@ function TestPageContent() {
       return;
     }
 
-    fetch(`/api/tests/${testId}`)
+    fetch(`/api/tests/${testId}`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.ok && data.test) {

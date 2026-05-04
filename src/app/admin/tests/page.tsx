@@ -16,7 +16,7 @@ export default async function AdminTestsPage() {
 
   const { rows } = await db.query(
     `SELECT id, title, description, category, difficulty_level, base_points, max_attempts,
-            is_published, created_at, updated_at,
+            is_published, COALESCE(visibility, 'public') AS visibility, created_at, updated_at,
             jsonb_array_length(questions) as question_count
      FROM tests ORDER BY created_at DESC`
   );
@@ -31,6 +31,7 @@ export default async function AdminTestsPage() {
     basePoints: r.base_points,
     maxAttempts: r.max_attempts,
     isPublished: r.is_published,
+    visibility: (r.visibility === "restricted" ? "restricted" : "public") as "public" | "restricted",
     questionCount: r.question_count,
     createdAt: r.created_at,
     updatedAt: r.updated_at,

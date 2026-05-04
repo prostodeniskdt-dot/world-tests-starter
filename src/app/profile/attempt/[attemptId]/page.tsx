@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
-import { getTestWithQuestionsById } from "@/lib/tests-registry";
+import { getTestWithQuestionsById, getTestById, canViewTestQuestionBreakdownInProfile } from "@/lib/tests-registry";
 import type { PublicTestQuestion } from "@/tests/types";
 import { Check, X, ArrowLeft } from "lucide-react";
 
@@ -104,8 +104,24 @@ export default async function AttemptDetailPage({
     });
   }
 
-  const test = await getTestWithQuestionsById(attempt.test_id);
-  if (!test) notFound();
+  const canSeeBreakdown = await canViewTestQuestionBreakdownInProfile(
+    attempt.test_id,
+    currentUser.userId,
+    attemptUserId,
+    currentUser.isAdmin
+  );
+  const testFull = canSeeBreakdown ? await getTestWithQuestionsById(attempt.test_id) : null;
+  const testMeta = canSeeBreakdown ? testFull : await getTestById(attempt.test_id);
+  if (!testMeta) notFound();
+  const test = testFull ?? {
+    id: testMeta.id,
+    title: testMeta.title,
+    description: null as string | null,
+    category: testMeta.category,
+    difficultyLevel: 1 as 1 | 2 | 3,
+    author: undefined as string | undefined,
+    questions: [] as PublicTestQuestion[],
+  };
 
   const backUrl = requestedUserId
     ? `/profile?userId=${requestedUserId}`
@@ -146,6 +162,11 @@ export default async function AttemptDetailPage({
         {answerRows.length === 0 ? (
           <p className="text-sm text-zinc-500 italic">
             Детали ответов по этой попытке не сохранялись (попытка до обновления системы).
+          </p>
+        ) : !canSeeBreakdown ? (
+          <p className="text-sm text-zinc-600 border border-zinc-200 rounded-lg p-4 bg-zinc-50">
+            Формулировки вопросов по этому тесту скрыты (закрытый тест). Доступны только итог:{" "}
+            <span className="font-semibold">{attempt.score_percent}%</span> и начисленные очки.
           </p>
         ) : (
         <div className="space-y-4">

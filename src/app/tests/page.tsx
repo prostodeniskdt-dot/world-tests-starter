@@ -30,7 +30,7 @@ export default function TestsPage() {
   useEffect(() => {
     if (user) {
       setTestsLoading(true);
-      fetch("/api/tests")
+      fetch("/api/tests", { credentials: "include" })
         .then((res) => res.json())
         .then((data) => {
           if (data.ok) {

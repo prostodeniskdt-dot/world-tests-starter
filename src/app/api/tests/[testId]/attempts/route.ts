@@ -13,11 +13,13 @@ export async function GET(
     return authResult;
   }
 
-  const { userId } = authResult;
+  const { userId, payload } = authResult;
   const { testId } = params;
 
-  // Получаем тест из БД
-  const testSecret = await getSecretTest(testId);
+  const testSecret = await getSecretTest(testId, {
+    userId,
+    isAdmin: payload.isAdmin,
+  });
   if (!testSecret) {
     return NextResponse.json(
       { ok: false, error: "Тест не найден" },
