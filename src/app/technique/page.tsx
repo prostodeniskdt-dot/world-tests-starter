@@ -7,7 +7,7 @@ export default function TechniqueHubPage() {
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <Wrench className="h-8 w-8 text-primary-600" aria-hidden="true" />
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold font-display text-stone-950">
             Техника и навыки
           </h1>
         </div>

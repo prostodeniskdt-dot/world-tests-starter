@@ -52,14 +52,14 @@ export default function AdminCocktailsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
       </div>
     );
   }
   if (!user?.isAdmin) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-red-600">Доступ запрещён</p>
       </div>
     );
@@ -68,7 +68,7 @@ export default function AdminCocktailsPage() {
   const catName = (id: number | null) => categories.find((c) => c.id === id)?.name ?? "—";
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Link href="/admin" className="text-sm text-primary-600 hover:underline mb-4 inline-block">
           ← Админ-панель

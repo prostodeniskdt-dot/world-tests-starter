@@ -78,7 +78,7 @@ export default function CocktailsPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <Martini className="h-8 w-8 text-primary-600" aria-hidden="true" />
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold font-display text-stone-950">
               Коктейли
             </h1>
           </div>

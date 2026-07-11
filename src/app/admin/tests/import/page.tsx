@@ -110,7 +110,7 @@ export default function ImportTestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link href="/admin/tests" className="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-4">
           <ArrowLeft className="h-4 w-4" />

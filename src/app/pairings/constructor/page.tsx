@@ -121,7 +121,7 @@ export default function PairingsConstructorPage() {
           <ArrowLeft className="h-4 w-4" />
           Сочетания
         </Link>
-        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold font-display text-stone-950 mb-2">
           Конструктор идей
         </h1>
         <p className="text-zinc-600 leading-relaxed">

@@ -319,7 +319,7 @@ export function EditTestForm({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <nav className="flex items-center gap-2 text-sm text-zinc-500 mb-4">
           <Link href="/admin" className="hover:text-zinc-700">Админка</Link>

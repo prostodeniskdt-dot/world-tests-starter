@@ -80,9 +80,9 @@ export function LiveLeaderboard() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6 h-full flex flex-col">
+      <div className="rounded-xl border border-stone-200 bg-surface-raised shadow-soft p-4 sm:p-6 h-full flex flex-col">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
+          <h2 className="font-display text-h3 text-stone-950">Мировой рейтинг</h2>
           <span className="text-xs text-success flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full">
             <span className="h-2 w-2 bg-success rounded-full animate-pulse"></span>
             В реальном времени
@@ -94,9 +94,9 @@ export function LiveLeaderboard() {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6 h-full flex flex-col">
+    <div className="surface-card p-4 sm:p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900">Мировой рейтинг</h2>
+        <h2 className="font-display text-h3 text-stone-950">Мировой рейтинг</h2>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={fetchLeaderboard}

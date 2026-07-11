@@ -120,7 +120,7 @@ export function LoginModal({
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
         
-        <h2 id="auth-dialog-title" className="text-2xl sm:text-3xl font-bold mb-2 text-center text-gradient pr-8">
+        <h2 id="auth-dialog-title" className="font-display text-h2 mb-2 text-center text-stone-950 pr-8">
           Добро пожаловать!
         </h2>
         <p className="text-zinc-600 mb-6 text-center text-sm">

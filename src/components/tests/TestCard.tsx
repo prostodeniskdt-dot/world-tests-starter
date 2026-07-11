@@ -15,26 +15,28 @@ export type TestCardItem = {
 
 export function TestCard({ test }: { test: TestCardItem }) {
   return (
-    <article className="group flex flex-col h-full border border-zinc-200 rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-primary-300 transition-all bg-white">
+    <article className="group flex flex-col h-full rounded-2xl border border-stone-200/80 bg-surface-raised p-4 sm:p-5 transition-all hover:border-primary-300 hover:shadow-soft">
       <div className="flex flex-wrap items-center gap-2 mb-2">
         {test.category && (
-          <span className="inline-flex items-center rounded-md bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700">
+          <span className="inline-flex items-center rounded-md bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-800">
             {test.category}
           </span>
         )}
         <DifficultyBadge level={test.difficultyLevel} />
       </div>
       <div className="flex items-start gap-2 mb-2">
-        <BookOpen className="h-5 w-5 text-primary-600 flex-shrink-0 mt-0.5" aria-hidden />
-        <h3 className="font-bold text-base sm:text-lg text-zinc-900 leading-snug">{test.title}</h3>
+        <BookOpen className="h-5 w-5 text-primary-600 flex-shrink-0 mt-1" aria-hidden />
+        <h3 className="font-display text-lg font-semibold text-stone-950 leading-snug group-hover:text-primary-900">
+          {test.title}
+        </h3>
       </div>
-      <p className="text-xs text-zinc-500 mb-2">Автор: {test.author ?? "Денис Колодешников"}</p>
+      <p className="text-xs text-stone-500 mb-2">Автор: {test.author ?? "Денис Колодешников"}</p>
       {test.description && (
-        <p className="text-sm text-zinc-600 line-clamp-3 flex-1">{test.description}</p>
+        <p className="text-sm text-stone-600 line-clamp-3 flex-1">{test.description}</p>
       )}
       <Link
         href={`/test?testId=${test.id}`}
-        className="inline-flex items-center justify-center gap-2 mt-4 rounded-lg gradient-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all"
+        className="inline-flex items-center justify-center gap-2 mt-4 rounded-xl gradient-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition-all shadow-soft"
       >
         Пройти тест
         <ArrowRight className="h-4 w-4" aria-hidden />

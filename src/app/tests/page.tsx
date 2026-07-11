@@ -92,8 +92,8 @@ export default function TestsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
           <div className="space-y-4 flex flex-col min-w-0">
             {user ? (
-              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
-                <h1 className="text-xl sm:text-2xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+              <div className="surface-card p-4 sm:p-6">
+                <h1 className="font-display text-h2 mb-2 text-stone-950">
                   Доступные тесты
                 </h1>
                 <p className="text-zinc-600 mb-4 text-sm sm:text-base leading-relaxed">
@@ -159,8 +159,8 @@ export default function TestsPage() {
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+              <div className="surface-card p-4 sm:p-8">
+                <h1 className="font-display text-h1 mb-4 sm:mb-6 text-stone-950">
                   Тесты и рейтинг
                 </h1>
                 <div className="space-y-6 text-zinc-700 leading-relaxed">

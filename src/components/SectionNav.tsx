@@ -51,7 +51,7 @@ export function SectionNav() {
   return (
     <nav
       ref={navRef}
-      className="border-t border-zinc-100 bg-white"
+      className="border-t border-stone-100 bg-surface-raised/80"
       aria-label="Основные разделы сайта"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">

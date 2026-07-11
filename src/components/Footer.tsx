@@ -20,19 +20,21 @@ export function Footer() {
 
   return (
     <>
-      <footer className="border-t border-zinc-200 bg-white/95 backdrop-blur-sm py-6 sm:py-8 mt-8 sm:mt-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-xs sm:text-sm text-zinc-600">
-          <div className="grid gap-6 border-b border-zinc-100 pb-6 sm:grid-cols-[1.3fr_2fr]">
+      <footer className="border-t border-stone-200 bg-surface-raised/95 backdrop-blur-md py-8 sm:py-10 mt-10 sm:mt-14">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-xs sm:text-sm text-stone-600">
+          <div className="grid gap-6 border-b border-stone-200/80 pb-6 sm:grid-cols-[1.3fr_2fr]">
             <div>
-              <div className="text-base sm:text-lg font-bold text-zinc-950">{SITE_NAME}</div>
-              <p className="mt-2 max-w-xs text-sm leading-relaxed text-zinc-500">
-                Профессиональное сообщество барменов: знания, практика и опыт коллег.
+              <div className="font-display text-lg sm:text-xl font-semibold text-stone-950">
+                {SITE_NAME}
+              </div>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-stone-500">
+                Тёплое профессиональное сообщество барменов: знания, практика и опыт коллег.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
               {NAVIGATION_GROUPS.slice(0, 3).map((group) => (
                 <div key={group.id}>
-                  <h2 className="text-sm font-bold text-zinc-900">{group.title}</h2>
+                  <h2 className="text-sm font-bold text-stone-900">{group.title}</h2>
                   <ul className="mt-2 space-y-1.5">
                     {group.items.map((item) => (
                       <li key={item.id}>
@@ -52,12 +54,14 @@ export function Footer() {
                 key={slug}
                 type="button"
                 onClick={() => setDocSlug(slug)}
-                className="text-zinc-600 hover:text-primary-700 hover:underline"
+                className="text-stone-600 hover:text-primary-700 hover:underline"
               >
                 {label}
               </button>
             ))}
-            <span className="ml-auto text-zinc-400">© {new Date().getFullYear()} {SITE_NAME}</span>
+            <span className="ml-auto text-stone-400">
+              © {new Date().getFullYear()} {SITE_NAME}
+            </span>
           </div>
         </div>
       </footer>

@@ -39,7 +39,7 @@ export default async function AdminPrepSubmissionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-8">
         <Link href="/admin/preps" className="text-sm text-primary-600 hover:underline mb-4 inline-block">
           ← Каталог заготовок

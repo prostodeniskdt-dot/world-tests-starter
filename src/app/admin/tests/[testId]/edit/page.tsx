@@ -41,7 +41,7 @@ export default function TestEditPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
       </div>
     );
@@ -49,7 +49,7 @@ export default function TestEditPage() {
 
   if (error && !test) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <Link href="/admin/tests" className="text-zinc-600 hover:text-zinc-900 underline">

@@ -65,7 +65,7 @@ export default function TestPreviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
       </div>
     );
@@ -73,7 +73,7 @@ export default function TestPreviewPage() {
 
   if (error || !test) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error || "Тест не найден"}</p>
           <Link href="/admin/tests" className="text-zinc-600 hover:text-zinc-900 underline">
@@ -87,7 +87,7 @@ export default function TestPreviewPage() {
   const difficultyLabel = { 1: "Простой", 2: "Средний", 3: "Сложный" }[test.difficultyLevel] || "?";
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link href="/admin/tests" className="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-4">
           <ArrowLeft className="h-4 w-4" />

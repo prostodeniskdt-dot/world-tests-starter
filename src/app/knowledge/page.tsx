@@ -52,11 +52,9 @@ export default function KnowledgePage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Library className="h-8 w-8 text-primary-600" aria-hidden="true" />
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            База знаний
-          </h1>
+          <h1 className="font-display text-h1 text-stone-950">База знаний</h1>
         </div>
-        <p className="text-zinc-600 leading-relaxed mb-4">
+        <p className="text-stone-600 leading-relaxed mb-4 max-w-2xl">
           Статьи для барменов: профессиональные материалы, юридические вопросы, авторские материалы
         </p>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -118,15 +116,15 @@ export default function KnowledgePage() {
           description="Раздел наполняется. Вы можете предложить свою статью — после модерации она будет опубликована."
         />
       ) : (
-        <div className="space-y-4">
+        <div className="divide-y divide-stone-200 border-y border-stone-200">
           {items.map((item) => (
             <Link
               key={item.id}
               href={`/knowledge/${encodeURIComponent(item.slug)}`}
-              className="flex gap-4 rounded-xl border border-zinc-200 bg-white p-4 sm:p-6 hover:shadow-lg hover:border-primary-300 transition-all"
+              className="flex gap-4 py-5 sm:py-6 transition-colors hover:bg-surface-muted/50 px-1 sm:px-2"
             >
               {item.cover_image_url ? (
-                <div className="hidden sm:block flex-shrink-0 w-36 h-24 rounded-lg overflow-hidden border border-zinc-100 bg-zinc-100">
+                <div className="hidden sm:block flex-shrink-0 w-36 h-24 rounded-xl overflow-hidden bg-stone-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.cover_image_url}
@@ -137,15 +135,17 @@ export default function KnowledgePage() {
               ) : null}
               <div className="min-w-0 flex-1">
                 {item.category_name ? (
-                  <span className="text-xs font-medium text-primary-600 mb-1 inline-block">
+                  <span className="font-mono text-[0.7rem] font-medium uppercase tracking-wider text-primary-700 mb-1 inline-block">
                     {item.category_name}
                   </span>
                 ) : null}
-                <h2 className="font-bold text-lg text-zinc-900 mb-2">{item.title}</h2>
+                <h2 className="font-display text-lg sm:text-xl font-semibold text-stone-950 mb-2">
+                  {item.title}
+                </h2>
                 {item.excerpt && (
-                  <p className="text-zinc-600 text-sm mb-2 line-clamp-2">{item.excerpt}</p>
+                  <p className="text-stone-600 text-sm mb-2 line-clamp-2">{item.excerpt}</p>
                 )}
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-stone-500">
                   {item.author_name && <span>{item.author_name}</span>}
                   <span>
                     {" "}

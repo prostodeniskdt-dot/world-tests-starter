@@ -32,7 +32,7 @@ export default async function AdminEquipmentReviewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link href="/admin" className="text-sm text-primary-600 hover:underline mb-4 inline-block">
           ← Админ-панель

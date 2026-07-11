@@ -134,68 +134,70 @@ export function TestClient({ test }: { test: PublicTest }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-4 sm:space-y-6">
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
+    <div className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 sm:space-y-8">
+      <header className="animate-slide-up">
         <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            {test.title}
-          </h1>
+          <h1 className="font-display text-h1 text-stone-950">{test.title}</h1>
           <DifficultyBadge level={test.difficultyLevel} />
         </div>
-        <p className="mt-1 text-sm text-zinc-500">
+        <p className="mt-1 text-sm text-stone-500">
           Автор: {test.author ?? "Денис Колодешников"}
         </p>
         {test.description && (
-          <p className="mt-2 text-zinc-600 text-sm sm:text-base md:text-lg leading-relaxed">{test.description}</p>
+          <p className="mt-3 text-stone-600 text-body leading-relaxed">{test.description}</p>
         )}
         <div className="mt-4">
           <SubscribeAuthorButton />
         </div>
-      </div>
+      </header>
 
-      {/* Прогресс-бар */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4">
+      <div className="sticky top-[4.5rem] z-20 rounded-xl border border-stone-200/80 bg-surface-raised/95 backdrop-blur-md shadow-soft p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-zinc-700">
+          <span className="text-sm font-medium text-stone-700">
             Прогресс: {answeredCount} / {test.questions.length} вопросов
           </span>
-          <span className="text-sm font-semibold text-primary-600">{Math.round(progressPercent)}%</span>
+          <span className="font-mono text-sm font-semibold text-primary-700">
+            {Math.round(progressPercent)}%
+          </span>
         </div>
-        <div className="w-full bg-zinc-200 rounded-full h-3 overflow-hidden">
-          <div 
+        <div className="w-full bg-stone-200 rounded-full h-2.5 overflow-hidden">
+          <div
             className="gradient-primary h-full rounded-full transition-[width] duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
-          ></div>
+          />
         </div>
       </div>
 
       <UserGate title="Для прохождения теста необходима регистрация">
         {(user) => (
-          <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 pb-4 border-b border-zinc-200">
-              <div className="text-sm text-zinc-600">
-                Вы: <span className="font-semibold text-zinc-900">{user.firstName} {user.lastName}</span>
+          <div className="surface-card p-4 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-stone-200">
+              <div className="text-sm text-stone-600">
+                Вы:{" "}
+                <span className="font-semibold text-stone-900">
+                  {user.firstName} {user.lastName}
+                </span>
               </div>
 
               {attemptsInfo && attemptsInfo.max !== null && (
-                <div className="text-sm text-zinc-600 px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="font-mono text-sm text-stone-700 px-3 py-1 bg-primary-50 border border-primary-200 rounded-lg">
                   Попыток: {attemptsInfo.used} / {attemptsInfo.max}
                 </div>
               )}
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-10">
               {test.questions.map((q, idx) => {
                 const showHint = answeredHints[q.id] && q.hint;
                 const isCorrect = hintResults[q.id];
-                
+
                 return (
-                  <div key={q.id} id={`question-${idx}`} className="pt-4 sm:pt-6 first:pt-0">
-                    <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
-                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-xs sm:text-sm">
+                  <div key={q.id} id={`question-${idx}`} className="pt-2 first:pt-0">
+                    <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent-900 text-primary-300 flex items-center justify-center font-mono font-bold text-sm">
                         {idx + 1}
                       </div>
-                      <div className="font-semibold text-base sm:text-lg text-zinc-900 leading-snug sm:leading-relaxed flex-1 min-w-0 break-words">
+                      <div className="font-display text-lg sm:text-xl font-semibold text-stone-950 leading-snug flex-1 min-w-0 break-words">
                         {q.text}
                       </div>
                     </div>

@@ -38,7 +38,7 @@ export default async function AdminTestsPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="mb-6">
           <Link href="/admin" className="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-4">

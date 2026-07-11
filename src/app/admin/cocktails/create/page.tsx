@@ -23,7 +23,7 @@ export default function AdminCocktailCreatePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
       </div>
     );
@@ -31,14 +31,14 @@ export default function AdminCocktailCreatePage() {
 
   if (!user?.isAdmin) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-red-600">Доступ запрещён</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link href="/admin/cocktails" className="text-sm text-primary-600 hover:underline mb-4 inline-block">
           ← Каталог коктейлей

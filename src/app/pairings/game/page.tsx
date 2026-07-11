@@ -125,7 +125,7 @@ export default function PairingsGamePage() {
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold font-display text-stone-950 mb-2">
           Угадай пару
         </h1>
         <p className="text-zinc-600 leading-relaxed">

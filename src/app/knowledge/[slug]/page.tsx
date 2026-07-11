@@ -73,18 +73,20 @@ export default async function KnowledgeArticlePage({
         База знаний
       </Link>
 
-      <article className="rounded-xl border border-zinc-200 bg-white overflow-hidden shadow-soft">
+      <article className="surface-card overflow-hidden">
         {cover ? (
-          <div className="w-full aspect-[21/9] max-h-72 bg-zinc-100 border-b border-zinc-100">
+          <div className="w-full aspect-[21/9] max-h-72 bg-stone-200 border-b border-stone-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={cover} alt="" className="w-full h-full object-cover" />
           </div>
         ) : null}
-        <div className="p-6 sm:p-8">
+        <div className="p-6 sm:p-10">
           {categoryName ? (
-            <p className="text-sm font-medium text-primary-600 mb-2">{categoryName}</p>
+            <p className="font-mono text-[0.7rem] font-medium uppercase tracking-wider text-primary-700 mb-2">
+              {categoryName}
+            </p>
           ) : null}
-          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 mb-4">
+          <h1 className="font-display text-h1 text-stone-950 mb-4">
             {String(item.title)}
           </h1>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1 text-sm text-zinc-500 mb-6">
@@ -125,7 +127,7 @@ export default async function KnowledgeArticlePage({
           </div>
 
           <div
-            className="knowledge-prose prose prose-zinc max-w-none prose-headings:font-bold prose-p:text-zinc-700 prose-img:rounded-lg overflow-x-auto"
+            className="knowledge-prose max-w-none overflow-x-auto prose-headings:font-display"
             dangerouslySetInnerHTML={{ __html: safeHtml }}
           />
 

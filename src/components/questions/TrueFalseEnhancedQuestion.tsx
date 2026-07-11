@@ -128,7 +128,7 @@ export function TrueFalseEnhancedQuestion({
                     key={idx}
                     className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 min-h-[44px] touch-manipulation transition-all ${
                       selected
-                        ? "border-primary-600 bg-gradient-to-r from-primary-50 to-accent-50 shadow-lg ring-2 ring-primary-300"
+                        ? "border-primary-600 bg-gradient-to-r from-primary-50 to-primary-100 shadow-lg ring-2 ring-primary-300"
                         : "border-zinc-300 bg-white hover:border-primary-400 hover:bg-primary-50"
                     } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                   >
