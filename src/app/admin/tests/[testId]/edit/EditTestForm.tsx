@@ -43,6 +43,7 @@ type TestData = {
   questions: any[];
   answerKey: Record<string, any>;
   isPublished: boolean;
+  updatedAt?: string;
 };
 
 type ValidationError = { field: string; message: string };
@@ -67,7 +68,7 @@ export function EditTestForm({
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [expandedQuestions, setExpandedQuestions] = useState<number[]>([]);
   const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
-  const { clearDraft, markClean } = useTestEditorDraft(testId, test, setTest, setHasUnsavedDraft);
+  const { acceptServerVersion } = useTestEditorDraft(testId, test, setTest, setHasUnsavedDraft);
 
   const updateMeta = (field: string, value: unknown) => {
     setTest((prev) => (prev ? { ...prev, [field]: value } : prev));
@@ -227,8 +228,8 @@ export function EditTestForm({
       });
       const data = await res.json();
       if (data.ok) {
-        markClean();
-        clearDraft();
+        acceptServerVersion(data.updatedAt);
+        setTest((prev) => (prev ? { ...prev, updatedAt: data.updatedAt } : prev));
         setSaveMessage("Сохранено!");
         setTimeout(() => setSaveMessage(null), 3000);
       } else {
@@ -296,8 +297,8 @@ export function EditTestForm({
         setError(data.error);
         return;
       }
-      markClean();
-      clearDraft();
+      acceptServerVersion(data.updatedAt);
+      setTest((prev) => (prev ? { ...prev, updatedAt: data.updatedAt } : prev));
       const pubRes = await fetch(`/api/admin/tests/${testId}/publish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

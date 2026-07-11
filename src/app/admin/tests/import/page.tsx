@@ -111,6 +111,13 @@ export default function ImportTestPage() {
         setErrors([{ field: "server", message: data.error }]);
         return;
       }
+      // Если тест с таким ID раньше редактировали, старый localStorage-черновик
+      // не должен заменять только что импортированные серверные данные.
+      try {
+        localStorage.removeItem(`test-editor-draft:${data.testId}`);
+      } catch {
+        /* private mode */
+      }
       router.push(`/admin/tests/${data.testId}/edit`);
     } catch (err: unknown) {
       setErrors([{ field: "server", message: err instanceof Error ? err.message : "Ошибка" }]);

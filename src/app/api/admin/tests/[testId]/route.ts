@@ -128,8 +128,8 @@ export async function PUT(
     }
 
     values.push(testId);
-    const { rowCount } = await db.query(
-      `UPDATE tests SET ${updates.join(", ")} WHERE id = $${idx}`,
+    const { rowCount, rows } = await db.query(
+      `UPDATE tests SET ${updates.join(", ")} WHERE id = $${idx} RETURNING updated_at`,
       values
     );
 
@@ -140,7 +140,7 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, updatedAt: rows[0]?.updated_at });
   } catch (err: any) {
     return NextResponse.json(
       { ok: false, error: err.message },

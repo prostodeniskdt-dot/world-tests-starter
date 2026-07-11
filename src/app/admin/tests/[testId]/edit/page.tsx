@@ -18,6 +18,7 @@ type TestData = {
   questions: any[];
   answerKey: Record<string, any>;
   isPublished: boolean;
+  updatedAt?: string;
 };
 
 export default function TestEditPage() {

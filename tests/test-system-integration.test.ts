@@ -4,6 +4,10 @@ import { paginateItems } from "../src/components/tests/TestPagination";
 import { buildImportPreview, parseJsonImport, parseMarkdownImport } from "../src/lib/test-import/parse";
 import { normalizeTestImport } from "../src/lib/test-import/normalize";
 import { validateTestForServer } from "../src/lib/test-import/validate-server";
+import {
+  createTestEditorDraft,
+  readTestEditorDraft,
+} from "../src/components/admin/test-editor/useTestEditorDraft";
 
 describe("catalog pagination", () => {
   it("paginateItems returns correct slice", () => {
@@ -222,5 +226,50 @@ describe("question answer completeness", () => {
     };
     assert.equal(isAnswerComplete(q, { answer: true }), false);
     assert.equal(isAnswerComplete(q, { answer: true, reason: 1 }), true);
+  });
+});
+
+describe("test editor draft versioning", () => {
+  const serverTest = {
+    id: "imported-test",
+    updatedAt: "2026-07-12T00:40:00.000Z",
+    questions: [{ id: "q1", hint: "Серверная подсказка" }],
+  };
+
+  it("restores a draft only for the same server record version", () => {
+    const draft = createTestEditorDraft(serverTest.id, serverTest.updatedAt, {
+      ...serverTest,
+      questions: [{ id: "q1", hint: "Изменённая подсказка" }],
+    });
+    const restored = readTestEditorDraft(
+      JSON.stringify(draft),
+      serverTest.id,
+      serverTest.updatedAt
+    );
+    assert.equal(restored?.questions[0].hint, "Изменённая подсказка");
+  });
+
+  it("rejects a stale draft after a test was re-imported", () => {
+    const draft = createTestEditorDraft(serverTest.id, serverTest.updatedAt, {
+      ...serverTest,
+      questions: [{ id: "q1", hint: "" }],
+    });
+    const restored = readTestEditorDraft(
+      JSON.stringify(draft),
+      serverTest.id,
+      "2026-07-12T00:43:32.000Z"
+    );
+    assert.equal(restored, null);
+  });
+
+  it("rejects legacy unversioned drafts that could overwrite imported hints", () => {
+    const legacyDraft = JSON.stringify({
+      id: serverTest.id,
+      questions: [{ id: "q1", hint: "" }],
+    });
+    assert.equal(
+      readTestEditorDraft(legacyDraft, serverTest.id, serverTest.updatedAt),
+      null
+    );
   });
 });
