@@ -16,29 +16,45 @@ type LeaderboardRow = {
   tests_completed: number;
 };
 
-const RANK_1_BG = "linear-gradient(135deg, #fef08a 0%, #fde047 50%, #facc15 100%)";
-const RANK_2_BG = "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 50%, #9ca3af 100%)";
-const RANK_3_BG = "linear-gradient(135deg, #fed7aa 0%, #fdba74 50%, #f97316 100%)";
-
-function getRankRowClass(rank: number): string {
-  if (rank === 1) return "rank-1-row";
-  if (rank === 2) return "rank-2-row";
-  if (rank === 3) return "rank-3-row";
-  return "";
-}
-
-function getRankStyle(rank: number): { className: string; style?: React.CSSProperties } {
-  if (rank === 1) return { className: "text-amber-900 border-l-4 border-amber-600", style: { background: RANK_1_BG } };
-  if (rank === 2) return { className: "text-zinc-900 border-l-4 border-zinc-500", style: { background: RANK_2_BG } };
-  if (rank === 3) return { className: "text-amber-900 border-l-4 border-orange-600", style: { background: RANK_3_BG } };
-  return { className: "bg-white text-zinc-900 border-zinc-200" };
-}
-
-function getRankIcon(rank: number) {
-  if (rank === 1) return <Trophy className="h-5 w-5" aria-label="Первое место" />;
-  if (rank === 2) return <Medal className="h-5 w-5" aria-label="Второе место" />;
-  if (rank === 3) return <Award className="h-5 w-5" aria-label="Третье место" />;
-  return null;
+function getRankVisual(rank: number) {
+  if (rank === 1) {
+    return {
+      row: "bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-50 border-amber-300/80",
+      badge: "bg-gradient-to-br from-yellow-300 to-amber-500 text-amber-950 shadow-sm",
+      icon: <Trophy className="h-4 w-4" aria-hidden />,
+      label: "Золото · 1 место",
+      avatar: "bg-amber-200/80 text-amber-950 border-amber-400/60",
+      points: "text-amber-950",
+    };
+  }
+  if (rank === 2) {
+    return {
+      row: "bg-gradient-to-r from-stone-200/90 via-stone-100 to-stone-50 border-stone-300",
+      badge: "bg-gradient-to-br from-stone-200 to-stone-400 text-stone-900 shadow-sm",
+      icon: <Medal className="h-4 w-4" aria-hidden />,
+      label: "Серебро · 2 место",
+      avatar: "bg-stone-200 text-stone-800 border-stone-400/50",
+      points: "text-stone-900",
+    };
+  }
+  if (rank === 3) {
+    return {
+      row: "bg-gradient-to-r from-orange-100 via-orange-50 to-amber-50 border-orange-300/70",
+      badge: "bg-gradient-to-br from-orange-300 to-amber-700 text-orange-950 shadow-sm",
+      icon: <Award className="h-4 w-4" aria-hidden />,
+      label: "Бронза · 3 место",
+      avatar: "bg-orange-200/80 text-orange-950 border-orange-400/50",
+      points: "text-orange-950",
+    };
+  }
+  return {
+    row: "bg-surface-raised border-stone-200/80 hover:border-stone-300 hover:bg-stone-50/80",
+    badge: "bg-stone-100 text-stone-600",
+    icon: null,
+    label: `Место ${rank}`,
+    avatar: "bg-primary-50 text-primary-800 border-primary-200",
+    points: "text-stone-900",
+  };
 }
 
 export function LiveLeaderboard() {
@@ -66,7 +82,6 @@ export function LiveLeaderboard() {
   useEffect(() => {
     fetchLeaderboard();
     const interval = setInterval(() => {
-      // Обновляем только если страница видима
       if (!document.hidden) {
         fetchLeaderboard();
       }
@@ -74,19 +89,13 @@ export function LiveLeaderboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const displayedRows = useMemo(() => {
-    return rows.slice(0, displayLimit);
-  }, [rows, displayLimit]);
+  const displayedRows = useMemo(() => rows.slice(0, displayLimit), [rows, displayLimit]);
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-stone-200 bg-surface-raised shadow-soft p-4 sm:p-6 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="surface-card p-6 sm:p-8 h-full flex flex-col">
+        <div className="mb-6 sm:mb-8">
           <h2 className="font-display text-h3 text-stone-950">Мировой рейтинг</h2>
-          <span className="text-xs text-success flex items-center gap-1.5 px-3 py-1 bg-green-50 rounded-full">
-            <span className="h-2 w-2 bg-success rounded-full animate-pulse"></span>
-            В реальном времени
-          </span>
         </div>
         <TableSkeleton />
       </div>
@@ -94,160 +103,122 @@ export function LiveLeaderboard() {
   }
 
   return (
-    <div className="surface-card p-6 sm:p-8 h-full flex flex-col">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
+    <div className="surface-card p-5 sm:p-7 lg:p-8 h-full flex flex-col">
+      <div className="flex flex-col gap-4 mb-6 sm:mb-8">
         <h2 className="font-display text-h3 text-stone-950">Мировой рейтинг</h2>
         <div className="flex items-center gap-2 flex-wrap">
           <button
+            type="button"
             onClick={fetchLeaderboard}
             disabled={isRefreshing}
-            className="text-xs text-primary-700 hover:text-primary-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2.5 py-1.5 rounded-lg hover:bg-primary-50"
+            className="text-sm text-primary-800 hover:text-primary-950 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-3 py-2 rounded-xl hover:bg-primary-50 min-h-10"
             aria-label="Обновить рейтинг"
           >
             {isRefreshing ? "Обновление..." : "Обновить"}
           </button>
-          <span className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium ${
-            isRefreshing ? "bg-primary-50 text-primary-700" : "bg-emerald-50 text-emerald-700"
-          }`}>
-            <span className={`h-2 w-2 rounded-full ${
-              isRefreshing ? "bg-primary-600 animate-spin" : "bg-emerald-500 animate-pulse"
-            }`} />
+          <span
+            className={`text-xs sm:text-sm flex items-center gap-2 px-3 py-2 rounded-xl font-medium ${
+              isRefreshing ? "bg-primary-50 text-primary-800" : "bg-emerald-50 text-emerald-800"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full shrink-0 ${
+                isRefreshing ? "bg-primary-600 animate-pulse" : "bg-emerald-500 animate-pulse"
+              }`}
+            />
             {isRefreshing ? "Обновление..." : "В реальном времени"}
           </span>
         </div>
       </div>
-      <div className="overflow-x-auto overflow-y-auto flex-1 -mx-4 sm:mx-0 min-w-0">
-        {/* Мобильный вид - карточки */}
-        <div className="block sm:hidden space-y-3 px-4">
-          {displayedRows.map((r) => {
-            const rankStyle = getRankStyle(r.rank);
-            const rankIcon = getRankIcon(r.rank);
-            const initial = (r.display_name || r.first_name || "?").charAt(0).toUpperCase();
-            return (
-              <div 
-                key={r.user_id} 
-                className={`rounded-lg border-2 p-4 ${getRankRowClass(r.rank)} ${rankStyle.className}`}
-                style={rankStyle.style}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 font-bold">
-                    {rankIcon}
-                    <span>#{r.rank}</span>
-                  </div>
-                  <div className="text-lg font-bold">{r.total_points.toLocaleString()}</div>
-                </div>
-                <Link
-                  href={`/profile?userId=${r.user_id}`}
-                  className="flex items-center gap-3"
-                >
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                    r.rank <= 3 
-                      ? "bg-white/80 text-zinc-800 border border-zinc-300/80" 
-                      : "bg-primary-100 text-primary-700"
-                  }`}>
-                    {initial}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate">{r.display_name || "Участник"}</div>
-                    {r.telegram_username && (
-                      <a
-                        href={`https://t.me/${r.telegram_username}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs opacity-80 hover:underline truncate block"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        @{r.telegram_username}
-                      </a>
-                    )}
-                  </div>
-                </Link>
-              </div>
-            );
-          })}
-        </div>
 
-        {/* Десктопный вид - таблица */}
-        <div className="hidden sm:block inline-block min-w-full align-middle">
-          <table className="w-full text-left">
-          <thead className="sticky top-0 bg-surface-muted border-b border-stone-200 z-10">
-            <tr>
-              <th className="px-4 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">#</th>
-              <th className="px-4 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">Участник</th>
-              <th className="px-4 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">Очки</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedRows.map((r) => {
-              const rankStyle = getRankStyle(r.rank);
-              const rankIcon = getRankIcon(r.rank);
-              const isTop3 = r.rank <= 3;
-              const initial = (r.display_name || r.first_name || "?").charAt(0).toUpperCase();
-              return (
-                <tr 
-                  key={r.user_id} 
-                  className={`border-b border-stone-100 transition-colors ${getRankRowClass(r.rank)} ${rankStyle.className} ${!isTop3 ? "hover:bg-stone-50" : ""}`}
-                  style={rankStyle.style}
+      {rows.length === 0 ? (
+        <div className="text-center text-stone-500 py-14 text-sm leading-relaxed">
+          Пока нет результатов. Пройдите тест первым.
+        </div>
+      ) : (
+        <ol className="flex-1 space-y-3 sm:space-y-3.5 list-none m-0 p-0">
+          {displayedRows.map((r) => {
+            const visual = getRankVisual(r.rank);
+            const initial = (r.display_name || r.first_name || "?").charAt(0).toUpperCase();
+            const isTop3 = r.rank <= 3;
+
+            return (
+              <li key={r.user_id}>
+                <div
+                  className={`rounded-2xl border px-4 py-4 sm:px-5 sm:py-5 transition-colors ${visual.row}`}
                 >
-                  <td className="px-4 py-5" style={rankStyle.style}>
-                    <div className="flex items-center gap-2 font-semibold">
-                      {rankIcon}
-                      <span>{r.rank}</span>
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div
+                      className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full font-mono text-sm font-bold ${visual.badge}`}
+                      title={visual.label}
+                      aria-label={visual.label}
+                    >
+                      {visual.icon ?? r.rank}
                     </div>
-                  </td>
-                  <td className="px-4 py-5" style={rankStyle.style}>
+
                     <Link
                       href={`/profile?userId=${r.user_id}`}
-                      className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                      className="min-w-0 flex-1 flex items-start gap-3 sm:gap-3.5 group"
                     >
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                        r.rank <= 3 
-                          ? "bg-white/80 text-stone-800 border border-stone-300/80" 
-                          : "bg-primary-100 text-primary-800"
-                      }`}>
+                      <div
+                        className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${visual.avatar}`}
+                      >
                         {initial}
                       </div>
-                      <div className="space-y-1 min-w-0">
-                        <div className="font-semibold leading-snug">{r.display_name || "Участник"}</div>
-                        {r.telegram_username && (
-                          <a
-                            href={`https://t.me/${r.telegram_username}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-stone-500 hover:underline block leading-relaxed"
+                      <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
+                        <div className="font-semibold text-stone-950 leading-snug break-words group-hover:text-primary-900">
+                          {r.display_name || "Участник"}
+                        </div>
+                        {r.telegram_username ? (
+                          <span
+                            className="inline-block text-sm text-stone-500 leading-relaxed"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            @{r.telegram_username}
-                          </a>
+                            <a
+                              href={`https://t.me/${r.telegram_username}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              @{r.telegram_username}
+                            </a>
+                          </span>
+                        ) : (
+                          <span className="block text-sm text-stone-400 leading-relaxed">
+                            {isTop3 ? visual.label : `Место ${r.rank}`}
+                          </span>
                         )}
                       </div>
                     </Link>
-                  </td>
-                  <td className="px-4 py-5 text-right font-semibold tabular-nums" style={rankStyle.style}>
-                    {r.total_points.toLocaleString()}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-          </table>
+
+                    <div className="shrink-0 text-right pt-0.5 pl-2">
+                      <div
+                        className={`font-mono text-base sm:text-lg font-bold tabular-nums leading-none ${visual.points}`}
+                      >
+                        {r.total_points.toLocaleString("ru-RU")}
+                      </div>
+                      <div className="mt-1.5 text-xs text-stone-500 leading-relaxed">очков</div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+
+      {rows.length > displayLimit && (
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => setDisplayLimit((prev) => prev + 25)}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-200 bg-surface-raised px-4 py-2.5 text-sm font-semibold text-primary-800 hover:bg-primary-50 transition-colors"
+          >
+            Показать ещё ({rows.length - displayLimit})
+          </button>
         </div>
-        {rows.length === 0 && (
-          <div className="text-center text-zinc-500 py-12 text-sm">
-            Пока нет результатов. Пройди тест первым 🙂
-          </div>
-        )}
-        {rows.length > displayLimit && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setDisplayLimit(prev => prev + 25)}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-            >
-              Показать еще ({rows.length - displayLimit} участников)
-            </button>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
