@@ -76,6 +76,8 @@ export async function PUT(
   }
 
   const { title, description, category, author, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
+  let questionsToSave = questions;
+  let answerKeyToSave = answerKey;
 
   try {
     if (questions !== undefined && answerKey !== undefined && Array.isArray(questions) && questions.length > 0) {
@@ -98,6 +100,8 @@ export async function PUT(
           { status: 400 }
         );
       }
+      questionsToSave = validation.payload?.questions ?? questions;
+      answerKeyToSave = validation.payload?.answerKey ?? answerKey;
     }
 
     const updates: string[] = [];
@@ -111,8 +115,8 @@ export async function PUT(
     if (difficultyLevel !== undefined) { updates.push(`difficulty_level = $${idx++}`); values.push(difficultyLevel); }
     if (basePoints !== undefined) { updates.push(`base_points = $${idx++}`); values.push(basePoints); }
     if (maxAttempts !== undefined) { updates.push(`max_attempts = $${idx++}`); values.push(maxAttempts); }
-    if (questions !== undefined) { updates.push(`questions = $${idx++}`); values.push(JSON.stringify(questions)); }
-    if (answerKey !== undefined) { updates.push(`answer_key = $${idx++}`); values.push(JSON.stringify(answerKey)); }
+    if (questions !== undefined) { updates.push(`questions = $${idx++}`); values.push(JSON.stringify(questionsToSave)); }
+    if (answerKey !== undefined) { updates.push(`answer_key = $${idx++}`); values.push(JSON.stringify(answerKeyToSave)); }
 
     updates.push(`updated_at = now()`);
 

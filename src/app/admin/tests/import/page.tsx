@@ -33,7 +33,12 @@ export default function ImportTestPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [parsed, setParsed] = useState<Record<string, unknown> | null>(null);
-  const [previewMeta, setPreviewMeta] = useState<{ questionCount?: number; mechanics?: Record<string, number> } | null>(null);
+  const [previewMeta, setPreviewMeta] = useState<{
+    questionCount?: number;
+    mechanics?: Record<string, number>;
+    hintCount?: number;
+    mediaCount?: number;
+  } | null>(null);
 
   const handleValidate = async () => {
     setErrors([]);
@@ -71,7 +76,12 @@ export default function ImportTestPage() {
 
       setWarnings(warnList.map((i: { path: string; message: string }) => ({ field: i.path, message: i.message })));
       setParsed(preview.normalized ?? null);
-      setPreviewMeta({ questionCount: preview.questionCount, mechanics: preview.mechanics });
+      setPreviewMeta({
+        questionCount: preview.questionCount,
+        mechanics: preview.mechanics,
+        hintCount: preview.hintCount,
+        mediaCount: preview.mediaCount,
+      });
       setSuccess(`Preview OK: «${preview.title}» — ${preview.questionCount} вопросов`);
     } catch (err: unknown) {
       setErrors([{ field: "server", message: err instanceof Error ? err.message : "Ошибка" }]);
@@ -182,10 +192,21 @@ export default function ImportTestPage() {
 
         {previewMeta && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-sm text-blue-900">
-            Вопросов: {previewMeta.questionCount}. Механики:{" "}
-            {Object.entries(previewMeta.mechanics ?? {})
-              .map(([k, v]) => `${k} (${v})`)
-              .join(", ")}
+            <p>
+              Вопросов: {previewMeta.questionCount}. Подсказок: {previewMeta.hintCount ?? 0}.
+              Изображений: {previewMeta.mediaCount ?? 0}.
+            </p>
+            <p className="mt-1">
+              Механики:{" "}
+              {Object.entries(previewMeta.mechanics ?? {})
+                .map(([k, v]) => `${k} (${v})`)
+                .join(", ")}
+            </p>
+            {(previewMeta.hintCount ?? 0) === 0 && (
+              <p className="mt-2 text-amber-800">
+                В импортируемом файле нет непустых полей <code>hint</code>. Подсказки не появятся после прохождения теста.
+              </p>
+            )}
           </div>
         )}
 

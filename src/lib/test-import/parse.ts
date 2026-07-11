@@ -7,6 +7,7 @@ export type ImportPreviewResult = {
   questionCount?: number;
   mechanics?: Record<string, number>;
   mediaCount?: number;
+  hintCount?: number;
   issues: ValidationIssue[];
   normalized?: Record<string, unknown>;
 };
@@ -88,12 +89,14 @@ export function buildImportPreview(raw: unknown): ImportPreviewResult {
   const questions = (payload.questions as unknown[]) ?? [];
   const mechanics: Record<string, number> = {};
   let mediaCount = 0;
+  let hintCount = 0;
   for (const q of questions) {
     if (q && typeof q === "object" && "type" in q) {
       const t = String((q as { type: string }).type);
       mechanics[t] = (mechanics[t] ?? 0) + 1;
-      const qq = q as { imageUrl?: string; media?: { url?: string } };
+      const qq = q as { imageUrl?: string; media?: { url?: string }; hint?: string };
       if (qq.imageUrl || qq.media?.url) mediaCount += 1;
+      if (typeof qq.hint === "string" && qq.hint.trim().length > 0) hintCount += 1;
     }
   }
 
@@ -103,6 +106,7 @@ export function buildImportPreview(raw: unknown): ImportPreviewResult {
     questionCount: questions.length,
     mechanics,
     mediaCount,
+    hintCount,
     issues,
     normalized: validation.ok ? payload : undefined,
   };

@@ -175,7 +175,7 @@ export default function TestPreviewPage() {
                   setAnswers((prev) => ({ ...prev, [question.id]: val }))
                 }
                 disabled={false}
-                showHint={false}
+                showHint={Boolean(question.hint)}
               />
 
               {/* Show correct answer (collapsible for admins) */}
@@ -187,6 +187,11 @@ export default function TestPreviewPage() {
                   <code className="bg-zinc-100 px-1 rounded">{JSON.stringify(test.answerKey[question.id])}</code>
                 </div>
               </details>
+              {!question.hint && (
+                <p className="mt-3 text-xs text-amber-700">
+                  У этого вопроса нет подсказки (<code>hint</code>).
+                </p>
+              )}
             </div>
           ))}
         </div>

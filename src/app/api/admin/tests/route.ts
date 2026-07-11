@@ -67,6 +67,8 @@ export async function POST(req: Request) {
 
   const questionsArr = Array.isArray(questions) ? questions : [];
   const answerKeyObj = typeof answerKey === "object" && !Array.isArray(answerKey) ? answerKey : {};
+  let questionsToSave = questionsArr;
+  let answerKeyToSave = answerKeyObj;
 
   if (questionsArr.length > 0) {
     const validation = validateTestForServer({
@@ -86,6 +88,19 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Сохраняем именно проверенный канонический payload. Это гарантирует,
+    // что hint/media и остальные допустимые поля проходят тот же pipeline,
+    // который показан администратору в preview.
+    questionsToSave = Array.isArray(validation.payload?.questions)
+      ? validation.payload.questions
+      : questionsArr;
+    answerKeyToSave =
+      validation.payload?.answerKey &&
+      typeof validation.payload.answerKey === "object" &&
+      !Array.isArray(validation.payload.answerKey)
+        ? validation.payload.answerKey
+        : answerKeyObj;
   }
 
   const testId = id || `test-${crypto.randomUUID().slice(0, 8)}`;
@@ -114,8 +129,8 @@ export async function POST(req: Request) {
         difficultyLevel ?? 1,
         basePoints ?? 200,
         maxAttempts ?? null,
-        JSON.stringify(questionsArr),
-        JSON.stringify(answerKeyObj),
+        JSON.stringify(questionsToSave),
+        JSON.stringify(answerKeyToSave),
       ]
     );
 
