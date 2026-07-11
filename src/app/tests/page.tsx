@@ -11,7 +11,7 @@ import { TestCard, type TestCardItem } from "@/components/tests/TestCard";
 import { TestCategoryFilters } from "@/components/tests/TestCategoryFilters";
 import { TestPagination, paginateItems } from "@/components/tests/TestPagination";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 6;
 
 type SortMode = "title" | "difficulty";
 
@@ -79,7 +79,7 @@ export default function TestsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
-          <div className="text-zinc-600">Загрузка...</div>
+          <div className="text-stone-600">Загрузка...</div>
         </div>
       </div>
     );
@@ -88,17 +88,17 @@ export default function TestsPage() {
   return (
     <>
       <LoginModal />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-          <div className="space-y-4 flex flex-col min-w-0">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.85fr)] gap-8 xl:gap-10 items-start">
+          <div className="min-w-0">
             {user ? (
-              <div className="surface-card p-4 sm:p-6">
-                <h1 className="font-display text-h2 mb-2 text-stone-950">
-                  Доступные тесты
-                </h1>
-                <p className="text-zinc-600 mb-4 text-sm sm:text-base leading-relaxed">
-                  Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
-                </p>
+              <div className="surface-card p-6 sm:p-8 lg:p-10">
+                <header className="mb-8 max-w-2xl">
+                  <h1 className="font-display text-h2 text-stone-950">Доступные тесты</h1>
+                  <p className="mt-3 text-body text-stone-600 leading-relaxed">
+                    Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
+                  </p>
+                </header>
 
                 <TestCategoryFilters
                   categories={categories}
@@ -108,21 +108,21 @@ export default function TestsPage() {
                   filteredCount={filteredTests.length}
                 />
 
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <div className="flex flex-col sm:flex-row gap-3 mb-8">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
                     <input
                       type="search"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Поиск по названию или описанию"
-                      className="w-full pl-9 pr-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full min-h-11 pl-10 pr-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-surface-raised focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
                   <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value as SortMode)}
-                    className="border border-zinc-200 rounded-lg px-3 py-2 text-sm bg-white"
+                    className="min-h-11 border border-stone-200 rounded-xl px-3 py-2.5 text-sm bg-surface-raised"
                     aria-label="Сортировка"
                   >
                     <option value="title">По названию</option>
@@ -135,47 +135,49 @@ export default function TestsPage() {
                 ) : (
                   <>
                     {pageItems.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-5">
                         {pageItems.map((test) => (
                           <TestCard key={test.id} test={test} />
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-10 text-zinc-500 text-sm">
+                      <div className="text-center py-14 text-stone-500 text-sm leading-relaxed">
                         {selectedCategory
                           ? `Нет тестов в категории «${selectedCategory}»`
                           : search
-                          ? "Ничего не найдено"
-                          : "Пока нет доступных тестов"}
+                            ? "Ничего не найдено"
+                            : "Пока нет доступных тестов"}
                       </div>
                     )}
-                    <TestPagination
-                      page={page}
-                      pageSize={PAGE_SIZE}
-                      total={filteredTests.length}
-                      onPageChange={setPage}
-                    />
+                    <div className="mt-8">
+                      <TestPagination
+                        page={page}
+                        pageSize={PAGE_SIZE}
+                        total={filteredTests.length}
+                        onPageChange={setPage}
+                      />
+                    </div>
                   </>
                 )}
               </div>
             ) : (
-              <div className="surface-card p-4 sm:p-8">
-                <h1 className="font-display text-h1 mb-4 sm:mb-6 text-stone-950">
-                  Тесты и рейтинг
-                </h1>
-                <div className="space-y-6 text-zinc-700 leading-relaxed">
-                  <p className="text-base sm:text-lg font-medium text-zinc-900">
-                    Проверьте свои знания, пройдите тесты и соревнуйтесь с другими участниками в мировом рейтинге.
+              <div className="surface-card p-6 sm:p-10">
+                <h1 className="font-display text-h1 mb-5 text-stone-950">Тесты и рейтинг</h1>
+                <div className="space-y-5 text-stone-700 leading-relaxed max-w-2xl">
+                  <p className="text-body-lg text-stone-900">
+                    Проверьте свои знания, пройдите тесты и соревнуйтесь с другими участниками в
+                    мировом рейтинге.
                   </p>
-                  <p className="mt-6 text-zinc-600 bg-primary-50 p-4 rounded-lg border border-primary-200">
-                    Войдите или зарегистрируйтесь, чтобы получить доступ к тестам и начать зарабатывать очки.
+                  <p className="text-stone-600 bg-primary-50 p-5 rounded-xl border border-primary-200 leading-relaxed">
+                    Войдите или зарегистрируйтесь, чтобы получить доступ к тестам и начать
+                    зарабатывать очки.
                   </p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex flex-col lg:sticky lg:top-6" id="leaderboard">
+          <div className="flex flex-col xl:sticky xl:top-28" id="leaderboard">
             <LiveLeaderboard />
           </div>
         </div>

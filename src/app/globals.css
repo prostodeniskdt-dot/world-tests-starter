@@ -33,11 +33,10 @@ body {
   background-attachment: fixed;
 }
 
-h1,
-h2,
-h3,
+/* Display only where marked — long titles stay in Nunito for readability */
 .font-display {
   font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 @layer utilities {

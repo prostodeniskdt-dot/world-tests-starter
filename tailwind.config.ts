@@ -83,10 +83,10 @@ const config: Config = {
           { lineHeight: "1.35", fontWeight: "600" },
         ],
         h4: ["1.125rem", { lineHeight: "1.45", fontWeight: "600" }],
-        "body-lg": ["1.125rem", { lineHeight: "1.65" }],
-        body: ["1.0625rem", { lineHeight: "1.65" }],
-        "body-sm": ["0.9375rem", { lineHeight: "1.55" }],
-        caption: ["0.75rem", { lineHeight: "1.4" }],
+        "body-lg": ["1.1875rem", { lineHeight: "1.7" }],
+        body: ["1.0625rem", { lineHeight: "1.7" }],
+        "body-sm": ["0.9375rem", { lineHeight: "1.65" }],
+        caption: ["0.75rem", { lineHeight: "1.5" }],
       },
       backgroundImage: {
         "warm-glow":

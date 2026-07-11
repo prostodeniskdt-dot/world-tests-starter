@@ -94,25 +94,25 @@ export function LiveLeaderboard() {
   }
 
   return (
-    <div className="surface-card p-4 sm:p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+    <div className="surface-card p-6 sm:p-8 h-full flex flex-col">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
         <h2 className="font-display text-h3 text-stone-950">Мировой рейтинг</h2>
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={fetchLeaderboard}
             disabled={isRefreshing}
-            className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2 py-1 rounded hover:bg-primary-50"
+            className="text-xs text-primary-700 hover:text-primary-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors px-2.5 py-1.5 rounded-lg hover:bg-primary-50"
             aria-label="Обновить рейтинг"
           >
             {isRefreshing ? "Обновление..." : "Обновить"}
           </button>
-          <span className={`text-xs flex items-center gap-1.5 px-3 py-1 rounded-full font-medium ${
-            isRefreshing ? 'bg-primary-50 text-primary-600' : 'bg-green-50 text-success'
+          <span className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium ${
+            isRefreshing ? "bg-primary-50 text-primary-700" : "bg-emerald-50 text-emerald-700"
           }`}>
             <span className={`h-2 w-2 rounded-full ${
-              isRefreshing ? 'bg-primary-600 animate-spin' : 'bg-success animate-pulse'
-            }`}></span>
-            {isRefreshing ? 'Обновление...' : 'В реальном времени'}
+              isRefreshing ? "bg-primary-600 animate-spin" : "bg-emerald-500 animate-pulse"
+            }`} />
+            {isRefreshing ? "Обновление..." : "В реальном времени"}
           </span>
         </div>
       </div>
@@ -170,11 +170,11 @@ export function LiveLeaderboard() {
         {/* Десктопный вид - таблица */}
         <div className="hidden sm:block inline-block min-w-full align-middle">
           <table className="w-full text-left">
-          <thead className="sticky top-0 bg-zinc-50 border-b border-zinc-200 z-10">
+          <thead className="sticky top-0 bg-surface-muted border-b border-stone-200 z-10">
             <tr>
-              <th className="px-4 py-3 text-xs font-semibold text-zinc-600 uppercase tracking-wider">#</th>
-              <th className="px-4 py-3 text-xs font-semibold text-zinc-600 uppercase tracking-wider">Участник</th>
-              <th className="px-4 py-3 text-xs font-semibold text-zinc-600 uppercase tracking-wider text-right">Очки</th>
+              <th className="px-4 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">#</th>
+              <th className="px-4 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">Участник</th>
+              <th className="px-4 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">Очки</th>
             </tr>
           </thead>
           <tbody>
@@ -186,35 +186,35 @@ export function LiveLeaderboard() {
               return (
                 <tr 
                   key={r.user_id} 
-                  className={`border-b border-zinc-100 transition-colors ${getRankRowClass(r.rank)} ${rankStyle.className} ${!isTop3 ? "hover:bg-zinc-50" : ""}`}
+                  className={`border-b border-stone-100 transition-colors ${getRankRowClass(r.rank)} ${rankStyle.className} ${!isTop3 ? "hover:bg-stone-50" : ""}`}
                   style={rankStyle.style}
                 >
-                  <td className="px-4 py-4" style={rankStyle.style}>
-                    <div className="flex items-center gap-2 font-bold">
+                  <td className="px-4 py-5" style={rankStyle.style}>
+                    <div className="flex items-center gap-2 font-semibold">
                       {rankIcon}
                       <span>{r.rank}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4" style={rankStyle.style}>
+                  <td className="px-4 py-5" style={rankStyle.style}>
                     <Link
                       href={`/profile?userId=${r.user_id}`}
                       className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                     >
                       <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                         r.rank <= 3 
-                          ? "bg-white/80 text-zinc-800 border border-zinc-300/80" 
-                          : "bg-primary-100 text-primary-700"
+                          ? "bg-white/80 text-stone-800 border border-stone-300/80" 
+                          : "bg-primary-100 text-primary-800"
                       }`}>
                         {initial}
                       </div>
-                      <div>
-                        <div className="font-semibold">{r.display_name || "Участник"}</div>
+                      <div className="space-y-1 min-w-0">
+                        <div className="font-semibold leading-snug">{r.display_name || "Участник"}</div>
                         {r.telegram_username && (
                           <a
                             href={`https://t.me/${r.telegram_username}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs opacity-80 hover:underline"
+                            className="text-xs text-stone-500 hover:underline block leading-relaxed"
                             onClick={(e) => e.stopPropagation()}
                           >
                             @{r.telegram_username}
@@ -223,7 +223,7 @@ export function LiveLeaderboard() {
                       </div>
                     </Link>
                   </td>
-                  <td className="px-4 py-4 text-right font-bold" style={rankStyle.style}>
+                  <td className="px-4 py-5 text-right font-semibold tabular-nums" style={rankStyle.style}>
                     {r.total_points.toLocaleString()}
                   </td>
                 </tr>

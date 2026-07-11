@@ -197,7 +197,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent-900 text-primary-300 flex items-center justify-center font-mono font-bold text-sm">
                         {idx + 1}
                       </div>
-                      <div className="font-display text-lg sm:text-xl font-semibold text-stone-950 leading-snug flex-1 min-w-0 break-words">
+                      <div className="font-sans text-base sm:text-lg font-semibold text-stone-950 leading-relaxed flex-1 min-w-0 break-words">
                         {q.text}
                       </div>
                     </div>
