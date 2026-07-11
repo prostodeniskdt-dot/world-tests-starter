@@ -7,6 +7,8 @@ import {
   type FlavorPairingCategory,
 } from "@/lib/flavor-pairings";
 
+export const dynamic = "force-dynamic";
+
 const VALID_CATEGORIES: FlavorPairingCategory[] = [
   "fruits",
   "herbs_spices",

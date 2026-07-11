@@ -26,6 +26,7 @@ export function PairingsSearch({
   const [filtered, setFiltered] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   useEffect(() => {
     setLoading(true);
@@ -53,10 +54,37 @@ export function PairingsSearch({
     }
   }, [query, ingredients]);
 
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [filtered]);
+
   const handleSelect = (ing: string) => {
     onSelectIngredient(ing);
     setQuery(ing);
     setShowDropdown(false);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      setShowDropdown(false);
+      setActiveIndex(-1);
+      return;
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setShowDropdown(true);
+      setActiveIndex((index) => Math.min(index + 1, filtered.length - 1));
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveIndex((index) => Math.max(index - 1, 0));
+      return;
+    }
+    if (event.key === "Enter" && showDropdown && activeIndex >= 0) {
+      event.preventDefault();
+      handleSelect(filtered[activeIndex]);
+    }
   };
 
   return (
@@ -90,12 +118,21 @@ export function PairingsSearch({
           }}
           onFocus={() => setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+          onKeyDown={handleKeyDown}
           placeholder="Введите ингредиент: яблоко, имбирь, мята..."
           className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all"
           aria-label="Поиск ингредиента"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={showDropdown}
+          aria-controls="pairings-ingredient-options"
+          aria-activedescendant={
+            activeIndex >= 0 ? `pairings-option-${activeIndex}` : undefined
+          }
         />
         {showDropdown && (
           <ul
+            id="pairings-ingredient-options"
             className="absolute z-10 w-full mt-1 bg-white border-2 border-zinc-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
             role="listbox"
           >
@@ -106,12 +143,17 @@ export function PairingsSearch({
                 {query ? "Ничего не найдено" : "Введите для поиска"}
               </li>
             ) : (
-              filtered.map((ing) => (
+              filtered.map((ing, index) => (
                 <li
                   key={ing}
+                  id={`pairings-option-${index}`}
                   role="option"
+                  aria-selected={activeIndex === index}
+                  onMouseDown={(event) => event.preventDefault()}
                   onClick={() => handleSelect(ing)}
-                  className="px-4 py-2 cursor-pointer hover:bg-primary-50 focus:bg-primary-50 outline-none"
+                  className={`px-4 py-2 cursor-pointer outline-none ${
+                    activeIndex === index ? "bg-primary-50" : "hover:bg-primary-50"
+                  }`}
                 >
                   {ing}
                 </li>

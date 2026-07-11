@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "tsx --test tests/*.test.ts",
     "parse-baza": "tsx scripts/parse-baza.ts",
     "parse-flavor-pairings": "tsx scripts/parse-flavor-pairings.ts",
     "validate-baza": "tsx scripts/validate-baza.ts",

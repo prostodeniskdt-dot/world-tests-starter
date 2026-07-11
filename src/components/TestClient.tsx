@@ -400,7 +400,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                           setSubmitting(false);
                         }
                       }}
-                      className="flex-1 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-600 hover:opacity-90 transition-all"
+                      className="flex-1 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-all"
                     >
                       Да, завершить
                     </button>

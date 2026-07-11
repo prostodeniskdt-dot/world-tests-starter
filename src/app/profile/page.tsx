@@ -10,6 +10,8 @@ import { ProfileExportPdf } from "@/components/ProfileExportPdf";
 import { ProfileAppearancePanel } from "@/components/ProfileAppearancePanel";
 import { ProfileDashboardLinks } from "@/components/ProfileDashboardLinks";
 import { ProfileBioSection } from "@/components/ProfileBioSection";
+import { ProfileContributions } from "@/components/ProfileContributions";
+import { getUserContributions } from "@/lib/user-contributions";
 import { Suspense } from "react";
 
 export const revalidate = 10;
@@ -176,18 +178,19 @@ export default async function ProfilePage({
   const avatarUrl = user.avatar_url as string | null | undefined;
   const coverUrl = user.profile_cover_url as string | null | undefined;
   const showAvatarImage = Boolean(avatarUrl && (isOwnProfile || showPublicInfo));
+  const contributions = isOwnProfile
+    ? await getUserContributions(currentUser.userId)
+    : { items: [], unavailableKinds: [] };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 min-w-0">
-      {isOwnProfile && <ProfileDashboardLinks />}
-
       <div className="rounded-xl border border-zinc-200 bg-white shadow-soft overflow-hidden">
         {isOwnProfile && coverUrl ? (
           <div className="relative h-28 sm:h-40 bg-zinc-200">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={coverUrl}
-              alt=""
+              alt="Обложка профиля"
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
@@ -199,11 +202,11 @@ export default async function ProfilePage({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={avatarUrl}
-                alt=""
+                alt={`Аватар: ${displayName}`}
                 className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover shadow-lg flex-shrink-0 ring-2 ring-white"
               />
             ) : (
-              <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full gradient-primary flex items-center justify-center text-primary-600 text-xl sm:text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full gradient-primary flex items-center justify-center text-white text-xl sm:text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">
                 {(showPublicInfo ? (displayName || user.first_name || "?").charAt(0) : "?").toUpperCase()}
               </div>
             )}
@@ -246,13 +249,13 @@ export default async function ProfilePage({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
             <div className="rounded-lg border-2 border-primary-200 bg-gradient-to-br from-zinc-900 to-zinc-800 p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Trophy className="h-6 w-6 text-primary-600" />
-                <div className="text-sm font-medium text-zinc-600">Всего очков</div>
+                <Trophy className="h-6 w-6 text-amber-400" />
+                <div className="text-sm font-medium text-zinc-300">Всего очков</div>
               </div>
-              <div className="text-4xl font-bold text-zinc-600">{stats.total_points.toLocaleString()}</div>
+              <div className="text-4xl font-bold text-white">{stats.total_points.toLocaleString()}</div>
             </div>
 
-            <div className="rounded-lg border-2 border-success-200 bg-gradient-to-br from-green-50 to-green-100 p-6">
+            <div className="rounded-lg border-2 border-emerald-200 bg-gradient-to-br from-green-50 to-green-100 p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Award className="h-6 w-6 text-success" />
                 <div className="text-sm font-medium text-zinc-600">Тестов пройдено</div>
@@ -264,6 +267,15 @@ export default async function ProfilePage({
         {isOwnProfile && !user.delete_requested_at && <ProfileDeleteAccount />}
         </div>
       </div>
+
+      {isOwnProfile && (
+        <ProfileContributions
+          items={contributions.items}
+          unavailableKinds={contributions.unavailableKinds}
+        />
+      )}
+
+      {isOwnProfile && <ProfileDashboardLinks />}
 
       {/* Аналитика по категориям */}
       {categoryStats.length > 0 && (
@@ -423,7 +435,7 @@ export default async function ProfilePage({
           <div className="text-zinc-600 mb-4">Пока нет попыток.</div>
           <Link
             href="/test"
-            className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-primary-600 hover:opacity-90 shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all"
           >
             Пройдите тест
           </Link>
