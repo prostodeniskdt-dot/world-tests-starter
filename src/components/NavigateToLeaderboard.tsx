@@ -8,16 +8,15 @@ export function NavigateToLeaderboard() {
 
   const handleClick = () => {
     try {
-      router.push("/tests");
-      // Если router.push не сработал, используем fallback
+      router.push("/tests#leaderboard");
       setTimeout(() => {
-        if (window.location.pathname !== "/tests") {
-          window.location.href = "/tests";
+        if (!window.location.hash.includes("leaderboard")) {
+          window.location.href = "/tests#leaderboard";
         }
       }, 100);
     } catch (error) {
       // В случае ошибки используем полную перезагрузку
-      window.location.href = "/tests";
+      window.location.href = "/tests#leaderboard";
     }
   };
 

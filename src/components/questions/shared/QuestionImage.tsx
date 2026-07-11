@@ -1,23 +1,26 @@
 "use client";
 
-import Image from "next/image";
-
 interface QuestionImageProps {
   imageUrl: string;
   alt?: string;
+  caption?: string;
 }
 
-export function QuestionImage({ imageUrl, alt = "Изображение к вопросу" }: QuestionImageProps) {
+export function QuestionImage({ imageUrl, alt = "Изображение к вопросу", caption }: QuestionImageProps) {
   return (
-    <div className="my-4 rounded-lg overflow-hidden border border-zinc-200">
-      <Image
+    <figure className="my-4 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={imageUrl}
         alt={alt}
-        width={800}
-        height={600}
-        className="w-full h-auto"
-        unoptimized
+        className="w-full h-auto max-h-[480px] object-contain mx-auto"
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = "none";
+        }}
       />
-    </div>
+      {caption && (
+        <figcaption className="text-xs text-zinc-500 px-3 py-2 border-t border-zinc-200">{caption}</figcaption>
+      )}
+    </figure>
   );
 }

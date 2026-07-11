@@ -434,7 +434,7 @@ export default async function ProfilePage({
           <Trophy className="h-16 w-16 text-zinc-300 mx-auto mb-4" />
           <div className="text-zinc-600 mb-4">Пока нет попыток.</div>
           <Link
-            href="/test"
+            href="/tests"
             className="inline-flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all"
           >
             Пройдите тест

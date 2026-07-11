@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
-import type { PublicTest, PublicTestQuestion } from "@/tests/types";
+import { normalizeTestContentFromDb } from "@/lib/test-runtime-normalize";
+import type { PublicTest } from "@/tests/types";
 
 // Экспортируем типы
 export type { PublicTest, PublicTestQuestion } from "@/tests/types";
@@ -22,6 +23,27 @@ export type TestAccessContext = {
 
 const defaultAccess: TestAccessContext = { userId: null, isAdmin: false };
 
+function mapPublicRow(r: {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  difficulty_level: number;
+  author?: string | null;
+  questions: unknown;
+}): PublicTest {
+  const { questions } = normalizeTestContentFromDb(r.questions, {});
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    category: r.category,
+    difficultyLevel: r.difficulty_level as 1 | 2 | 3,
+    author: r.author ? String(r.author) : undefined,
+    questions,
+  };
+}
+
 function publishedAccessSql(alias: string): string {
   return `(
     COALESCE(${alias}.visibility, 'public') = 'public'
@@ -39,22 +61,14 @@ function publishedAccessSql(alias: string): string {
 export async function getPublicTests(ctx: TestAccessContext = defaultAccess): Promise<PublicTest[]> {
   const { userId, isAdmin } = ctx;
   const { rows } = await db.query(
-    `SELECT t.id, t.title, t.description, t.category, t.difficulty_level, t.questions
+    `SELECT t.id, t.title, t.description, t.category, t.difficulty_level, t.author, t.questions
      FROM tests t
      WHERE t.is_published = true
        AND ${publishedAccessSql("t")}
      ORDER BY t.category, t.difficulty_level`,
     [isAdmin, userId]
   );
-  return rows.map((r: any) => ({
-    id: r.id,
-    title: r.title,
-    description: r.description,
-    category: r.category,
-    difficultyLevel: r.difficulty_level,
-    author: undefined as string | undefined,
-    questions: r.questions as PublicTestQuestion[],
-  }));
+  return rows.map((r: any) => mapPublicRow(r));
 }
 
 /** Получить публичный тест по ID (с учётом restricted и списка доступа) */
@@ -64,7 +78,7 @@ export async function getPublicTest(
 ): Promise<PublicTest | null> {
   const { userId, isAdmin } = ctx;
   const { rows } = await db.query(
-    `SELECT t.id, t.title, t.description, t.category, t.difficulty_level, t.questions
+    `SELECT t.id, t.title, t.description, t.category, t.difficulty_level, t.author, t.questions
      FROM tests t
      WHERE t.id = $3 AND t.is_published = true
        AND ${publishedAccessSql("t")}
@@ -73,15 +87,7 @@ export async function getPublicTest(
   );
   if (rows.length === 0) return null;
   const r = rows[0];
-  return {
-    id: r.id,
-    title: r.title,
-    description: r.description,
-    category: r.category,
-    difficultyLevel: r.difficulty_level,
-    author: undefined as string | undefined,
-    questions: r.questions as PublicTestQuestion[],
-  };
+  return mapPublicRow(r);
 }
 
 /** Получить тест по ID (включая неопубликованные, для отображения в истории попыток) */
@@ -97,21 +103,13 @@ export async function getTestById(testId: string): Promise<{ id: string; title: 
 /** Получить тест с вопросами по ID (без проверки is_published, для деталей попытки — вызывать после проверки прав) */
 export async function getTestWithQuestionsById(testId: string): Promise<PublicTest | null> {
   const { rows } = await db.query(
-    `SELECT id, title, description, category, difficulty_level, questions
+    `SELECT id, title, description, category, author, difficulty_level, questions
      FROM tests WHERE id = $1 LIMIT 1`,
     [testId]
   );
   if (rows.length === 0) return null;
   const r = rows[0];
-  return {
-    id: r.id,
-    title: r.title,
-    description: r.description,
-    category: r.category,
-    difficultyLevel: r.difficulty_level,
-    author: undefined as string | undefined,
-    questions: r.questions as PublicTestQuestion[],
-  };
+  return mapPublicRow(r);
 }
 
 /**
@@ -141,7 +139,7 @@ export async function getSecretTest(
 ): Promise<SecretTest | null> {
   const { userId, isAdmin } = ctx;
   const { rows } = await db.query(
-    `SELECT t.id, t.base_points, t.difficulty_level, t.max_attempts, t.answer_key
+    `SELECT t.id, t.base_points, t.difficulty_level, t.max_attempts, t.answer_key, t.questions
      FROM tests t
      WHERE t.id = $3 AND t.is_published = true
        AND ${publishedAccessSql("t")}
@@ -150,12 +148,13 @@ export async function getSecretTest(
   );
   if (rows.length === 0) return null;
   const r = rows[0];
+  const { answerKey } = normalizeTestContentFromDb(r.questions, r.answer_key);
   return {
     id: r.id,
     basePoints: r.base_points,
     difficulty: r.difficulty_level,
     maxAttempts: r.max_attempts,
-    answerKey: r.answer_key as Record<string, any>,
+    answerKey: answerKey as Record<string, any>,
   };
 }
 

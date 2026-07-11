@@ -11,6 +11,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test tests/*.test.ts",
+    "audit-tests": "tsx scripts/audit-tests-db.ts",
+    "normalize-tests-db": "tsx scripts/normalize-tests-db.ts",
     "parse-baza": "tsx scripts/parse-baza.ts",
     "parse-flavor-pairings": "tsx scripts/parse-flavor-pairings.ts",
     "validate-baza": "tsx scripts/validate-baza.ts",

@@ -56,11 +56,10 @@ function normalizeMatchingKey(correctAnswer: unknown): [number, number][] | null
 
   if (!pairs || pairs.length === 0) return null;
 
-  // Ключ мог быть сохранён в 1-based формате (1–A, 2–C, 3–B → [1,1],[2,3],[3,2])
-  const minLeft = Math.min(...pairs.map((p) => p[0]));
-  const minRight = Math.min(...pairs.map((p) => p[1]));
-  if (minLeft > 0 || minRight > 0) {
-    pairs = pairs.map(([a, b]) => [a - (minLeft > 0 ? 1 : 0), b - (minRight > 0 ? 1 : 0)]);
+  // Явная 1-based конвертация только если все индексы >= 1 и нет нуля
+  const allOneBased = pairs.every((p) => p[0] >= 1 && p[1] >= 1);
+  if (allOneBased) {
+    pairs = pairs.map(([a, b]) => [a - 1, b - 1]);
   }
   return pairs;
 }
@@ -163,12 +162,12 @@ function checkGrouping(
  */
 function checkTrueFalseEnhanced(
   userAnswer: { answer: boolean; reason: number },
-  correctAnswer: { answer: boolean; reason: number }
+  correctAnswer: { answer: boolean; reason: number },
+  reasonsCount = 0
 ): boolean {
-  return (
-    userAnswer.answer === correctAnswer.answer &&
-    userAnswer.reason === correctAnswer.reason
-  );
+  if (userAnswer.answer !== correctAnswer.answer) return false;
+  if (reasonsCount <= 1) return true;
+  return userAnswer.reason === correctAnswer.reason;
 }
 
 /**
@@ -177,32 +176,48 @@ function checkTrueFalseEnhanced(
  */
 function checkClozeDropdown(
   userAnswer: number[],
-  correctAnswer: unknown,
-  question?: { gaps?: Array<{ options?: string[] }> }
+  correctAnswer: unknown
 ): boolean {
   if (!Array.isArray(correctAnswer) || userAnswer.length !== correctAnswer.length) return false;
-
   const correct = correctAnswer as number[];
-  for (let i = 0; i < userAnswer.length; i++) {
-    if (userAnswer[i] === correct[i]) continue;
-    const gap = question?.gaps?.[i];
-    const opts = gap?.options || [];
-    const userText = (opts[userAnswer[i]] ?? "").trim().toLowerCase();
-    const correctText = (opts[correct[i]] ?? "").trim().toLowerCase();
-    if (userText && correctText && (userText === correctText || correctText.startsWith(userText) || userText.startsWith(correctText))) continue;
-    return false;
-  }
-  return true;
+  return userAnswer.every((val, i) => val === correct[i]);
 }
 
 /**
  * Проверяет ответ для вопроса типа select-errors
  */
+function normalizeSelectErrorsIds(
+  userAnswer: number[],
+  correctAnswer: number[]
+): { user: number[]; correct: number[] } {
+  const user = [...userAnswer];
+  let correct = [...correctAnswer];
+  const userMax = user.length ? Math.max(...user) : 0;
+  const correctMax = correct.length ? Math.max(...correct) : 0;
+  const userMin = user.length ? Math.min(...user) : 0;
+  const correctMin = correct.length ? Math.min(...correct) : 0;
+
+  // Ключ 0-based, UI шлёт part.id (1-based)
+  if (correctMin === 0 && userMin >= 1) {
+    correct = correct.map((idx) => idx + 1);
+  } else if (userMin === 0 && correctMin >= 1) {
+    // обратный случай
+    user.forEach((_, i) => {
+      user[i] = user[i] + 1;
+    });
+  } else if (correctMin === 0 && userMin === 0 && userMax <= 2 && correctMax <= 2) {
+    // оба 0-based — ok
+  }
+
+  return { user, correct };
+}
+
 function checkSelectErrors(
   userAnswer: number[],
   correctAnswer: number[]
 ): boolean {
-  return arraysEqualUnordered(userAnswer, correctAnswer);
+  const { user, correct } = normalizeSelectErrorsIds(userAnswer, correctAnswer);
+  return arraysEqualUnordered(user, correct);
 }
 
 /**
@@ -325,11 +340,12 @@ export function checkAnswer(
     case "true-false-enhanced":
       return checkTrueFalseEnhanced(
         userAnswer as { answer: boolean; reason: number },
-        correctAnswer
+        correctAnswer,
+        (question as import("@/tests/types").TrueFalseEnhancedQuestion).reasons?.length ?? 0
       );
 
     case "cloze-dropdown":
-      return checkClozeDropdown(userAnswer as number[], correctAnswer, question);
+      return checkClozeDropdown(userAnswer as number[], correctAnswer);
 
     case "select-errors":
       return checkSelectErrors(userAnswer as number[], correctAnswer);

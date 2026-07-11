@@ -1,30 +1,28 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocalUser } from "@/components/UserGate";
 import { LiveLeaderboard } from "@/components/LiveLeaderboard";
-import { TestCategories } from "@/components/TestCategories";
-import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
-import { DifficultyBadge } from "@/components/DifficultyBadge";
+import { Search } from "lucide-react";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Spinner } from "@/components/Spinner";
 import { LoginModal } from "@/components/LoginModal";
+import { TestCard, type TestCardItem } from "@/components/tests/TestCard";
+import { TestCategoryFilters } from "@/components/tests/TestCategoryFilters";
+import { TestPagination, paginateItems } from "@/components/tests/TestPagination";
 
-type Test = {
-  id: string;
-  title: string;
-  description: string | null;
-  category: string;
-  author?: string;
-  difficultyLevel: 1 | 2 | 3;
-};
+const PAGE_SIZE = 9;
+
+type SortMode = "title" | "difficulty";
 
 export default function TestsPage() {
   const { user, isLoading } = useLocalUser();
-  const [tests, setTests] = useState<Test[]>([]);
+  const [tests, setTests] = useState<TestCardItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortMode>("title");
+  const [page, setPage] = useState(1);
   const [testsLoading, setTestsLoading] = useState(false);
 
   useEffect(() => {
@@ -47,11 +45,34 @@ export default function TestsPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, search, sort]);
+
   const filteredTests = useMemo(() => {
-    return selectedCategory
+    let list = selectedCategory
       ? tests.filter((t) => t.category === selectedCategory)
-      : tests;
-  }, [tests, selectedCategory]);
+      : [...tests];
+
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          (t.description ?? "").toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q)
+      );
+    }
+
+    list.sort((a, b) => {
+      if (sort === "difficulty") return a.difficultyLevel - b.difficultyLevel;
+      return a.title.localeCompare(b.title, "ru");
+    });
+
+    return list;
+  }, [tests, selectedCategory, search, sort]);
+
+  const pageItems = paginateItems(filteredTests, page, PAGE_SIZE);
 
   if (isLoading) {
     return (
@@ -68,100 +89,93 @@ export default function TestsPage() {
     <>
       <LoginModal />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          <div className="space-y-6 flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
+          <div className="space-y-4 flex flex-col min-w-0">
             {user ? (
-              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8">
-                <h1 className="text-xl sm:text-2xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
+                <h1 className="text-xl sm:text-2xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
                   Доступные тесты
                 </h1>
-                <p className="text-zinc-600 mb-8 text-base leading-relaxed">
+                <p className="text-zinc-600 mb-4 text-sm sm:text-base leading-relaxed">
                   Выберите тест для прохождения. Результаты влияют на ваш рейтинг.
                 </p>
 
-                <TestCategories
-                  tests={tests}
+                <TestCategoryFilters
                   categories={categories}
                   selectedCategory={selectedCategory}
                   onCategorySelect={setSelectedCategory}
+                  totalCount={tests.length}
+                  filteredCount={filteredTests.length}
                 />
+
+                <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <input
+                      type="search"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Поиск по названию или описанию"
+                      className="w-full pl-9 pr-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as SortMode)}
+                    className="border border-zinc-200 rounded-lg px-3 py-2 text-sm bg-white"
+                    aria-label="Сортировка"
+                  >
+                    <option value="title">По названию</option>
+                    <option value="difficulty">По сложности</option>
+                  </select>
+                </div>
 
                 {testsLoading ? (
                   <LoadingSkeleton />
                 ) : (
-                  <div className="space-y-4">
-                    {filteredTests.map((test) => (
-                      <div
-                        key={test.id}
-                        className="group border-2 border-zinc-200 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 transition-all bg-white"
-                      >
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          {test.category && (
-                            <span className="inline-flex items-center rounded-md bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
-                              {test.category}
-                            </span>
-                          )}
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <BookOpen
-                              className="h-5 w-5 text-primary-600 flex-shrink-0"
-                              aria-hidden="true"
-                            />
-                            <h3 className="font-bold text-lg sm:text-xl text-zinc-900">
-                              {test.title}
-                            </h3>
-                            <DifficultyBadge level={test.difficultyLevel} />
-                          </div>
-                        </div>
-                        <p className="text-sm text-zinc-500 mt-1">
-                          Автор: {test.author ?? "Денис Колодешников"}
-                        </p>
-                        {test.description && (
-                          <p className="text-zinc-600 mt-2 leading-relaxed">
-                            {test.description}
-                          </p>
-                        )}
-                        <Link
-                          href={`/test?testId=${test.id}`}
-                          className="inline-flex items-center gap-2 mt-4 rounded-lg gradient-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all group-hover:scale-105"
-                        >
-                          Пройти тест
-                          <ArrowRight
-                            className="h-4 w-4 group-hover:translate-x-1 transition-transform"
-                            aria-hidden="true"
-                          />
-                        </Link>
+                  <>
+                    {pageItems.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
+                        {pageItems.map((test) => (
+                          <TestCard key={test.id} test={test} />
+                        ))}
                       </div>
-                    ))}
-                    {filteredTests.length === 0 && (
-                      <div className="text-center py-12 text-zinc-500">
+                    ) : (
+                      <div className="text-center py-10 text-zinc-500 text-sm">
                         {selectedCategory
-                          ? `Пока нет тестов в категории "${selectedCategory}"`
+                          ? `Нет тестов в категории «${selectedCategory}»`
+                          : search
+                          ? "Ничего не найдено"
                           : "Пока нет доступных тестов"}
                       </div>
                     )}
-                  </div>
+                    <TestPagination
+                      page={page}
+                      pageSize={PAGE_SIZE}
+                      total={filteredTests.length}
+                      onPageChange={setPage}
+                    />
+                  </>
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8 h-full">
+              <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-8">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
                   Тесты и рейтинг
                 </h1>
                 <div className="space-y-6 text-zinc-700 leading-relaxed">
                   <p className="text-base sm:text-lg font-medium text-zinc-900">
-                    Проверьте свои знания, пройдите тесты и соревнуйтесь с
-                    другими участниками в мировом рейтинге.
+                    Проверьте свои знания, пройдите тесты и соревнуйтесь с другими участниками в мировом рейтинге.
                   </p>
                   <p className="mt-6 text-zinc-600 bg-primary-50 p-4 rounded-lg border border-primary-200">
-                    Войдите или зарегистрируйтесь, чтобы получить доступ к
-                    тестам и начать зарабатывать очки.
+                    Войдите или зарегистрируйтесь, чтобы получить доступ к тестам и начать зарабатывать очки.
                   </p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col lg:sticky lg:top-6" id="leaderboard">
             <LiveLeaderboard />
           </div>
         </div>

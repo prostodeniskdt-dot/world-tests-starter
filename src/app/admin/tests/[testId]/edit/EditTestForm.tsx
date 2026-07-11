@@ -25,6 +25,11 @@ import {
   validateTestForSave,
   normalizeAnswerKeyForSave,
 } from "@/lib/test-editor-utils";
+import { QuestionMediaEditor } from "@/components/admin/test-editor/QuestionMediaEditor";
+import { TwoStepEditor } from "@/components/admin/test-editor/TwoStepEditor";
+import { MatrixEditor } from "@/components/admin/test-editor/MatrixEditor";
+import { useTestEditorDraft } from "@/components/admin/test-editor/useTestEditorDraft";
+import { parseSelectErrorsMarkup } from "@/lib/test-import/normalize";
 
 type TestData = {
   id: string;
@@ -61,6 +66,8 @@ export function EditTestForm({
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [expandedQuestions, setExpandedQuestions] = useState<number[]>([]);
+  const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
+  const { clearDraft, markClean } = useTestEditorDraft(testId, test, setTest, setHasUnsavedDraft);
 
   const updateMeta = (field: string, value: unknown) => {
     setTest((prev) => (prev ? { ...prev, [field]: value } : prev));
@@ -220,6 +227,8 @@ export function EditTestForm({
       });
       const data = await res.json();
       if (data.ok) {
+        markClean();
+        clearDraft();
         setSaveMessage("Сохранено!");
         setTimeout(() => setSaveMessage(null), 3000);
       } else {
@@ -253,6 +262,59 @@ export function EditTestForm({
       setError(err instanceof Error ? err.message : "Ошибка");
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const handleSaveAndPublish = async () => {
+    const errs = validateTestForSave(test);
+    if (errs.length > 0) {
+      setValidationErrors(errs);
+      return;
+    }
+    setValidationErrors([]);
+    setSaving(true);
+    setError(null);
+    try {
+      const normalizedAnswerKey = normalizeAnswerKeyForSave(test);
+      const res = await fetch(`/api/admin/tests/${testId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: test.title,
+          description: test.description,
+          category: test.category,
+          author: test.author ?? "",
+          difficultyLevel: test.difficultyLevel,
+          basePoints: test.basePoints,
+          maxAttempts: test.maxAttempts,
+          questions: test.questions,
+          answerKey: normalizedAnswerKey,
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.error);
+        return;
+      }
+      markClean();
+      clearDraft();
+      const pubRes = await fetch(`/api/admin/tests/${testId}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ published: true }),
+      });
+      const pubData = await pubRes.json();
+      if (pubData.ok) {
+        setTest((prev) => (prev ? { ...prev, isPublished: true } : prev));
+        setSaveMessage("Сохранено и опубликовано!");
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        setError(pubData.error || "Сохранено, но публикация не удалась");
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -295,8 +357,24 @@ export function EditTestForm({
               <Save className="h-4 w-4" />
               {saving ? "Сохранение..." : "Сохранить"}
             </button>
+            {!test.isPublished && (
+              <button
+                type="button"
+                onClick={handleSaveAndPublish}
+                disabled={saving || publishing}
+                className="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
+              >
+                {saving || publishing ? "..." : "Сохранить и опубликовать"}
+              </button>
+            )}
           </div>
         </div>
+
+        {hasUnsavedDraft && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
+            Есть локальный черновик. Не забудьте сохранить изменения на сервер.
+          </p>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
@@ -756,7 +834,27 @@ export function EditTestForm({
                             </div>
                             {(q.gaps || []).map((gap: { options?: string[] }, gi: number) => (
                               <div key={gi} className="mb-3 p-2 bg-zinc-50 rounded">
-                                <span className="text-xs text-zinc-500">Пропуск {gi + 1}</span>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-zinc-500">Пропуск {gi + 1}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const gaps = (q.gaps || []).filter((_: unknown, i: number) => i !== gi);
+                                      const reindexed = gaps.map((g: { options?: string[] }, i: number) => ({
+                                        ...g,
+                                        index: i,
+                                      }));
+                                      updateQuestion(idx, "gaps", reindexed);
+                                      const arr = Array.isArray(test.answerKey[q.id])
+                                        ? (test.answerKey[q.id] as number[]).filter((_, i) => i !== gi)
+                                        : reindexed.map(() => 0);
+                                      updateAnswer(q.id, arr);
+                                    }}
+                                    className="text-xs text-red-600 hover:text-red-800"
+                                  >
+                                    Удалить
+                                  </button>
+                                </div>
                                 <label className="block text-xs text-zinc-600 mt-1">
                                   Варианты для подстановки (каждый с новой строки или через запятую):
                                 </label>
@@ -920,6 +1018,43 @@ export function EditTestForm({
                             />
                           </div>
                           <div>
+                            <label className={labelClass}>Порядок элементов (перетаскивание кнопками)</label>
+                            <div className="space-y-1">
+                              {(q.items || []).map((item: string, oi: number) => (
+                                <div key={oi} className="flex items-center gap-2 p-2 bg-zinc-50 rounded">
+                                  <span className="text-xs text-zinc-500 w-6">{oi + 1}.</span>
+                                  <span className="flex-1 text-sm truncate">{item || "(пусто)"}</span>
+                                  <button
+                                    type="button"
+                                    disabled={oi === 0}
+                                    onClick={() => {
+                                      const items = [...(q.items || [])];
+                                      [items[oi - 1], items[oi]] = [items[oi], items[oi - 1]];
+                                      updateQuestion(idx, "items", items);
+                                    }}
+                                    className="p-1 rounded border border-zinc-200 disabled:opacity-30"
+                                    aria-label="Выше"
+                                  >
+                                    <ChevronUp className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={oi >= (q.items || []).length - 1}
+                                    onClick={() => {
+                                      const items = [...(q.items || [])];
+                                      [items[oi], items[oi + 1]] = [items[oi + 1], items[oi]];
+                                      updateQuestion(idx, "items", items);
+                                    }}
+                                    className="p-1 rounded border border-zinc-200 disabled:opacity-30"
+                                    aria-label="Ниже"
+                                  >
+                                    <ChevronDown className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
                             <label className={labelClass}>
                               Правильный порядок
                             </label>
@@ -953,41 +1088,42 @@ export function EditTestForm({
                         <>
                           <div>
                             <label className={labelClass}>Утверждение (content)</label>
+                            <p className="text-xs text-zinc-500 mb-1">
+                              Разметка [[ошибочный фрагмент]] создаёт кликабельные части автоматически.
+                            </p>
                             <textarea
                               value={(q.content ?? q.text ?? "").toString()}
                               onChange={(e) => {
                                 const v = e.target.value;
-                                updateQuestion(idx, "content", v);
+                                if (v.includes("[[")) {
+                                  const parsed = parseSelectErrorsMarkup(v);
+                                  updateQuestion(idx, "content", parsed.content);
+                                  updateQuestion(idx, "markedParts", parsed.markedParts);
+                                } else {
+                                  updateQuestion(idx, "content", v);
+                                }
                                 if (!q.text?.trim()) updateQuestion(idx, "text", "Найди ошибки в утверждении.");
                               }}
                               rows={4}
-                              className={`${inputClass} resize-y`}
-                              placeholder="Текст с ошибками для выбора"
+                              className={`${inputClass} resize-y font-mono text-sm`}
+                              placeholder="Текст с [[ошибочными]] фрагментами"
                             />
                           </div>
                           <div>
                             <label className={labelClass}>
-                              Фрагменты для выбора (каждый с новой строки — точный текст)
+                              Фрагменты вручную (каждый с новой строки)
                             </label>
-                            <p className="text-xs text-zinc-500 mb-1">
-                              Укажите фрагменты, которые должны быть кликабельны. Система найдёт их в тексте и создаст markedParts.
-                            </p>
                             <textarea
                               value={(q.markedParts || []).map((p: { text?: string }) => p.text || "").join("\n")}
                               onChange={(e) => {
                                 const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
-                                const content = q.content || "";
+                                const content = String(q.content ?? "");
                                 const markedParts: Array<{ id: number; text: string; start: number; end: number }> = [];
                                 let searchFrom = 0;
                                 lines.forEach((text, i) => {
                                   const pos = content.indexOf(text, searchFrom);
                                   if (pos >= 0) {
-                                    markedParts.push({
-                                      id: i + 1,
-                                      text,
-                                      start: pos,
-                                      end: pos + text.length,
-                                    });
+                                    markedParts.push({ id: i + 1, text, start: pos, end: pos + text.length });
                                     searchFrom = pos + text.length;
                                   } else {
                                     markedParts.push({ id: i + 1, text, start: 0, end: text.length });
@@ -995,9 +1131,8 @@ export function EditTestForm({
                                 });
                                 updateQuestion(idx, "markedParts", markedParts);
                               }}
-                              rows={4}
+                              rows={3}
                               className={`${inputClass} font-mono text-sm`}
-                              placeholder={'перекарбонизации\nмаксимально возможном давлении\nнезависимо от температуры'}
                             />
                           </div>
                           <div>
@@ -1049,6 +1184,24 @@ export function EditTestForm({
                         </>
                       )}
 
+                      {q.type === "two-step" && (
+                        <TwoStepEditor
+                          question={q}
+                          answerKey={test.answerKey[q.id] ?? { step1: 0, step2Mapping: { 0: 0 } }}
+                          onQuestionChange={(field, value) => updateQuestion(idx, field, value)}
+                          onAnswerChange={(value) => updateAnswer(q.id, value)}
+                        />
+                      )}
+
+                      {q.type === "matrix" && (
+                        <MatrixEditor
+                          question={q}
+                          answerKey={test.answerKey[q.id] ?? {}}
+                          onQuestionChange={(field, value) => updateQuestion(idx, field, value)}
+                          onAnswerChange={(value) => updateAnswer(q.id, value)}
+                        />
+                      )}
+
                       {![
                         "multiple-choice",
                         "multiple-select",
@@ -1057,6 +1210,8 @@ export function EditTestForm({
                         "matching",
                         "ordering",
                         "select-errors",
+                        "two-step",
+                        "matrix",
                       ].includes(q.type) && (
                         <div>
                           <label className={labelClass}>Правильный ответ (JSON)</label>
@@ -1074,6 +1229,16 @@ export function EditTestForm({
                           />
                         </div>
                       )}
+
+                      <QuestionMediaEditor
+                        testId={testId}
+                        imageUrl={q.imageUrl}
+                        media={q.media}
+                        onChange={({ imageUrl, media }) => {
+                          updateQuestion(idx, "imageUrl", imageUrl);
+                          updateQuestion(idx, "media", media);
+                        }}
+                      />
 
                       <div>
                         <label className={labelClass}>Подсказка (hint)</label>

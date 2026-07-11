@@ -68,14 +68,22 @@ export async function POST(req: Request) {
     );
   }
 
-  // Идемпотентность: повторная отправка с тем же ключом возвращает сохранённый ответ без новой попытки
+  // Идемпотентность: резервируем ключ до обработки, чтобы исключить гонку двойной записи
   if (idempotencyKey) {
-    const { rows: idemRows } = await db.query(
-      `SELECT response_body FROM submit_idempotency WHERE key = $1 AND user_id = $2`,
-      [idempotencyKey, userId]
+    const { rows: insertRows } = await db.query(
+      `INSERT INTO submit_idempotency (key, user_id, test_id, response_body, expires_at)
+       VALUES ($1, $2, $3, NULL, now() + interval '48 hours')
+       ON CONFLICT (key) DO NOTHING
+       RETURNING key`,
+      [idempotencyKey, userId, testId]
     );
-    if (idemRows.length > 0) {
-      if (idemRows[0].response_body != null) {
+
+    if (insertRows.length === 0) {
+      const { rows: idemRows } = await db.query(
+        `SELECT response_body FROM submit_idempotency WHERE key = $1 AND user_id = $2`,
+        [idempotencyKey, userId]
+      );
+      if (idemRows.length > 0 && idemRows[0].response_body != null) {
         return NextResponse.json(idemRows[0].response_body as object);
       }
       return NextResponse.json(
@@ -150,6 +158,7 @@ export async function POST(req: Request) {
   // Проверяем ответы
   const totalQuestions = questionIds.length;
   let correctCount = 0;
+  const questionResults: Record<string, boolean> = {};
   for (const qId of questionIds) {
     const question = testPublic.questions.find((q: PublicTestQuestion) => q.id === qId);
     const userAnswer = answers[qId];
@@ -157,7 +166,9 @@ export async function POST(req: Request) {
     if (!question) continue;
     
     const correctAnswer = testSecret.answerKey[qId];
-    if (checkAnswer(question, userAnswer, correctAnswer)) {
+    const isCorrect = checkAnswer(question, userAnswer, correctAnswer);
+    questionResults[qId] = isCorrect;
+    if (isCorrect) {
       correctCount += 1;
     }
   }
@@ -265,23 +276,32 @@ export async function POST(req: Request) {
         pointsAwarded,
         totalPoints: row?.total_points ?? pointsAwarded,
         testsCompleted: row?.tests_completed ?? 1,
+        questionResults,
       },
     };
 
     // Сохраняем ответ для идемпотентности (повторный запрос с тем же ключом вернёт этот ответ)
     if (idempotencyKey) {
       await db.query(
-        `INSERT INTO submit_idempotency (key, user_id, test_id, response_body, expires_at)
-         VALUES ($1, $2, $3, $4, now() + interval '48 hours')
-         ON CONFLICT (key) DO UPDATE SET
-           response_body = EXCLUDED.response_body,
-           expires_at = EXCLUDED.expires_at`,
-        [idempotencyKey, userId, testId, JSON.stringify(responsePayload)]
+        `UPDATE submit_idempotency
+         SET response_body = $3, expires_at = now() + interval '48 hours'
+         WHERE key = $1 AND user_id = $2`,
+        [idempotencyKey, userId, JSON.stringify(responsePayload)]
       );
     }
 
     return NextResponse.json(responsePayload);
   } catch (err: any) {
+    if (idempotencyKey) {
+      try {
+        await db.query(
+          `DELETE FROM submit_idempotency WHERE key = $1 AND user_id = $2 AND response_body IS NULL`,
+          [idempotencyKey, userId]
+        );
+      } catch {
+        /* ignore cleanup errors */
+      }
+    }
     return NextResponse.json(
       {
         ok: false,

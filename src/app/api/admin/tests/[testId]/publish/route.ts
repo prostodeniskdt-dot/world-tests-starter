@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-middleware";
+import { validateTestForServer, formatValidationIssues } from "@/lib/test-import/validate-server";
 
-// POST - опубликовать/снять тест
 export async function POST(
   req: Request,
   { params }: { params: { testId: string } }
@@ -31,8 +31,40 @@ export async function POST(
   }
 
   try {
+    if (published) {
+      const { rows } = await db.query(`SELECT * FROM tests WHERE id = $1 LIMIT 1`, [testId]);
+      if (rows.length === 0) {
+        return NextResponse.json({ ok: false, error: "Тест не найден" }, { status: 404 });
+      }
+      const r = rows[0];
+      const questions = r.questions ?? [];
+      if (!Array.isArray(questions) || questions.length === 0) {
+        return NextResponse.json(
+          { ok: false, error: "Нельзя опубликовать тест без вопросов" },
+          { status: 400 }
+        );
+      }
+      const validation = validateTestForServer({
+        title: r.title,
+        description: r.description,
+        category: r.category,
+        author: r.author,
+        difficultyLevel: r.difficulty_level,
+        basePoints: r.base_points,
+        maxAttempts: r.max_attempts,
+        questions,
+        answerKey: r.answer_key ?? {},
+      });
+      if (!validation.ok) {
+        return NextResponse.json(
+          { ok: false, error: formatValidationIssues(validation.issues), issues: validation.issues },
+          { status: 400 }
+        );
+      }
+    }
+
     const { rowCount } = await db.query(
-      `UPDATE tests SET is_published = $1 WHERE id = $2`,
+      `UPDATE tests SET is_published = $1, updated_at = now() WHERE id = $2`,
       [published, testId]
     );
 

@@ -9,8 +9,16 @@ import { NavigateToLeaderboard } from "./NavigateToLeaderboard";
 import { QuestionRenderer } from "./questions/QuestionRenderer";
 import type { PublicTest } from "@/lib/tests-registry";
 import type { QuestionAnswer } from "@/tests/types";
+import {
+  allQuestionsAnswered,
+  countAnsweredQuestions,
+  saveTestDraft,
+  loadTestDraft,
+  clearTestDraft,
+} from "@/lib/question-answer-utils";
 
 const AUTHOR_TELEGRAM_URL = "https://t.me/TomSemm";
+const DRAFT_VERSION = 1;
 
 function SubscribeAuthorButton() {
   return (
@@ -37,6 +45,7 @@ type SubmitResponse =
         pointsAwarded: number;
         totalPoints: number;
         testsCompleted: number;
+        questionResults?: Record<string, boolean>;
       };
     }
   | { ok: false; error: string };
@@ -45,42 +54,22 @@ export function TestClient({ test }: { test: PublicTest }) {
   const [answers, setAnswers] = useState<Record<string, QuestionAnswer | null>>(() => {
     const init: Record<string, QuestionAnswer | null> = {};
     for (const q of test.questions) init[q.id] = null;
+    const draft = loadTestDraft(test.id, DRAFT_VERSION);
+    if (draft) {
+      for (const q of test.questions) {
+        if (draft[q.id] !== undefined) init[q.id] = draft[q.id];
+      }
+    }
     return init;
   });
 
   const [answeredHints, setAnsweredHints] = useState<Record<string, boolean>>({});
   const [hintResults, setHintResults] = useState<Record<string, boolean>>({});
 
-  const allAnswered = useMemo(() => {
-    return Object.values(answers).every((v) => {
-      if (v === null) return false;
-      // Проверяем, что ответ не пустой массив или пустой объект
-      if (Array.isArray(v)) {
-        if (v.length === 0) return false;
-        // Проверяем тип первого элемента, чтобы определить структуру массива
-        if (typeof v[0] === "number") {
-          // Для cloze-dropdown проверяем, что нет -1 (не выбрано)
-          // TypeScript не может автоматически сузить тип, поэтому используем явное приведение
-          const numArray = v as number[];
-          return numArray.every((idx) => idx >= 0);
-        }
-        if (Array.isArray(v[0])) {
-          // Для matching это [number, number][]
-          const tupleArray = v as [number, number][];
-          return tupleArray.every((pair) => 
-            Array.isArray(pair) && pair.length === 2 && 
-            typeof pair[0] === "number" && typeof pair[1] === "number" &&
-            pair[0] >= 0 && pair[1] >= 0
-          );
-        }
-        return false;
-      }
-      if (typeof v === "object") {
-        return Object.keys(v).length > 0;
-      }
-      return true;
-    });
-  }, [answers]);
+  const allAnswered = useMemo(
+    () => allQuestionsAnswered(test.questions, answers),
+    [answers, test.questions]
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -95,28 +84,19 @@ export function TestClient({ test }: { test: PublicTest }) {
   // Ключ идемпотентности: один на одно нажатие «Завершить тест», чтобы повторная отправка не создавала дубль попытки
   const [submitIdempotencyKey, setSubmitIdempotencyKey] = useState<string | null>(null);
 
-  const answeredCount = useMemo(() => {
-    return Object.values(answers).filter(v => v !== null).length;
-  }, [answers]);
+  const answeredCount = useMemo(
+    () => countAnsweredQuestions(test.questions, answers),
+    [answers, test.questions]
+  );
+
+  useEffect(() => {
+    if (submitted) return;
+    saveTestDraft(test.id, DRAFT_VERSION, answers);
+  }, [answers, submitted, test.id]);
 
   const progressPercent = (answeredCount / test.questions.length) * 100;
 
-  // Функция для проверки ответа на клиенте (для показа справки)
-  const checkAnswerLocally = async (questionId: string, answer: QuestionAnswer) => {
-    try {
-      const res = await fetch(`/api/tests/${test.id}/check-answer`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ questionId, answer }),
-      });
-      const data = await res.json();
-      return data.ok && data.correct;
-    } catch {
-      return false;
-    }
-  };
-
+  // Результаты по вопросам приходят из submit — без отдельных check-answer запросов
   // Защита от обновления страницы
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -357,30 +337,23 @@ export function TestClient({ test }: { test: PublicTest }) {
                           
                           if (json.ok) {
                             setSubmitted(true);
+                            clearTestDraft(test.id);
                             try {
                               sessionStorage.setItem(`submitted_${test.id}`, Date.now().toString());
                             } catch {
                               // sessionStorage недоступен (private mode и т.п.)
                             }
-                            // Проверяем все ответы и показываем справки после отправки
-                            const checkAllAnswers = async () => {
-                              const hints: Record<string, boolean> = {};
-                              const results: Record<string, boolean> = {};
-                              
-                              for (const question of test.questions) {
-                                const userAnswer = answers[question.id];
-                                if (userAnswer !== null && userAnswer !== undefined) {
-                                  const correct = await checkAnswerLocally(question.id, userAnswer);
-                                  hints[question.id] = true;
-                                  results[question.id] = correct;
-                                }
+                            const qr = json.result.questionResults ?? {};
+                            const hints: Record<string, boolean> = {};
+                            const results: Record<string, boolean> = {};
+                            for (const question of test.questions) {
+                              if (answers[question.id] !== null && answers[question.id] !== undefined) {
+                                hints[question.id] = true;
+                                results[question.id] = !!qr[question.id];
                               }
-                              
-                              setAnsweredHints(hints);
-                              setHintResults(results);
-                            };
-                            
-                            await checkAllAnswers();
+                            }
+                            setAnsweredHints(hints);
+                            setHintResults(results);
                             addToast("Тест успешно отправлен!", "success");
                           } else {
                             // Сервер вернул ошибку в формате JSON - показываем реальное сообщение

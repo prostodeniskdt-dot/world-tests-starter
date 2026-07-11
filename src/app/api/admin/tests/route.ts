@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-middleware";
 import crypto from "crypto";
+import { validateTestForServer, formatValidationIssues } from "@/lib/test-import/validate-server";
 
 // GET - список всех тестов (включая неопубликованные)
 export async function GET(req: Request) {
@@ -10,7 +11,7 @@ export async function GET(req: Request) {
 
   try {
     const { rows } = await db.query(
-      `SELECT id, title, description, category, difficulty_level, base_points, max_attempts, 
+      `SELECT id, title, description, category, author, difficulty_level, base_points, max_attempts, 
               is_published, created_at, updated_at,
               jsonb_array_length(questions) as question_count
        FROM tests ORDER BY created_at DESC`
@@ -21,7 +22,7 @@ export async function GET(req: Request) {
       title: r.title,
       description: r.description,
       category: r.category,
-      author: "",
+      author: r.author ?? "",
       difficultyLevel: r.difficulty_level,
       basePoints: r.base_points,
       maxAttempts: r.max_attempts,
@@ -55,9 +56,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const { id, title, description, category, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
+  const { id, title, description, category, author, difficultyLevel, basePoints, maxAttempts, questions, answerKey } = body;
 
-  // Валидация (разрешаем пустой тест: questions: [], answerKey: {})
   if (!title || typeof title !== "string") {
     return NextResponse.json(
       { ok: false, error: "Обязательное поле: title (строка)" },
@@ -69,11 +69,20 @@ export async function POST(req: Request) {
   const answerKeyObj = typeof answerKey === "object" && !Array.isArray(answerKey) ? answerKey : {};
 
   if (questionsArr.length > 0) {
-    const questionIds = questionsArr.map((q: any) => q.id);
-    const missingAnswers = questionIds.filter((qId: string) => !(qId in answerKeyObj));
-    if (missingAnswers.length > 0) {
+    const validation = validateTestForServer({
+      title,
+      description,
+      category,
+      author,
+      difficultyLevel,
+      basePoints,
+      maxAttempts,
+      questions: questionsArr,
+      answerKey: answerKeyObj,
+    });
+    if (!validation.ok) {
       return NextResponse.json(
-        { ok: false, error: `Отсутствуют ответы для вопросов: ${missingAnswers.join(", ")}` },
+        { ok: false, error: formatValidationIssues(validation.issues), issues: validation.issues },
         { status: 400 }
       );
     }
@@ -82,7 +91,6 @@ export async function POST(req: Request) {
   const testId = id || `test-${crypto.randomUUID().slice(0, 8)}`;
 
   try {
-    // Проверяем уникальность ID
     const { rows: existing } = await db.query(
       `SELECT id FROM tests WHERE id = $1`,
       [testId]
@@ -95,13 +103,14 @@ export async function POST(req: Request) {
     }
 
     await db.query(
-      `INSERT INTO tests (id, title, description, category, difficulty_level, base_points, max_attempts, questions, answer_key, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false)`,
+      `INSERT INTO tests (id, title, description, category, author, difficulty_level, base_points, max_attempts, questions, answer_key, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false)`,
       [
         testId,
         title,
         description || "",
         category || "",
+        author || "",
         difficultyLevel ?? 1,
         basePoints ?? 200,
         maxAttempts ?? null,

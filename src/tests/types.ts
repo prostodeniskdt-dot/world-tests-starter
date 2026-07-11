@@ -19,8 +19,14 @@ export interface BaseQuestion {
   id: string;
   text: string;
   hint?: string; // Справка для показа после ответа
-  imageUrl?: string; // Путь к изображению в папке media/
+  imageUrl?: string; // Путь к изображению (legacy)
   videoUrl?: string; // Путь к видео в папке media/
+  media?: {
+    type?: "image";
+    url: string;
+    alt?: string;
+    caption?: string;
+  };
 }
 
 // Multiple Choice (существующий тип)

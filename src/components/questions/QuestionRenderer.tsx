@@ -4,6 +4,7 @@ import type { PublicTestQuestion, QuestionAnswer } from "@/tests/types";
 import { QuestionHint } from "./shared/QuestionHint";
 import { QuestionImage } from "./shared/QuestionImage";
 import { QuestionVideo } from "./shared/QuestionVideo";
+import { resolveQuestionMedia } from "@/lib/test-import/normalize";
 import { MultipleChoiceQuestion } from "./MultipleChoiceQuestion";
 import { MultipleSelectQuestion } from "./MultipleSelectQuestion";
 import { TrueFalseEnhancedQuestion } from "./TrueFalseEnhancedQuestion";
@@ -13,6 +14,7 @@ import { MatchingQuestion } from "./MatchingQuestion";
 import { OrderingQuestion } from "./OrderingQuestion";
 import { TwoStepQuestion } from "./TwoStepQuestion";
 import { MatrixQuestion } from "./MatrixQuestion";
+import { SUPPORTED_QUESTION_TYPES } from "@/lib/test-schema";
 
 interface QuestionRendererProps {
   question: PublicTestQuestion;
@@ -39,12 +41,18 @@ export function QuestionRenderer({
     showHint,
   };
 
+  const imageUrl = resolveQuestionMedia(question as Parameters<typeof resolveQuestionMedia>[0]);
+
   return (
     <div className="space-y-4">
-      {/* Изображение */}
-      {question.imageUrl && <QuestionImage imageUrl={question.imageUrl} />}
+      {imageUrl && (
+        <QuestionImage
+          imageUrl={imageUrl}
+          alt={(question as { media?: { alt?: string } }).media?.alt}
+          caption={(question as { media?: { caption?: string } }).media?.caption}
+        />
+      )}
 
-      {/* Видео */}
       {question.videoUrl && <QuestionVideo videoUrl={question.videoUrl} />}
 
       {/* Рендеринг вопроса по типу */}
@@ -74,6 +82,16 @@ export function QuestionRenderer({
       )}
       {question.type === "matrix" && (
         <MatrixQuestion {...commonProps} question={question as import("@/tests/types").MatrixQuestion} />
+      )}
+
+      {!(SUPPORTED_QUESTION_TYPES as readonly string[]).includes(question.type) && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-medium">Вопрос недоступен для прохождения</p>
+          <p className="mt-1 text-amber-800">
+            Механика «{question.type}» не поддерживается. Обратитесь к администратору — тест будет обновлён.
+          </p>
+          {question.text && <p className="mt-2 text-zinc-700">{question.text}</p>}
+        </div>
       )}
 
       {/* Подсказка */}

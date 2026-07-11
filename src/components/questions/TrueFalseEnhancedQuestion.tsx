@@ -34,9 +34,13 @@ export function TrueFalseEnhancedQuestion({
 
   const handleAnswer = (value: boolean) => {
     if (disabled) return;
-    onChange({ answer: value, reason: 0 });
-    // Шаг 2 «Выберите объяснение» показываем только если вариантов причин больше одного
-    if ((question.reasons?.length ?? 0) > 1) setStep(2);
+    const reasons = question.reasons ?? [];
+    if (reasons.length > 1) {
+      onChange({ answer: value, reason: null as unknown as number });
+      setStep(2);
+    } else {
+      onChange({ answer: value, reason: 0 });
+    }
   };
 
   const handleReason = (reasonIndex: number) => {

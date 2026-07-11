@@ -19,15 +19,15 @@ export type QuestionTypeEditor = (typeof QUESTION_TYPES)[number];
 
 // Английские названия типов по механикам (как в types.ts)
 export const QUESTION_TYPE_LABELS: Record<string, string> = {
-  "multiple-choice": "multiple-choice",
-  "multiple-select": "multiple-select",
-  "true-false-enhanced": "true-false-enhanced",
-  "cloze-dropdown": "cloze-dropdown",
-  "select-errors": "select-errors",
-  "matching": "matching",
-  "ordering": "ordering",
-  "two-step": "two-step",
-  "matrix": "matrix",
+  "multiple-choice": "Выбор одного ответа",
+  "multiple-select": "Выбор нескольких ответов",
+  "true-false-enhanced": "Верно/Неверно",
+  "cloze-dropdown": "Заполнение пропусков",
+  "select-errors": "Найди ошибки",
+  matching: "Сопоставление",
+  ordering: "Упорядочивание",
+  "two-step": "Двухшаговый",
+  matrix: "Матрица",
 };
 
 export function defaultAnswerForType(type: string, question?: any): any {
