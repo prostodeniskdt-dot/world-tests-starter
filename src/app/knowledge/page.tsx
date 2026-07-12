@@ -55,7 +55,7 @@ export default function KnowledgePage() {
           <h1 className="font-display text-h1 text-stone-950">База знаний</h1>
         </div>
         <p className="text-stone-600 leading-relaxed mb-4 max-w-2xl">
-          Статьи для барменов: профессиональные материалы, юридические вопросы, авторские материалы
+          Статьи, инструкции и разборы о напитках, сервисе и работе заведений.
         </p>
         <div className="flex flex-wrap gap-2 mb-4">
           <Link

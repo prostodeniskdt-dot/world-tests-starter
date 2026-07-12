@@ -28,7 +28,7 @@ export function Footer() {
                 {SITE_NAME}
               </div>
               <p className="mt-2 max-w-xs text-sm leading-relaxed text-stone-500">
-                Тёплое профессиональное сообщество барменов: знания, практика и опыт коллег.
+                О напитках, сервисе и работе заведений — в тестах, статьях и справочниках.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">

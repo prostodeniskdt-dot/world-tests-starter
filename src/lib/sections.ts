@@ -38,42 +38,42 @@ export const SECTIONS: Section[] = [
   {
     id: "tests",
     title: "Тесты",
-    description: "Тесты по барной тематике и мировой рейтинг участников",
+    description: "Тесты по напиткам, продуктам и работе в индустрии",
     href: "/tests",
     icon: ClipboardList,
   },
   {
     id: "pairings",
     title: "Сочетания",
-    description: "Мини-игра и база знаний о сочетаниях вкусов",
+    description: "Поиск сочетаний, конструктор и небольшая игра",
     href: "/pairings",
     icon: BookOpen,
   },
   {
     id: "knowledge",
     title: "База знаний",
-    description: "Статьи, юридические вопросы, авторские материалы",
+    description: "Статьи, инструкции и разборы",
     href: "/knowledge",
     icon: Library,
   },
   {
     id: "alcohol",
     title: "Алкоголь",
-    description: "Каталог крепкого алкоголя с категориями и карточками",
+    description: "Виды, регионы, производство и особенности напитков",
     href: "/alcohol",
     icon: Wine,
   },
   {
     id: "na",
     title: "Б/а (безалкогольное)",
-    description: "Сиропы, пюре, тоники и прочие б/а ингредиенты",
+    description: "Сиропы, пюре, тоники и другие ингредиенты",
     href: "/na",
     icon: Coffee,
   },
   {
     id: "technique",
     title: "Техника и навыки",
-    description: "Оборудование, приёмы и техники работы за баром",
+    description: "Оборудование и приёмы для бара, кухни и производства",
     href: "/technique",
     icon: Wrench,
   },
@@ -87,14 +87,14 @@ export const SECTIONS: Section[] = [
   {
     id: "glassware",
     title: "Посуда",
-    description: "Бокалы, инвентарь, кухонная посуда",
+    description: "Бокалы, инвентарь и кухонная посуда",
     href: "/glassware",
     icon: UtensilsCrossed,
   },
   {
     id: "preps",
     title: "Заготовки",
-    description: "Сиропы, кордиалы, гарниши и другие заготовки для бара и кухни",
+    description: "Сиропы, кордиалы, гарниши и другие заготовки",
     href: "/preps",
     icon: Package,
   },
@@ -130,7 +130,7 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
   {
     id: "practice",
     title: "Практика",
-    description: "Решения и инструменты для работы за баром",
+    description: "Сочетания, оборудование и рабочие приёмы",
     items: [sectionItem("pairings"), sectionItem("technique")],
   },
   {
@@ -148,7 +148,7 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
   {
     id: "people",
     title: "Участники",
-    description: "Рейтинг и профессиональные профили",
+    description: "Рейтинг и профили пользователей",
     items: [
       {
         id: "leaderboard",
@@ -159,7 +159,7 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
       {
         id: "profile",
         title: "Мой профиль",
-        description: "Результаты, опыт и опубликованные материалы",
+        description: "Результаты тестов и опубликованные материалы",
         href: "/profile",
       },
     ],
@@ -167,12 +167,12 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
   {
     id: "contribute",
     title: "Поделиться",
-    description: "Передать коллегам свой практический опыт",
+    description: "Добавить материал на сайт",
     items: [
       {
         id: "submit-knowledge",
         title: "Статья",
-        description: "Разбор, инструкция или профессиональный опыт",
+        description: "Статья, инструкция или разбор",
         href: "/knowledge/submit",
       },
       {
@@ -190,7 +190,7 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
       {
         id: "submit-alcohol",
         title: "Алкоголь",
-        description: "Дополнить каталог алкогольных продуктов",
+        description: "Добавить напиток в каталог",
         href: "/alcohol/submit",
       },
       {
@@ -202,13 +202,13 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
       {
         id: "submit-skill",
         title: "Техника работы",
-        description: "Приём или практическая инструкция",
+        description: "Приём или пошаговая инструкция",
         href: "/technique/skills/submit",
       },
       {
         id: "submit-equipment",
         title: "Оборудование",
-        description: "Опыт использования инвентаря",
+        description: "Карточка оборудования или инвентаря",
         href: "/technique/equipment/submit",
       },
       {

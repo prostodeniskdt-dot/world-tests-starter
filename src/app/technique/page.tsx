@@ -12,8 +12,7 @@ export default function TechniqueHubPage() {
           </h1>
         </div>
         <p className="text-zinc-600 leading-relaxed max-w-2xl">
-          Два направления: оборудование для бара и кухни и практические приёмы работы. Карточки связаны между
-          собой и с другими разделами сайта.
+          Здесь собраны оборудование и рабочие приёмы для бара, кухни и производства.
         </p>
       </div>
 
@@ -27,8 +26,7 @@ export default function TechniqueHubPage() {
           </div>
           <h2 className="font-bold text-lg text-zinc-900 mb-2 group-hover:text-primary-700">Оборудование</h2>
           <p className="text-sm text-zinc-600 flex-1">
-            Каталог техники: модели, характеристики, опыт использования, отзывы и связь с приёмами, где
-            используется это железо.
+            Модели, характеристики, отзывы и примеры использования.
           </p>
           <span className="mt-4 text-sm font-semibold text-primary-600 group-hover:underline">
             Перейти →

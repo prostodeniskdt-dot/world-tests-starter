@@ -11,7 +11,7 @@ const DASHBOARD_LINKS = [
   },
   {
     id: "submit",
-    title: "Поделиться опытом",
+    title: "Добавить материал",
     description: "Предложить новый материал",
     href: "/knowledge/submit",
     icon: FilePlus2,
@@ -26,7 +26,7 @@ const DASHBOARD_LINKS = [
   {
     id: "knowledge",
     title: "База знаний",
-    description: "Материалы от коллег",
+    description: "Статьи и инструкции",
     href: "/knowledge",
     icon: LibraryBig,
   },
@@ -36,7 +36,7 @@ const DASHBOARD_LINKS = [
 export function ProfileDashboardLinks() {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
-      <h2 className="text-base sm:text-lg font-bold text-zinc-900 mb-3">Рабочее пространство</h2>
+      <h2 className="text-base sm:text-lg font-bold text-zinc-900 mb-3">Быстрые ссылки</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
         {DASHBOARD_LINKS.map(({ id, title, description, href, icon: Icon }) => (
           <Link

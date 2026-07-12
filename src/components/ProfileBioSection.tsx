@@ -90,7 +90,7 @@ export function ProfileBioSection({ isOwnProfile, initialAbout, initialAchieveme
             rows={5}
             maxLength={4000}
             className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Коротко: кто вы, чем занимаетесь в индустрии…"
+            placeholder="Расскажите, чем вы занимаетесь…"
           />
         </div>
         <div>
@@ -104,7 +104,7 @@ export function ProfileBioSection({ isOwnProfile, initialAbout, initialAchieveme
             rows={4}
             maxLength={4000}
             className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Курсы, награды, опыт, который хотите показать коллегам…"
+            placeholder="Курсы, награды, проекты или другие важные детали…"
           />
         </div>
       </div>

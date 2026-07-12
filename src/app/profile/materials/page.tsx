@@ -96,7 +96,7 @@ export default async function ProfileMaterialsPage({
           href="/knowledge/submit"
           className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"
         >
-          Поделиться опытом
+          Добавить материал
         </Link>
       </div>
 
@@ -177,7 +177,7 @@ export default async function ProfileMaterialsPage({
           <FileText className="mx-auto h-8 w-8 text-zinc-400" aria-hidden="true" />
           <h2 className="mt-4 text-lg font-bold text-zinc-900">Материалов с таким статусом нет</h2>
           <p className="mt-2 text-sm text-zinc-600">
-            Предложите статью, рецепт или профессиональную рекомендацию.
+            Можно предложить статью, рецепт, заготовку или карточку оборудования.
           </p>
         </div>
       )}

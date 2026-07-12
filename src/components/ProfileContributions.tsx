@@ -20,12 +20,12 @@ export function ProfileContributions({
     <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-soft sm:p-6" aria-labelledby="contributions-heading">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-primary-700">Профессиональный вклад</p>
+          <p className="text-sm font-semibold text-primary-700">Ваши публикации</p>
           <h2 id="contributions-heading" className="mt-1 text-xl font-bold text-zinc-950 sm:text-2xl">
             Мои материалы
           </h2>
           <p className="mt-1 text-sm text-zinc-600">
-            Публикации, отзывы и заявки во всех разделах сайта.
+            Материалы, отзывы и заявки из всех разделов.
           </p>
         </div>
         <Link
@@ -86,7 +86,7 @@ export function ProfileContributions({
         <div className="mt-5 rounded-xl border border-dashed border-zinc-300 p-5 text-center">
           <p className="text-sm text-zinc-600">Вы ещё не предлагали материалы.</p>
           <Link href="/knowledge/submit" className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-primary-700">
-            Поделиться первым опытом
+            Добавить первый материал
           </Link>
         </div>
       )}

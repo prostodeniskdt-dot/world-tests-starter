@@ -15,28 +15,28 @@ import { getHomeData } from "@/lib/home-data";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `${SITE_NAME} — сообщество барменов`,
+  title: `${SITE_NAME} — напитки, сервис и работа заведений`,
   description: SITE_DESCRIPTION,
 };
 
 const SCENARIOS = [
   {
-    title: "Учиться и проверять знания",
-    description: "Проходите профессиональные тесты, изучайте статьи и отслеживайте свой прогресс.",
+    title: "Разобраться в теме",
+    description: "Пройдите тест или почитайте статьи. Результаты тестов сохраняются в профиле.",
     href: "/tests",
     action: "Перейти к тестам",
     icon: BookOpen,
   },
   {
-    title: "Решать задачи за баром",
-    description: "Используйте сочетания вкусов, техники, рецепты и справочники во время работы.",
+    title: "Быстро найти нужное",
+    description: "Сочетания вкусов, рецепты, техника, посуда и заготовки собраны по разделам.",
     href: "/pairings",
-    action: "Открыть практику",
+    action: "Открыть справочники",
     icon: BriefcaseBusiness,
   },
   {
-    title: "Делиться опытом",
-    description: "Публикуйте статьи, авторские коктейли, заготовки и рекомендации для коллег.",
+    title: "Добавить своё",
+    description: "Можно предложить статью, рецепт, заготовку или карточку оборудования.",
     href: "/knowledge/submit",
     action: "Предложить материал",
     icon: MessageSquareText,
@@ -58,10 +58,10 @@ export default async function HomePage() {
             {SITE_NAME}
           </p>
           <h1 className="mt-4 font-display text-display text-white">
-            Место, где бармены учатся вместе
+            О напитках и работе в индустрии
           </h1>
           <p className="mt-5 max-w-xl text-body-lg text-stone-300">
-            Проверяйте знания, находите рабочие решения и делитесь практикой с коллегами из индустрии.
+            Здесь можно проверить знания, найти нужный рецепт или приём и добавить свой материал.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -75,7 +75,7 @@ export default async function HomePage() {
               href="/knowledge/submit"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"
             >
-              Поделиться опытом
+              Добавить материал
             </Link>
           </div>
         </div>
@@ -85,10 +85,10 @@ export default async function HomePage() {
         <div className="mb-8 max-w-2xl">
           <p className="eyebrow">С чего начать</p>
           <h2 id="start-heading" className="mt-2 font-display text-h2 text-stone-950">
-            Три дороги в сообщество
+            Выберите, что нужно сейчас
           </h2>
           <p className="mt-3 text-body text-stone-600">
-            Учёба, смена за баром и обмен опытом — без лишнего шума.
+            Начните с тестов, откройте справочник или предложите свой материал.
           </p>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
@@ -119,9 +119,9 @@ export default async function HomePage() {
         <section aria-labelledby="community-heading">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
-              <p className="eyebrow">Живой опыт</p>
+              <p className="eyebrow">Обновления</p>
               <h2 id="community-heading" className="mt-2 font-display text-h2 text-stone-950">
-                Свежее от сообщества
+                Недавно добавили
               </h2>
             </div>
             <Link
@@ -158,10 +158,10 @@ export default async function HomePage() {
             <div className="rounded-2xl border border-dashed border-stone-300 bg-surface-raised p-7">
               <LibraryBig className="h-7 w-7 text-stone-400" aria-hidden="true" />
               <h3 className="mt-4 font-display text-lg font-semibold text-stone-900">
-                Раздел наполняется участниками
+                Здесь пока пусто
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                Станьте одним из первых авторов и поделитесь материалом с коллегами.
+                Если у вас есть статья или разбор, предложите его — после проверки он появится здесь.
               </p>
               <Link
                 href="/knowledge/submit"
@@ -218,9 +218,9 @@ export default async function HomePage() {
       </div>
 
       <section className="pt-14 sm:pt-20" aria-labelledby="possibilities-heading">
-        <p className="eyebrow">Все возможности</p>
+        <p className="eyebrow">Навигация</p>
         <h2 id="possibilities-heading" className="mt-2 font-display text-h2 text-stone-950">
-          Карта сайта без суеты
+          Все разделы
         </h2>
         <div className="mt-8 grid gap-8 sm:grid-cols-3">
           {catalogGroups.map((group) => (
