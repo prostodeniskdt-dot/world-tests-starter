@@ -24,6 +24,7 @@ import {
   createDefaultQuestion,
   validateTestForSave,
   normalizeAnswerKeyForSave,
+  remapOrderingAnswer,
 } from "@/lib/test-editor-utils";
 import { QuestionMediaEditor } from "@/components/admin/test-editor/QuestionMediaEditor";
 import { TwoStepEditor } from "@/components/admin/test-editor/TwoStepEditor";
@@ -158,7 +159,8 @@ export function EditTestForm({
     const ids = new Set(test.questions.map((x) => x.id).filter(Boolean));
     let newId = `q${Date.now()}`;
     while (ids.has(newId)) newId = `q-${Math.random().toString(36).slice(2, 8)}`;
-    const copy = { ...q, id: newId };
+    const copy = { ...structuredClone(q), id: newId };
+    const answerCopy = structuredClone(test.answerKey[q.id]);
     setTest((prev) =>
       prev
         ? {
@@ -168,7 +170,7 @@ export function EditTestForm({
               copy,
               ...prev.questions.slice(idx + 1),
             ],
-            answerKey: { ...prev.answerKey, [newId]: prev.answerKey[q.id] },
+            answerKey: { ...prev.answerKey, [newId]: answerCopy },
           }
         : prev
     );
@@ -661,6 +663,18 @@ export function EditTestForm({
 
                       {(q.type === "multiple-choice" || q.type === "multiple-select") && (
                         <>
+                          {q.type === "multiple-select" && (
+                            <div>
+                              <label className={labelClass}>Инструкция (опционально)</label>
+                              <input
+                                type="text"
+                                value={q.instruction || ""}
+                                onChange={(e) => updateQuestion(idx, "instruction", e.target.value)}
+                                className={inputClass}
+                                placeholder="Например: выберите все подходящие варианты"
+                              />
+                            </div>
+                          )}
                           <div>
                             <label className={labelClass}>
                               Варианты ответов (каждый с новой строки)
@@ -906,6 +920,30 @@ export function EditTestForm({
                               </div>
                             ))}
                           </div>
+                          <div>
+                            <label className={labelClass}>
+                              Общие лишние варианты (опционально)
+                            </label>
+                            <p className="text-xs text-zinc-500 mb-1">
+                              Эти варианты появятся в каждом списке, но не могут быть правильными.
+                            </p>
+                            <textarea
+                              value={(q.extraOptions || []).join("\n")}
+                              onChange={(e) =>
+                                updateQuestion(
+                                  idx,
+                                  "extraOptions",
+                                  e.target.value
+                                    .split("\n")
+                                    .map((value) => value.trim())
+                                    .filter(Boolean)
+                                )
+                              }
+                              rows={3}
+                              className={`${inputClass} resize-y`}
+                              placeholder="Каждый вариант с новой строки"
+                            />
+                          </div>
                         </>
                       )}
 
@@ -1002,18 +1040,34 @@ export function EditTestForm({
                       {q.type === "ordering" && (
                         <>
                           <div>
+                            <label className={labelClass}>Инструкция (опционально)</label>
+                            <input
+                              type="text"
+                              value={q.instruction || ""}
+                              onChange={(e) => updateQuestion(idx, "instruction", e.target.value)}
+                              className={inputClass}
+                              placeholder="Например: расположите этапы от первого к последнему"
+                            />
+                          </div>
+                          <div>
                             <label className={labelClass}>
                               Элементы (каждый с новой строки)
                             </label>
                             <textarea
                               value={(q.items || []).join("\n")}
-                              onChange={(e) =>
-                                updateQuestion(
-                                  idx,
-                                  "items",
-                                  e.target.value.split("\n").map((s) => s.trim())
-                                )
-                              }
+                              onChange={(e) => {
+                                const nextItems = e.target.value
+                                  .split("\n")
+                                  .map((value) => value.trim())
+                                  .filter(Boolean);
+                                const nextOrder = remapOrderingAnswer(
+                                  q.items || [],
+                                  nextItems,
+                                  test.answerKey[q.id]
+                                );
+                                updateQuestion(idx, "items", nextItems);
+                                updateAnswer(q.id, nextOrder);
+                              }}
                               rows={5}
                               className={`${inputClass} resize-y`}
                             />
@@ -1032,6 +1086,19 @@ export function EditTestForm({
                                       const items = [...(q.items || [])];
                                       [items[oi - 1], items[oi]] = [items[oi], items[oi - 1]];
                                       updateQuestion(idx, "items", items);
+                                      const currentOrder = test.answerKey[q.id];
+                                      if (Array.isArray(currentOrder)) {
+                                        updateAnswer(
+                                          q.id,
+                                          currentOrder.map((itemIndex: number) =>
+                                            itemIndex === oi - 1
+                                              ? oi
+                                              : itemIndex === oi
+                                                ? oi - 1
+                                                : itemIndex
+                                          )
+                                        );
+                                      }
                                     }}
                                     className="p-1 rounded border border-zinc-200 disabled:opacity-30"
                                     aria-label="Выше"
@@ -1045,6 +1112,19 @@ export function EditTestForm({
                                       const items = [...(q.items || [])];
                                       [items[oi], items[oi + 1]] = [items[oi + 1], items[oi]];
                                       updateQuestion(idx, "items", items);
+                                      const currentOrder = test.answerKey[q.id];
+                                      if (Array.isArray(currentOrder)) {
+                                        updateAnswer(
+                                          q.id,
+                                          currentOrder.map((itemIndex: number) =>
+                                            itemIndex === oi
+                                              ? oi + 1
+                                              : itemIndex === oi + 1
+                                                ? oi
+                                                : itemIndex
+                                          )
+                                        );
+                                      }
                                     }}
                                     className="p-1 rounded border border-zinc-200 disabled:opacity-30"
                                     aria-label="Ниже"
@@ -1234,11 +1314,15 @@ export function EditTestForm({
                       <QuestionMediaEditor
                         testId={testId}
                         imageUrl={q.imageUrl}
+                        videoUrl={q.videoUrl}
                         media={q.media}
                         onChange={({ imageUrl, media }) => {
                           updateQuestion(idx, "imageUrl", imageUrl);
                           updateQuestion(idx, "media", media);
                         }}
+                        onVideoUrlChange={(videoUrl) =>
+                          updateQuestion(idx, "videoUrl", videoUrl)
+                        }
                       />
 
                       <div>

@@ -42,11 +42,6 @@ export function MatrixQuestion({
   }, [answer, question.rows.length, question.id, question.matrixType]);
 
   const commitSingleSelect = (nextSelections: number[]) => {
-    const isComplete = nextSelections.every((idx) => idx >= 0);
-    if (!isComplete) {
-      onChange(null);
-      return;
-    }
     const result: Record<number, number> = {};
     nextSelections.forEach((colIdx, rowIdx) => {
       result[rowIdx] = colIdx;
@@ -55,11 +50,6 @@ export function MatrixQuestion({
   };
 
   const commitMultipleSelect = (nextSelections: Record<number, number[]>) => {
-    const isComplete = question.rows.every((_, rowIdx) => (nextSelections[rowIdx]?.length ?? 0) > 0);
-    if (!isComplete) {
-      onChange(null);
-      return;
-    }
     onChange(nextSelections);
   };
 
@@ -75,7 +65,7 @@ export function MatrixQuestion({
                 return (
                   <label
                     key={`${question.id}-${rowIdx}-${colIdx}`}
-                    className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+                    className={`flex min-h-[44px] touch-manipulation items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
                       disabled
                         ? checked
                           ? "border-green-500 bg-green-50"
@@ -124,7 +114,7 @@ export function MatrixQuestion({
         >
           <div className="text-sm font-medium text-zinc-900 sm:flex-1">{row}</div>
           <select
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 sm:w-64"
+            className="w-full min-h-[44px] touch-manipulation rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 sm:w-64 sm:text-sm"
             value={rowSelections[rowIdx] >= 0 ? rowSelections[rowIdx] : ""}
             onChange={(event) => {
               if (disabled) return;

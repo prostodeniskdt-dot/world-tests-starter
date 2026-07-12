@@ -24,6 +24,29 @@ export function MatrixEditor({ question, answerKey, onQuestionChange, onAnswerCh
   const columns = question.columns ?? [];
   const matrixType = question.matrixType ?? "single-select";
 
+  const buildAnswerKey = (
+    nextRows: string[],
+    nextColumns: string[],
+    nextType: "single-select" | "multiple-select"
+  ): Record<string, number | number[]> => {
+    const nextKey: Record<string, number | number[]> = {};
+    nextRows.forEach((_, rowIdx) => {
+      const current = answerKey[String(rowIdx)];
+      if (nextType === "single-select") {
+        nextKey[String(rowIdx)] =
+          typeof current === "number" && current >= 0 && current < nextColumns.length
+            ? current
+            : 0;
+        return;
+      }
+      const valid = Array.isArray(current)
+        ? current.filter((column) => column >= 0 && column < nextColumns.length)
+        : [];
+      nextKey[String(rowIdx)] = valid.length > 0 ? valid : [0];
+    });
+    return nextKey;
+  };
+
   const updateCell = (rowIdx: number, colIdx: number, checked: boolean) => {
     const key = { ...answerKey };
     if (matrixType === "single-select") {
@@ -47,7 +70,11 @@ export function MatrixEditor({ question, answerKey, onQuestionChange, onAnswerCh
         <select
           className={inputClass}
           value={matrixType}
-          onChange={(e) => onQuestionChange("matrixType", e.target.value)}
+          onChange={(e) => {
+            const nextType = e.target.value as "single-select" | "multiple-select";
+            onQuestionChange("matrixType", nextType);
+            onAnswerChange(buildAnswerKey(rows, columns, nextType));
+          }}
         >
           <option value="single-select">Один ответ на строку</option>
           <option value="multiple-select">Несколько на строку</option>
@@ -59,7 +86,11 @@ export function MatrixEditor({ question, answerKey, onQuestionChange, onAnswerCh
           className={`${inputClass} resize-y`}
           rows={4}
           value={rows.join("\n")}
-          onChange={(e) => onQuestionChange("rows", lines(e.target.value))}
+          onChange={(e) => {
+            const nextRows = lines(e.target.value);
+            onQuestionChange("rows", nextRows);
+            onAnswerChange(buildAnswerKey(nextRows, columns, matrixType));
+          }}
         />
       </div>
       <div>
@@ -68,7 +99,11 @@ export function MatrixEditor({ question, answerKey, onQuestionChange, onAnswerCh
           className={`${inputClass} resize-y`}
           rows={3}
           value={columns.join("\n")}
-          onChange={(e) => onQuestionChange("columns", lines(e.target.value))}
+          onChange={(e) => {
+            const nextColumns = lines(e.target.value);
+            onQuestionChange("columns", nextColumns);
+            onAnswerChange(buildAnswerKey(rows, nextColumns, matrixType));
+          }}
         />
       </div>
       {rows.length > 0 && columns.length > 0 && (

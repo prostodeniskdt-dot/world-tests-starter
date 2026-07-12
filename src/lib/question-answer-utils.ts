@@ -10,10 +10,27 @@ export function isAnswerComplete(
   switch (question.type) {
     case "multiple-choice":
     case "best-example":
-      return typeof answer === "number" && answer >= 0;
+      return (
+        typeof answer === "number" &&
+        Number.isInteger(answer) &&
+        answer >= 0 &&
+        answer < question.options.length
+      );
 
-    case "multiple-select":
-      return Array.isArray(answer) && answer.length > 0;
+    case "multiple-select": {
+      if (!Array.isArray(answer) || answer.length === 0) return false;
+      const values = answer as number[];
+      return (
+        new Set(values).size === values.length &&
+        values.every(
+          (idx) =>
+            typeof idx === "number" &&
+            Number.isInteger(idx) &&
+            idx >= 0 &&
+            idx < question.options.length
+        )
+      );
+    }
 
     case "true-false-enhanced": {
       const a = answer as { answer?: boolean | null; reason?: number | null };
@@ -27,42 +44,83 @@ export function isAnswerComplete(
       if (!Array.isArray(answer)) return false;
       const gaps = question.gaps ?? [];
       if (answer.length !== gaps.length) return false;
-      return (answer as number[]).every((idx) => typeof idx === "number" && idx >= 0);
+      const extraOptions = question.extraOptions ?? [];
+      return (answer as number[]).every(
+        (idx, gapIndex) => {
+          const gapOptions = gaps[gapIndex]?.options ?? [];
+          const optionsCount =
+            gapOptions.length + extraOptions.filter((option) => !gapOptions.includes(option)).length;
+          return (
+            typeof idx === "number" &&
+            Number.isInteger(idx) &&
+            idx >= 0 &&
+            idx < optionsCount
+          );
+        }
+      );
     }
 
     case "select-errors": {
       if (!Array.isArray(answer)) return false;
-      if (question.allowMultiple === false) return answer.length === 1;
-      return answer.length > 0;
+      const values = answer as number[];
+      const validIds = new Set(question.markedParts.map((part) => part.id));
+      if (new Set(values).size !== values.length) return false;
+      if (!values.every((id) => validIds.has(id))) return false;
+      if (question.allowMultiple === false) return values.length === 1;
+      return values.length > 0;
     }
 
     case "matching": {
       if (!Array.isArray(answer)) return false;
       const leftCount = question.leftItems?.length ?? 0;
       if (answer.length !== leftCount) return false;
-      return (answer as [number, number][]).every(
+      const pairs = answer as [number, number][];
+      const validPairs = pairs.every(
         (p) =>
           Array.isArray(p) &&
           p.length === 2 &&
           typeof p[0] === "number" &&
+          Number.isInteger(p[0]) &&
+          p[0] >= 0 &&
+          p[0] < leftCount &&
           typeof p[1] === "number" &&
-          p[1] >= 0
+          Number.isInteger(p[1]) &&
+          p[1] >= 0 &&
+          p[1] < question.rightItems.length
       );
+      if (!validPairs) return false;
+      if (new Set(pairs.map(([left]) => left)).size !== leftCount) return false;
+      if (
+        question.variant === "1-to-1" &&
+        new Set(pairs.map(([, right]) => right)).size !== pairs.length
+      ) {
+        return false;
+      }
+      return true;
     }
 
     case "ordering": {
       if (!Array.isArray(answer)) return false;
       const n = question.items?.length ?? 0;
-      return answer.length === n && (answer as number[]).every((x) => x >= 0);
+      const values = answer as number[];
+      return (
+        values.length === n &&
+        new Set(values).size === n &&
+        values.every((idx) => Number.isInteger(idx) && idx >= 0 && idx < n)
+      );
     }
 
     case "two-step": {
       const a = answer as { step1?: number; step2?: number };
       return (
         typeof a.step1 === "number" &&
+        Number.isInteger(a.step1) &&
         a.step1 >= 0 &&
+        a.step1 < question.step1.options.length &&
         typeof a.step2 === "number" &&
-        a.step2 >= 0
+        Number.isInteger(a.step2) &&
+        a.step2 >= 0 &&
+        a.step2 < question.step2.options.length
       );
     }
 
@@ -70,10 +128,33 @@ export function isAnswerComplete(
       if (typeof answer !== "object" || answer === null || Array.isArray(answer)) return false;
       const rows = question.rows ?? [];
       const obj = answer as Record<number, number | number[]>;
-      if (question.matrixType === "single-select") {
-        return rows.every((_, i) => typeof obj[i] === "number" && (obj[i] as number) >= 0);
+      const keys = Object.keys(obj).map(Number);
+      if (
+        keys.length !== rows.length ||
+        new Set(keys).size !== rows.length ||
+        !keys.every((key) => Number.isInteger(key) && key >= 0 && key < rows.length)
+      ) {
+        return false;
       }
-      return rows.every((_, i) => Array.isArray(obj[i]) && (obj[i] as number[]).length > 0);
+      if (question.matrixType === "single-select") {
+        return rows.every(
+          (_, i) =>
+            typeof obj[i] === "number" &&
+            Number.isInteger(obj[i] as number) &&
+            (obj[i] as number) >= 0 &&
+            (obj[i] as number) < question.columns.length
+        );
+      }
+      return rows.every((_, i) => {
+        if (!Array.isArray(obj[i]) || (obj[i] as number[]).length === 0) return false;
+        const values = obj[i] as number[];
+        return (
+          new Set(values).size === values.length &&
+          values.every(
+            (idx) => Number.isInteger(idx) && idx >= 0 && idx < question.columns.length
+          )
+        );
+      });
     }
 
     case "grouping":

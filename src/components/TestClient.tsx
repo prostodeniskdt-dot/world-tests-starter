@@ -12,6 +12,7 @@ import type { QuestionAnswer } from "@/tests/types";
 import {
   allQuestionsAnswered,
   countAnsweredQuestions,
+  isAnswerComplete,
   saveTestDraft,
   loadTestDraft,
   clearTestDraft,
@@ -236,8 +237,17 @@ export function TestClient({ test }: { test: PublicTest }) {
 
             <div className="space-y-10">
               {test.questions.map((q, idx) => {
-                const showHint = answeredHints[q.id] && q.hint;
+                const hasSingleTrueFalseExplanation =
+                  q.type === "true-false-enhanced" &&
+                  q.reasons.length === 1 &&
+                  !!q.reasons[0];
+                const showHint =
+                  !!answeredHints[q.id] && (!!q.hint || hasSingleTrueFalseExplanation);
                 const isCorrect = hintResults[q.id];
+                const rendersOwnPrompt =
+                  q.type === "true-false-enhanced" ||
+                  q.type === "cloze-dropdown" ||
+                  q.type === "select-errors";
 
                 return (
                   <div key={q.id} id={`question-${idx}`} className="pt-2 first:pt-0">
@@ -245,9 +255,11 @@ export function TestClient({ test }: { test: PublicTest }) {
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent-900 text-primary-300 flex items-center justify-center font-mono font-bold text-sm">
                         {idx + 1}
                       </div>
-                      <div className="font-sans text-base sm:text-lg font-semibold text-stone-950 leading-relaxed flex-1 min-w-0 break-words">
-                        {q.text}
-                      </div>
+                      {!rendersOwnPrompt && (
+                        <div className="font-sans text-base sm:text-lg font-semibold text-stone-950 leading-relaxed flex-1 min-w-0 break-words">
+                          {q.text}
+                        </div>
+                      )}
                     </div>
                     <div className="ml-0 sm:ml-11">
                       <QuestionRenderer
@@ -312,7 +324,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                       <p className="text-xs text-amber-700">
                         Неотвеченные вопросы: {test.questions
                           .map((q, qIdx) => ({ q, qIdx }))
-                          .filter(({ q }) => answers[q.id] === null)
+                          .filter(({ q }) => !isAnswerComplete(q, answers[q.id]))
                           .map(({ qIdx }) => qIdx + 1)
                           .join(", ")}
                       </p>

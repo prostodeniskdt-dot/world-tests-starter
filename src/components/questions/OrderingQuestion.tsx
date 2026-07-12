@@ -56,12 +56,16 @@ export function OrderingQuestion({
     setPositions(nextPositions);
 
     const order = buildOrder(nextPositions);
-    const isComplete = order.every((idx) => idx >= 0);
-    onChange(isComplete ? order : null);
+    onChange(order);
   };
 
   return (
     <div className="space-y-3">
+      {question.instruction && (
+        <p className="rounded-lg bg-primary-50 px-3 py-2 text-sm text-primary-900">
+          {question.instruction}
+        </p>
+      )}
       {question.items.map((item, itemIdx) => (
         <div
           key={`${question.id}-${itemIdx}`}

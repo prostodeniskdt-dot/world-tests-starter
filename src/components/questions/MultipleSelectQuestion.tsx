@@ -27,7 +27,13 @@ export function MultipleSelectQuestion({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      {question.instruction && (
+        <p className="rounded-lg bg-primary-50 px-3 py-2 text-sm text-primary-900">
+          {question.instruction}
+        </p>
+      )}
+      <div className="space-y-2">
         {question.options.map((opt, optIdx) => {
           const checked = selectedIndices.includes(optIdx);
           return (
@@ -68,6 +74,7 @@ export function MultipleSelectQuestion({
             </label>
           );
         })}
+      </div>
     </div>
   );
 }

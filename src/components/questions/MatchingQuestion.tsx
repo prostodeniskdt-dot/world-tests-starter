@@ -39,12 +39,6 @@ export function MatchingQuestion({
     nextSelections[leftIdx] = rightIdx;
     setSelections(nextSelections);
 
-    const isComplete = nextSelections.every((idx) => idx >= 0);
-    if (!isComplete) {
-      onChange(null);
-      return;
-    }
-
     const pairs: [number, number][] = nextSelections.map((right, left) => [left, right]);
     onChange(pairs);
   };
@@ -58,7 +52,7 @@ export function MatchingQuestion({
         >
           <div className="text-sm font-medium text-zinc-900 sm:flex-1">{leftItem}</div>
           <select
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 sm:w-64"
+            className="w-full min-h-[44px] touch-manipulation rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 sm:w-64 sm:text-sm"
             value={selections[leftIdx] >= 0 ? selections[leftIdx] : ""}
             onChange={(event) => handleChange(leftIdx, Number(event.target.value))}
             disabled={disabled}
@@ -67,7 +61,17 @@ export function MatchingQuestion({
               Выберите вариант
             </option>
             {question.rightItems.map((rightItem, rightIdx) => (
-              <option key={`${question.id}-${leftIdx}-${rightIdx}`} value={rightIdx}>
+              <option
+                key={`${question.id}-${leftIdx}-${rightIdx}`}
+                value={rightIdx}
+                disabled={
+                  question.variant === "1-to-1" &&
+                  selections.some(
+                    (selectedRight, selectedLeft) =>
+                      selectedLeft !== leftIdx && selectedRight === rightIdx
+                  )
+                }
+              >
                 {rightItem}
               </option>
             ))}

@@ -5,11 +5,20 @@ import { ImageUpload } from "@/components/ImageUpload";
 type QuestionMediaEditorProps = {
   testId: string;
   imageUrl?: string;
+  videoUrl?: string;
   media?: { url?: string; alt?: string; caption?: string };
   onChange: (next: { imageUrl?: string; media?: { type: "image"; url: string; alt?: string; caption?: string } | undefined }) => void;
+  onVideoUrlChange: (videoUrl: string) => void;
 };
 
-export function QuestionMediaEditor({ testId, imageUrl, media, onChange }: QuestionMediaEditorProps) {
+export function QuestionMediaEditor({
+  testId,
+  imageUrl,
+  videoUrl,
+  media,
+  onChange,
+  onVideoUrlChange,
+}: QuestionMediaEditorProps) {
   const url = media?.url ?? imageUrl ?? null;
 
   return (
@@ -57,6 +66,18 @@ export function QuestionMediaEditor({ testId, imageUrl, media, onChange }: Quest
           />
         </div>
       )}
+      <div className="pt-2">
+        <label className="block text-sm font-medium text-zinc-700 mb-1">
+          Ссылка на видео (необязательно)
+        </label>
+        <input
+          type="url"
+          placeholder="https://..."
+          value={videoUrl ?? ""}
+          onChange={(event) => onVideoUrlChange(event.target.value)}
+          className="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm"
+        />
+      </div>
     </div>
   );
 }

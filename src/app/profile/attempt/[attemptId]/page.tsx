@@ -15,35 +15,118 @@ type AttemptAnswer = {
 
 function formatUserAnswer(question: PublicTestQuestion, userAnswer: unknown): string {
   if (userAnswer === null || userAnswer === undefined) return "—";
-  if (typeof userAnswer === "number") {
-    const q = question as { options?: string[] };
-    return q.options?.[userAnswer] ?? `Вариант ${userAnswer + 1}`;
-  }
-  if (Array.isArray(userAnswer)) {
-    const q = question as { options?: string[] };
-    return userAnswer.map((i) => q.options?.[i] ?? i).join(", ") || "—";
-  }
-  if (typeof userAnswer === "object" && userAnswer !== null) {
-    const o = userAnswer as Record<string, unknown>;
-    if ("answer" in o && "reason" in o) {
-      const q = question as { reasons?: string[] };
-      const ans = o.answer ? "Верно" : "Неверно";
-      const reasonIdx = typeof o.reason === "number" ? o.reason : -1;
-      const reason = q.reasons?.[reasonIdx] ?? "";
-      return `${ans}${reason ? ` (${reason})` : ""}`;
+
+  switch (question.type) {
+    case "multiple-choice":
+    case "best-example":
+      return typeof userAnswer === "number"
+        ? question.options[userAnswer] ?? `Вариант ${userAnswer + 1}`
+        : "—";
+
+    case "multiple-select":
+      return Array.isArray(userAnswer)
+        ? userAnswer.map((index) => question.options[index] ?? `Вариант ${index + 1}`).join(", ")
+        : "—";
+
+    case "true-false-enhanced": {
+      const value = userAnswer as { answer?: boolean; reason?: number };
+      const answerText = value.answer === true ? "Верно" : value.answer === false ? "Неверно" : "—";
+      const reason =
+        typeof value.reason === "number" ? question.reasons[value.reason] : undefined;
+      return `${answerText}${reason ? ` — ${reason}` : ""}`;
     }
-    if ("step1" in o && "step2" in o) {
-      const q = question as { step1?: { options?: string[] }; step2?: { options?: string[] } };
-      const s1 = q.step1?.options?.[o.step1 as number] ?? o.step1;
-      const s2 = q.step2?.options?.[o.step2 as number] ?? o.step2;
-      return `${s1} → ${s2}`;
+
+    case "cloze-dropdown":
+      return Array.isArray(userAnswer)
+        ? userAnswer
+            .map((optionIndex, gapIndex) => {
+              const gapOptions = question.gaps[gapIndex]?.options ?? [];
+              const options = [
+                ...gapOptions,
+                ...(question.extraOptions ?? []).filter(
+                  (option) => !gapOptions.includes(option)
+                ),
+              ];
+              return options[optionIndex] ?? `Вариант ${optionIndex + 1}`;
+            })
+            .join(" · ")
+        : "—";
+
+    case "select-errors":
+      return Array.isArray(userAnswer)
+        ? userAnswer
+            .map(
+              (partId) =>
+                question.markedParts.find((part) => part.id === partId)?.text ??
+                `Фрагмент ${partId}`
+            )
+            .join(", ")
+        : "—";
+
+    case "matching":
+      return Array.isArray(userAnswer)
+        ? (userAnswer as [number, number][])
+            .map(
+              ([left, right]) =>
+                `${question.leftItems[left] ?? left} → ${question.rightItems[right] ?? right}`
+            )
+            .join("; ")
+        : "—";
+
+    case "ordering":
+      return Array.isArray(userAnswer)
+        ? userAnswer.map((itemIndex) => question.items[itemIndex] ?? itemIndex).join(" → ")
+        : "—";
+
+    case "two-step": {
+      const value = userAnswer as { step1?: number; step2?: number };
+      const step1 =
+        typeof value.step1 === "number"
+          ? question.step1.options[value.step1] ?? value.step1
+          : "—";
+      const step2 =
+        typeof value.step2 === "number"
+          ? question.step2.options[value.step2] ?? value.step2
+          : "—";
+      return `${step1} → ${step2}`;
     }
-    if ("blocks" in o && "order" in o) {
-      return `[блоки и порядок]`;
+
+    case "matrix": {
+      if (typeof userAnswer !== "object" || userAnswer === null || Array.isArray(userAnswer)) {
+        return "—";
+      }
+      const values = userAnswer as Record<string, number | number[]>;
+      return question.rows
+        .map((row, rowIndex) => {
+          const selected = values[String(rowIndex)];
+          const columns = Array.isArray(selected)
+            ? selected.map((column) => question.columns[column] ?? column).join(", ")
+            : question.columns[selected] ?? selected;
+          return `${row}: ${columns ?? "—"}`;
+        })
+        .join("; ");
     }
-    return JSON.stringify(userAnswer);
+
+    default:
+      return String(userAnswer);
   }
-  return String(userAnswer);
+}
+
+function formatQuestionPrompt(question: PublicTestQuestion): string {
+  switch (question.type) {
+    case "true-false-enhanced": {
+      const statement = question.statement.trim();
+      return !statement || statement.toLocaleLowerCase("ru-RU") === "верно или неверно?"
+        ? question.text.replace(/^\s*утверждение\s*:\s*/i, "")
+        : statement;
+    }
+    case "select-errors":
+      return question.content;
+    case "two-step":
+      return [question.step1.question, question.step2.question].filter(Boolean).join(" / ");
+    default:
+      return question.text;
+  }
 }
 
 export default async function AttemptDetailPage({
@@ -198,7 +281,7 @@ export default async function AttemptDetailPage({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-zinc-900 mb-1">
-                      Вопрос {idx + 1}: {q.text}
+                      Вопрос {idx + 1}: {formatQuestionPrompt(q)}
                     </div>
                     <div className="text-sm text-zinc-600">
                       Ваш ответ: {userAnswerStr}

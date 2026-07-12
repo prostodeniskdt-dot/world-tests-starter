@@ -24,6 +24,43 @@ export function TwoStepEditor({ question, answerKey, onQuestionChange, onAnswerC
   const mapping = answerKey.step2Mapping ?? { 0: 0 };
   const step1 = answerKey.step1 ?? 0;
 
+  const updateStep1Options = (text: string) => {
+    const options = linesToOptions(text);
+    const nextOptions = options.length ? options : [""];
+    const nextStep1 = Math.min(step1, nextOptions.length - 1);
+    const mappedStep2 = mapping[String(nextStep1)] ?? 0;
+    onQuestionChange("step1", {
+      ...question.step1,
+      question: question.step1?.question ?? "",
+      options: nextOptions,
+    });
+    onAnswerChange({
+      step1: nextStep1,
+      step2Mapping: {
+        ...mapping,
+        [String(nextStep1)]: Math.min(mappedStep2, Math.max(step2Options.length - 1, 0)),
+      },
+    });
+  };
+
+  const updateStep2Options = (text: string) => {
+    const options = linesToOptions(text);
+    const nextOptions = options.length ? options : [""];
+    const mappedStep2 = mapping[String(step1)] ?? 0;
+    onQuestionChange("step2", {
+      ...question.step2,
+      question: question.step2?.question ?? "",
+      options: nextOptions,
+    });
+    onAnswerChange({
+      step1,
+      step2Mapping: {
+        ...mapping,
+        [String(step1)]: Math.min(mappedStep2, nextOptions.length - 1),
+      },
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="p-3 border border-zinc-200 rounded-lg space-y-2">
@@ -40,13 +77,7 @@ export function TwoStepEditor({ question, answerKey, onQuestionChange, onAnswerC
           className={`${inputClass} font-mono resize-y`}
           rows={3}
           value={step1Options.join("\n")}
-          onChange={(e) =>
-            onQuestionChange("step1", {
-              ...question.step1,
-              question: question.step1?.question ?? "",
-              options: linesToOptions(e.target.value).length ? linesToOptions(e.target.value) : [""],
-            })
-          }
+          onChange={(e) => updateStep1Options(e.target.value)}
         />
         <label className={labelClass}>Правильный ответ шага 1</label>
         <select
@@ -54,7 +85,13 @@ export function TwoStepEditor({ question, answerKey, onQuestionChange, onAnswerC
           value={step1}
           onChange={(e) => {
             const s1 = parseInt(e.target.value, 10);
-            onAnswerChange({ step1: s1, step2Mapping: mapping });
+            onAnswerChange({
+              step1: s1,
+              step2Mapping: {
+                ...mapping,
+                [String(s1)]: mapping[String(s1)] ?? 0,
+              },
+            });
           }}
         >
           {step1Options.map((opt, i) => (
@@ -78,13 +115,7 @@ export function TwoStepEditor({ question, answerKey, onQuestionChange, onAnswerC
           className={`${inputClass} font-mono resize-y`}
           rows={3}
           value={step2Options.join("\n")}
-          onChange={(e) =>
-            onQuestionChange("step2", {
-              ...question.step2,
-              question: question.step2?.question ?? "",
-              options: linesToOptions(e.target.value).length ? linesToOptions(e.target.value) : [""],
-            })
-          }
+          onChange={(e) => updateStep2Options(e.target.value)}
         />
         <label className={labelClass}>Правильный ответ шага 2 (для выбранного шага 1)</label>
         <select

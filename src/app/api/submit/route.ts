@@ -6,6 +6,7 @@ import { getPublicTest, getSecretTest } from "@/lib/tests-registry";
 import type { PublicTestQuestion } from "@/tests/types";
 import { requireAuth } from "@/lib/auth-middleware";
 import { checkAnswer } from "@/lib/answer-checkers";
+import { isAnswerComplete } from "@/lib/question-answer-utils";
 
 export async function POST(req: Request) {
   // Получаем IP адрес
@@ -142,12 +143,12 @@ export async function POST(req: Request) {
   // Получаем ID всех вопросов из теста
   const questionIds = testPublic.questions.map((q: PublicTestQuestion) => q.id);
 
-  // Проверка что ответы на все вопросы есть
-  for (const qId of questionIds) {
-    const v = answers[qId];
-    if (v === null || v === undefined) {
+  // Не принимаем формально непустые, но незавершённые ответы
+  // (например, часть матрицы, повтор позиции или индекс вне вариантов).
+  for (const question of testPublic.questions) {
+    if (!isAnswerComplete(question, answers[question.id])) {
       return NextResponse.json(
-        { ok: false, error: "Ответь на все вопросы" },
+        { ok: false, error: "Ответьте на все вопросы" },
         { status: 400 }
       );
     }

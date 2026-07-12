@@ -16,6 +16,7 @@ export function ClozeDropdownQuestion({
   disabled = false,
 }: ClozeDropdownQuestionProps) {
   const selectedIndices = (answer as number[] | null) || question.gaps.map(() => -1);
+  const extraOptions = question.extraOptions ?? [];
   
   // Подсчет заполненных пропусков (-1 = не выбрано)
   const filledGaps = selectedIndices.filter(idx => idx >= 0).length;
@@ -69,6 +70,10 @@ export function ClozeDropdownQuestion({
       // Получаем gap по индексу массива
       const gap = question.gaps[gapIndex];
       if (gap && gapIndex >= 0 && gapIndex < question.gaps.length) {
+        const options = [
+          ...gap.options,
+          ...extraOptions.filter((option) => !gap.options.includes(option)),
+        ];
         const uniqueKey = `gap-${match.index}-${gapIndex}`;
         const currentValue = selectedIndices[gapIndex] ?? -1;
         const isFilled = currentValue >= 0;
@@ -93,7 +98,7 @@ export function ClozeDropdownQuestion({
             } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:border-primary-400"}`}
           >
             <option value="">Выберите...</option>
-            {gap.options.map((opt, optIdx) => (
+            {options.map((opt, optIdx) => (
               <option key={optIdx} value={optIdx}>
                 {opt}
               </option>

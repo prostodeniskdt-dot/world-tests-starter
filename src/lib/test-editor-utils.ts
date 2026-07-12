@@ -63,13 +63,21 @@ export function normalizeQuestionByType(question: any, newType: string): any {
     id: question.id,
     text: question.text ?? "",
     hint: question.hint ?? "",
+    imageUrl: question.imageUrl,
+    videoUrl: question.videoUrl,
+    media: question.media,
   };
 
   switch (newType) {
     case "multiple-choice":
       return { ...base, type: "multiple-choice", options: question.options ?? ["", ""] };
     case "multiple-select":
-      return { ...base, type: "multiple-select", options: question.options ?? ["", ""] };
+      return {
+        ...base,
+        type: "multiple-select",
+        options: question.options ?? ["", ""],
+        instruction: question.instruction ?? "",
+      };
     case "true-false-enhanced":
       return {
         ...base,
@@ -85,6 +93,7 @@ export function normalizeQuestionByType(question: any, newType: string): any {
         gaps: question.gaps?.length
           ? question.gaps
           : [{ index: 0, options: [""] }],
+        extraOptions: question.extraOptions ?? [],
       };
     case "matching":
       return {
@@ -98,6 +107,7 @@ export function normalizeQuestionByType(question: any, newType: string): any {
         ...base,
         type: "ordering",
         items: question.items ?? [],
+        instruction: question.instruction ?? "",
       };
     case "select-errors":
       return {
@@ -147,6 +157,41 @@ export function createDefaultQuestion(existingIds: Set<string>): { id: string; q
 }
 
 export type ValidationError = { field: string; message: string };
+
+export function remapOrderingAnswer(
+  previousItems: string[],
+  nextItems: string[],
+  previousOrder: unknown
+): number[] {
+  const indicesByText = new Map<string, number[]>();
+  nextItems.forEach((item, index) => {
+    const indices = indicesByText.get(item) ?? [];
+    indices.push(index);
+    indicesByText.set(item, indices);
+  });
+
+  const oldToNew = new Map<number, number>();
+  previousItems.forEach((item, oldIndex) => {
+    const indices = indicesByText.get(item);
+    const nextIndex = indices?.shift();
+    if (nextIndex !== undefined) oldToNew.set(oldIndex, nextIndex);
+  });
+
+  const sourceOrder = Array.isArray(previousOrder)
+    ? previousOrder.filter(
+        (index): index is number =>
+          typeof index === "number" && Number.isInteger(index)
+      )
+    : previousItems.map((_, index) => index);
+  const remapped = sourceOrder
+    .map((oldIndex) => oldToNew.get(oldIndex))
+    .filter((index): index is number => index !== undefined);
+  const used = new Set(remapped);
+  nextItems.forEach((_, index) => {
+    if (!used.has(index)) remapped.push(index);
+  });
+  return remapped;
+}
 
 export function validateTestForSave(test: {
   title?: string;

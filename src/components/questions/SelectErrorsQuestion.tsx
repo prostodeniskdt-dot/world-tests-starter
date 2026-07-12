@@ -45,13 +45,30 @@ export function SelectErrorsQuestion({
       );
     }
 
-    // Отображаем части последовательно, разделяя их пробелами
-    // Не используем content для промежуточного текста, чтобы избежать обрывков
+    // Встраиваем кликабельные фрагменты в исходный текст, не теряя контекст.
     const parts: React.ReactNode[] = [];
+    let cursor = 0;
+    const resolvedParts = [...question.markedParts]
+      .sort((a, b) => (a.start ?? Number.MAX_SAFE_INTEGER) - (b.start ?? Number.MAX_SAFE_INTEGER))
+      .map((part) => {
+        const declaredStart =
+          typeof part.start === "number" &&
+          part.start >= cursor &&
+          question.content.slice(part.start, part.end).trim() === part.text.trim()
+            ? part.start
+            : question.content.indexOf(part.text, cursor);
+        const start = declaredStart >= cursor ? declaredStart : cursor;
+        cursor = start + part.text.length;
+        return { ...part, start, end: start + part.text.length };
+      });
 
-    question.markedParts
-      .sort((a, b) => a.start - b.start)
-      .forEach((part, index) => {
+    cursor = 0;
+    resolvedParts.forEach((part) => {
+        if (part.start > cursor) {
+          parts.push(
+            <span key={`text-${cursor}`}>{question.content.slice(cursor, part.start)}</span>
+          );
+        }
         // Выделенная часть с номером
         const isSelected = selectedIds.includes(part.id);
         const partNumber = getPartNumber(part.id);
@@ -73,30 +90,22 @@ export function SelectErrorsQuestion({
             <span>{part.text}</span>
           </span>
         );
-
-        // Добавляем пробел между частями (кроме последней)
-        if (index < question.markedParts.length - 1) {
-          parts.push(<span key={`space-${part.id}`}> </span>);
-        }
+        cursor = part.end;
       });
+
+    if (cursor < question.content.length) {
+      parts.push(<span key={`text-${cursor}`}>{question.content.slice(cursor)}</span>);
+    }
 
     return parts;
   };
 
-  // Показываем утверждение отдельно, только когда есть markedParts (иначе content уже в renderContent)
-  const statement = (question.markedParts.length > 0 ? (question.content || "").trim() : "");
-
   return (
     <div className="space-y-4">
-      {statement && (
-        <div className="p-4 bg-zinc-50 rounded-lg border border-zinc-200">
-          <p className="text-sm sm:text-base leading-relaxed text-zinc-900">
-            «{statement}»
-          </p>
-        </div>
-      )}
       <div className="p-4 bg-white rounded-lg border border-zinc-200">
-        <div className="text-sm sm:text-base leading-relaxed flex flex-wrap gap-1 items-center">{renderContent()}</div>
+        <div className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

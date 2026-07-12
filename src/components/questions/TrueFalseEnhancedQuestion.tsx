@@ -10,7 +10,7 @@ interface TrueFalseEnhancedQuestionProps {
   answer: QuestionAnswer | null;
   onChange: (answer: QuestionAnswer) => void;
   disabled?: boolean;
-  /** После завершения теста — показывать полный текст объяснения; до этого — только «Объяснение 1», «Объяснение 2» */
+  /** После завершения теста — показывать справку и результат ответа. */
   showHint?: boolean;
   isCorrect?: boolean;
 }
@@ -28,6 +28,11 @@ export function TrueFalseEnhancedQuestion({
     reason: null as any,
   };
   const hasReasons = (question.reasons?.length ?? 0) > 1;
+  const normalizedStatement = question.statement.trim().toLocaleLowerCase("ru-RU");
+  const statement =
+    !normalizedStatement || normalizedStatement === "верно или неверно?"
+      ? question.text.replace(/^\s*утверждение\s*:\s*/i, "")
+      : question.statement;
   const [step, setStep] = useState<1 | 2>(
     currentAnswer.answer === null || !hasReasons ? 1 : 2
   );
@@ -50,13 +55,13 @@ export function TrueFalseEnhancedQuestion({
 
   return (
     <div className="space-y-4">
+      <div className="p-4 rounded-lg border border-zinc-200 bg-white">
+        <p className="text-base font-medium text-zinc-900 leading-relaxed">{statement}</p>
+      </div>
 
       {/* Шаг 1: Верно/Неверно */}
       {step === 1 && (
         <div className="space-y-4">
-          <div className="p-4 rounded-lg border border-zinc-200 bg-white mb-4">
-            <p className="text-base font-medium text-zinc-900 leading-relaxed">{question.statement}</p>
-          </div>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => handleAnswer(true)}
@@ -151,7 +156,7 @@ export function TrueFalseEnhancedQuestion({
                     <span className={`flex-1 text-base sm:text-sm break-words leading-relaxed ${
                       selected ? "font-medium text-zinc-900" : "text-zinc-700"
                     }`}>
-                      {showHint ? reason : `Объяснение ${idx + 1}`}
+                      {reason}
                     </span>
                     {selected && (
                       <span className="flex-shrink-0 bg-primary-600 text-white text-xs font-bold px-2 py-1 rounded">

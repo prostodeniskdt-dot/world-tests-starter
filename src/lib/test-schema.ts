@@ -104,6 +104,7 @@ export const matchingQuestionSchema = z.object({
   leftItems: z.array(z.string().max(500)).min(1).max(MAX_OPTIONS),
   rightItems: z.array(z.string().max(500)).min(1).max(MAX_OPTIONS),
   variant: z.literal("1-to-1").optional(),
+  correctPairs: z.array(z.tuple([z.number().int().min(0), z.number().int().min(0)])).optional(),
 });
 
 export const orderingQuestionSchema = z.object({
@@ -111,6 +112,7 @@ export const orderingQuestionSchema = z.object({
   type: z.literal("ordering"),
   items: z.array(z.string().max(500)).min(2).max(MAX_OPTIONS),
   instruction: z.string().max(500).optional(),
+  correctOrder: z.array(z.number().int().min(0)).optional(),
 });
 
 export const twoStepQuestionSchema = z.object({
@@ -218,6 +220,12 @@ export function validateAnswerKeyForQuestion(
       if (!Array.isArray(answer)) {
         issues.push({ code: "ANSWER_TYPE_MISMATCH", path, message: "Ожидается массив чисел", severity: "error" });
       } else {
+        if (answer.length === 0) {
+          issues.push({ code: "EMPTY_ANSWER", path, message: "Нужно выбрать хотя бы один правильный вариант", severity: "error" });
+        }
+        if (new Set(answer).size !== answer.length) {
+          issues.push({ code: "DUPLICATE_ANSWER", path, message: "Индексы вариантов не должны повторяться", severity: "error" });
+        }
         for (const idx of answer) {
           if (typeof idx !== "number" || idx < 0 || idx >= q.options.length) {
             issues.push({ code: "ANSWER_OUT_OF_RANGE", path, message: `Индекс ${idx} вне options`, severity: "error" });
@@ -258,6 +266,15 @@ export function validateAnswerKeyForQuestion(
       if (!Array.isArray(answer)) {
         issues.push({ code: "ANSWER_TYPE_MISMATCH", path, message: "Ожидается массив id фрагментов", severity: "error" });
       } else {
+        if (answer.length === 0) {
+          issues.push({ code: "EMPTY_ANSWER", path, message: "Отметьте хотя бы один ошибочный фрагмент", severity: "error" });
+        }
+        if (q.allowMultiple === false && answer.length !== 1) {
+          issues.push({ code: "ANSWER_COUNT_MISMATCH", path, message: "Для одиночного выбора нужен ровно один фрагмент", severity: "error" });
+        }
+        if (new Set(answer).size !== answer.length) {
+          issues.push({ code: "DUPLICATE_ANSWER", path, message: "ID фрагментов не должны повторяться", severity: "error" });
+        }
         const validIds = new Set(q.markedParts.map((p) => p.id));
         for (const id of answer) {
           if (!validIds.has(id)) {
@@ -277,6 +294,16 @@ export function validateAnswerKeyForQuestion(
           severity: "error",
         });
       } else {
+        const leftIds = pairs.map(([left]) => left);
+        if (new Set(leftIds).size !== q.leftItems.length) {
+          issues.push({ code: "MATCHING_DUPLICATE_LEFT", path, message: "Каждый элемент слева должен встречаться ровно один раз", severity: "error" });
+        }
+        if (q.variant === "1-to-1") {
+          const rightIds = pairs.map(([, right]) => right);
+          if (new Set(rightIds).size !== rightIds.length) {
+            issues.push({ code: "MATCHING_DUPLICATE_RIGHT", path, message: "В режиме 1-к-1 варианты справа не должны повторяться", severity: "error" });
+          }
+        }
         for (const [l, r] of pairs) {
           if (l < 0 || l >= q.leftItems.length || r < 0 || r >= q.rightItems.length) {
             issues.push({ code: "ANSWER_OUT_OF_RANGE", path, message: `Пара [${l},${r}] вне диапазона`, severity: "error" });
@@ -288,6 +315,17 @@ export function validateAnswerKeyForQuestion(
     case "ordering": {
       if (!Array.isArray(answer) || answer.length !== q.items.length) {
         issues.push({ code: "ANSWER_TYPE_MISMATCH", path, message: "Нужен массив индексов длины items", severity: "error" });
+      } else if (
+        new Set(answer).size !== q.items.length ||
+        answer.some(
+          (idx) =>
+            typeof idx !== "number" ||
+            !Number.isInteger(idx) ||
+            idx < 0 ||
+            idx >= q.items.length
+        )
+      ) {
+        issues.push({ code: "ORDERING_NOT_PERMUTATION", path, message: "Порядок должен содержать каждый индекс ровно один раз", severity: "error" });
       }
       break;
     }
@@ -298,12 +336,58 @@ export function validateAnswerKeyForQuestion(
       }
       if (!a?.step2Mapping || typeof a.step2Mapping !== "object") {
         issues.push({ code: "ANSWER_TYPE_MISMATCH", path, message: "Нужен step2Mapping", severity: "error" });
+      } else if (typeof a.step1 === "number") {
+        const mapped = a.step2Mapping[String(a.step1)];
+        if (
+          typeof mapped !== "number" ||
+          !Number.isInteger(mapped) ||
+          mapped < 0 ||
+          mapped >= q.step2.options.length
+        ) {
+          issues.push({ code: "ANSWER_OUT_OF_RANGE", path, message: "Ответ шага 2 вне диапазона options", severity: "error" });
+        }
       }
       break;
     }
     case "matrix": {
       if (typeof answer !== "object" || answer === null || Array.isArray(answer)) {
         issues.push({ code: "ANSWER_TYPE_MISMATCH", path, message: "Ожидается объект по строкам", severity: "error" });
+        break;
+      }
+      const matrixAnswer = answer as Record<string, unknown>;
+      const rowKeys = Object.keys(matrixAnswer);
+      const expectedKeys = q.rows.map((_, index) => String(index));
+      if (
+        rowKeys.length !== expectedKeys.length ||
+        expectedKeys.some((key) => !(key in matrixAnswer))
+      ) {
+        issues.push({ code: "MATRIX_INCOMPLETE", path, message: "Нужен ответ для каждой строки матрицы", severity: "error" });
+      }
+      for (const key of expectedKeys) {
+        const value = matrixAnswer[key];
+        if (q.matrixType === "single-select") {
+          if (
+            typeof value !== "number" ||
+            !Number.isInteger(value) ||
+            value < 0 ||
+            value >= q.columns.length
+          ) {
+            issues.push({ code: "ANSWER_OUT_OF_RANGE", path: `${path}.${key}`, message: "Столбец вне диапазона", severity: "error" });
+          }
+        } else if (
+          !Array.isArray(value) ||
+          value.length === 0 ||
+          new Set(value).size !== value.length ||
+          value.some(
+            (idx) =>
+              typeof idx !== "number" ||
+              !Number.isInteger(idx) ||
+              idx < 0 ||
+              idx >= q.columns.length
+          )
+        ) {
+          issues.push({ code: "ANSWER_OUT_OF_RANGE", path: `${path}.${key}`, message: "Выберите один или несколько допустимых столбцов", severity: "error" });
+        }
       }
       break;
     }
