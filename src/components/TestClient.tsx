@@ -21,6 +21,14 @@ import {
 const AUTHOR_TELEGRAM_URL = "https://t.me/TomSemm";
 const DRAFT_VERSION = 1;
 
+function normalizePromptText(value: string): string {
+  return value
+    .replace(/^\s*утверждение\s*:\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("ru-RU");
+}
+
 function SubscribeAuthorButton() {
   return (
     <a
@@ -244,10 +252,20 @@ export function TestClient({ test }: { test: PublicTest }) {
                 const showHint =
                   !!answeredHints[q.id] && (!!q.hint || hasSingleTrueFalseExplanation);
                 const isCorrect = hintResults[q.id];
-                const rendersOwnPrompt =
-                  q.type === "true-false-enhanced" ||
-                  q.type === "cloze-dropdown" ||
-                  q.type === "select-errors";
+                const mechanicPrompt =
+                  q.type === "true-false-enhanced"
+                    ? !q.statement.trim() ||
+                      q.statement.trim().toLocaleLowerCase("ru-RU") === "верно или неверно?"
+                      ? q.text
+                      : q.statement
+                    : q.type === "select-errors"
+                      ? q.content
+                      : q.type === "cloze-dropdown"
+                        ? q.text
+                        : "";
+                const rendersSamePrompt =
+                  !!mechanicPrompt &&
+                  normalizePromptText(q.text) === normalizePromptText(mechanicPrompt);
 
                 return (
                   <div key={q.id} id={`question-${idx}`} className="pt-2 first:pt-0">
@@ -255,7 +273,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent-900 text-primary-300 flex items-center justify-center font-mono font-bold text-sm">
                         {idx + 1}
                       </div>
-                      {!rendersOwnPrompt && (
+                      {!!q.text.trim() && !rendersSamePrompt && (
                         <div className="font-sans text-base sm:text-lg font-semibold text-stone-950 leading-relaxed flex-1 min-w-0 break-words">
                           {q.text}
                         </div>
