@@ -6,6 +6,7 @@ import { verifyToken } from "@/lib/jwt";
 import { getTestWithQuestionsById, getTestById, canViewTestQuestionBreakdownInProfile } from "@/lib/tests-registry";
 import type { PublicTestQuestion } from "@/tests/types";
 import { Check, X, ArrowLeft } from "lucide-react";
+import { getQuestionHeading } from "@/lib/question-answer-utils";
 
 type AttemptAnswer = {
   question_id: string;
@@ -109,23 +110,6 @@ function formatUserAnswer(question: PublicTestQuestion, userAnswer: unknown): st
 
     default:
       return String(userAnswer);
-  }
-}
-
-function formatQuestionPrompt(question: PublicTestQuestion): string {
-  switch (question.type) {
-    case "true-false-enhanced": {
-      const statement = question.statement.trim();
-      return !statement || statement.toLocaleLowerCase("ru-RU") === "верно или неверно?"
-        ? question.text.replace(/^\s*утверждение\s*:\s*/i, "")
-        : statement;
-    }
-    case "select-errors":
-      return question.content;
-    case "two-step":
-      return [question.step1.question, question.step2.question].filter(Boolean).join(" / ");
-    default:
-      return question.text;
   }
 }
 
@@ -281,7 +265,7 @@ export default async function AttemptDetailPage({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-zinc-900 mb-1">
-                      Вопрос {idx + 1}: {formatQuestionPrompt(q)}
+                      Вопрос {idx + 1}: {getQuestionHeading(q)}
                     </div>
                     <div className="text-sm text-zinc-600">
                       Ваш ответ: {userAnswerStr}

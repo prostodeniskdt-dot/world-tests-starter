@@ -216,6 +216,9 @@ export function validateTestForSave(test: {
   test.questions.forEach((q: any, i: number) => {
     if (!q.id) errors.push({ field: `questions[${i}].id`, message: `Вопрос ${i + 1}: укажите ID` });
     if (!q.type) errors.push({ field: `questions[${i}].type`, message: `Вопрос ${i + 1}: укажите тип` });
+    if (q.text === undefined || q.text === null || String(q.text).trim() === "") {
+      errors.push({ field: `questions[${i}].text`, message: `Вопрос ${i + 1}: укажите текст вопроса` });
+    }
     if (q.type === "true-false-enhanced") {
       if (!(q.statement && String(q.statement).trim())) {
         errors.push({ field: `questions[${i}].statement`, message: `Вопрос ${i + 1}: укажите утверждение` });
@@ -228,8 +231,6 @@ export function validateTestForSave(test: {
       if (!q.markedParts?.length) {
         errors.push({ field: `questions[${i}].markedParts`, message: `Вопрос ${i + 1}: добавьте фрагменты для выбора` });
       }
-    } else if (q.text === undefined || q.text === null || String(q.text).trim() === "") {
-      errors.push({ field: `questions[${i}].text`, message: `Вопрос ${i + 1}: укажите текст` });
     }
     if (q.id && !(q.id in answerKey)) {
       errors.push({ field: `answerKey.${q.id}`, message: `Вопрос "${q.id}": укажите правильный ответ` });

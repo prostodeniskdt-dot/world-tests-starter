@@ -1,14 +1,115 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { isAnswerComplete } from "../src/lib/question-answer-utils";
+import {
+  getQuestionHeading,
+  isAnswerComplete,
+} from "../src/lib/question-answer-utils";
 import { validateTestPayload } from "../src/lib/test-schema";
 import type { PublicTestQuestion } from "../src/tests/types";
 import {
   normalizeQuestionByType,
   remapOrderingAnswer,
 } from "../src/lib/test-editor-utils";
+import {
+  ensureRuntimeQuestionText,
+  normalizeTestImport,
+} from "../src/lib/test-import/normalize";
 
 const base = { id: "q1", text: "Вопрос" };
+
+describe("question headings", () => {
+  it("never hides author-entered text for any supported mechanic", () => {
+    const questions: PublicTestQuestion[] = [
+      { ...base, type: "multiple-choice", options: ["A", "B"] },
+      { ...base, type: "multiple-select", options: ["A", "B"] },
+      { ...base, type: "true-false-enhanced", statement: "Вопрос", reasons: [] },
+      { ...base, type: "cloze-dropdown", gaps: [{ index: 0, options: ["A"] }] },
+      {
+        ...base,
+        type: "select-errors",
+        content: "Вопрос",
+        markedParts: [{ id: 1, text: "Вопрос", start: 0, end: 6 }],
+        allowMultiple: false,
+      },
+      { ...base, type: "matching", leftItems: ["A"], rightItems: ["B"] },
+      { ...base, type: "ordering", items: ["A", "B"] },
+      {
+        ...base,
+        type: "two-step",
+        step1: { question: "A", options: ["A"] },
+        step2: { question: "B", options: ["B"] },
+      },
+      {
+        ...base,
+        type: "matrix",
+        rows: ["A"],
+        columns: ["B"],
+        matrixType: "single-select",
+      },
+    ];
+
+    for (const question of questions) {
+      assert.equal(getQuestionHeading(question), "Вопрос", question.type);
+    }
+  });
+
+  it("uses mechanic content only as a fallback for legacy empty text", () => {
+    const question = {
+      id: "q1",
+      text: "",
+      type: "true-false-enhanced",
+      statement: "Сохранённое утверждение",
+      reasons: [],
+    } as PublicTestQuestion;
+    assert.equal(getQuestionHeading(question), "Сохранённое утверждение");
+  });
+
+  it("rejects newly saved questions without author text", () => {
+    const result = validateTestPayload({
+      title: "Тест",
+      questions: [
+        {
+          id: "q1",
+          text: "",
+          type: "true-false-enhanced",
+          statement: "Утверждение",
+          reasons: [],
+        },
+      ],
+      answerKey: { q1: { answer: true, reason: 0 } },
+    });
+    assert.equal(result.ok, false);
+    assert.ok(result.issues.some((issue) => issue.path === "questions.0.text"));
+  });
+
+  it("restores old database questions without text", () => {
+    const restored = ensureRuntimeQuestionText({
+      id: "q1",
+      text: " ",
+      type: "cloze-dropdown",
+      gaps: [{ index: 0, options: ["A"] }, { index: 1, options: ["B"] }],
+    });
+    assert.equal(restored.text, "Заполните пропуски: [1] [2]");
+  });
+
+  it("maps the legacy import field question to text", () => {
+    const { payload, warnings } = normalizeTestImport({
+      title: "Тест",
+      questions: [
+        {
+          id: "q1",
+          type: "multiple-choice",
+          question: "Старая формулировка",
+          options: ["A", "B"],
+        },
+      ],
+      answerKey: { q1: 0 },
+    });
+    const question = (payload.questions as Array<{ text?: string }>)[0];
+    assert.equal(question.text, "Старая формулировка");
+    assert.ok(warnings.some((warning) => warning.code === "LEGACY_FIELD_ALIAS"));
+  });
+});
 
 describe("question mechanic answer completeness", () => {
   it("checks option bounds and duplicate selections", () => {

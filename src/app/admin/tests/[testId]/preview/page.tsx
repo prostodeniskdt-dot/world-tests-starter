@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Eye, Edit, ToggleLeft, ToggleRight, Loader2 } from "lucide-react";
 import { QuestionRenderer } from "@/components/questions/QuestionRenderer";
 import type { PublicTestQuestion, QuestionAnswer } from "@/tests/types";
+import { getQuestionHeading } from "@/lib/question-answer-utils";
 
 type TestData = {
   id: string;
@@ -159,13 +160,9 @@ export default function TestPreviewPage() {
                   <span className="text-xs text-zinc-400 font-mono">{question.type}</span>
                   <span className="text-xs text-zinc-400 font-mono">id: {question.id}</span>
                 </div>
-                {(question.text || (question as { statement?: string }).statement) ? (
-                  <p className="font-medium text-zinc-900 text-base leading-relaxed pl-9">
-                    {(question as { statement?: string }).statement || question.text}
-                  </p>
-                ) : (
-                  <p className="text-amber-600 text-sm pl-9 italic">Текст вопроса не задан</p>
-                )}
+                <p className="font-medium text-zinc-900 text-base leading-relaxed pl-9">
+                  {getQuestionHeading(question)}
+                </p>
               </div>
 
               <QuestionRenderer

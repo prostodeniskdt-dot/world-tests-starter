@@ -23,6 +23,18 @@ export function normalizeLegacyQuestion(
   let answer = answerKey[questionId];
 
   if (isSupportedType(type)) {
+    if (
+      (!String(q.text ?? "").trim()) &&
+      typeof question.question === "string" &&
+      question.question.trim()
+    ) {
+      q.text = question.question.trim();
+      warnings.push({
+        code: "LEGACY_FIELD_ALIAS",
+        path: `${questionId}.text`,
+        message: "Поле question преобразовано в text",
+      });
+    }
     return { question: q, answer, warnings };
   }
 
@@ -251,6 +263,54 @@ export function normalizeTestImport(raw: Record<string, unknown>): {
     },
     warnings,
   };
+}
+
+/** Восстанавливает обязательный runtime-текст для старых строк БД. */
+export function ensureRuntimeQuestionText(
+  question: Record<string, unknown>
+): Record<string, unknown> {
+  if (String(question.text ?? "").trim()) return question;
+
+  const type = String(question.type ?? "");
+  let text = "";
+  switch (type) {
+    case "true-false-enhanced":
+      text = String(question.statement ?? "").trim();
+      break;
+    case "select-errors":
+      text = String(question.content ?? "").trim();
+      break;
+    case "two-step":
+      text = String(
+        (question.step1 as { question?: unknown } | undefined)?.question ?? ""
+      ).trim();
+      break;
+    case "cloze-dropdown": {
+      const gapCount = Array.isArray(question.gaps) ? question.gaps.length : 0;
+      const placeholders = Array.from(
+        { length: gapCount },
+        (_, index) => `[${index + 1}]`
+      ).join(" ");
+      text = `Заполните пропуски${placeholders ? `: ${placeholders}` : ""}`;
+      break;
+    }
+    case "matching":
+      text = "Сопоставьте элементы";
+      break;
+    case "ordering":
+      text = String(question.instruction ?? "").trim() || "Расположите элементы по порядку";
+      break;
+    case "matrix":
+      text = "Заполните матрицу";
+      break;
+    case "multiple-select":
+      text = String(question.instruction ?? "").trim() || "Выберите подходящие варианты";
+      break;
+    default:
+      text = "Выберите правильный ответ";
+  }
+
+  return { ...question, text };
 }
 
 export function resolveQuestionMedia(q: TestQuestion & { media?: { url?: string } }): string | undefined {

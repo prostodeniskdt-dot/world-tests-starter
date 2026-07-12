@@ -1,5 +1,24 @@
 import type { PublicTestQuestion, QuestionAnswer } from "@/tests/types";
 
+/** Основная формулировка вопроса. Авторский `text` никогда не скрывается. */
+export function getQuestionHeading(question: PublicTestQuestion): string {
+  const text = question.text?.trim();
+  if (text) return text;
+
+  switch (question.type) {
+    case "true-false-enhanced":
+      return question.statement.trim() || "Оцените утверждение";
+    case "select-errors":
+      return question.content.trim() || "Найдите ошибки";
+    case "two-step":
+      return question.step1.question.trim() || "Выполните двухшаговое задание";
+    case "scenario":
+      return question.question.trim() || question.situation.trim() || "Разберите ситуацию";
+    default:
+      return "Выполните задание";
+  }
+}
+
 /** Проверяет, заполнен ли ответ пользователя для конкретного типа вопроса */
 export function isAnswerComplete(
   question: PublicTestQuestion,

@@ -38,7 +38,7 @@ const mediaSchema = z
 
 const baseQuestionFields = {
   id: z.string().min(1).max(64),
-  text: z.string().max(MAX_STRING),
+  text: z.string().trim().min(1).max(MAX_STRING),
   hint: z.string().max(8000).optional(),
   imageUrl: z.string().max(2048).optional(),
   videoUrl: z.string().max(2048).optional(),
