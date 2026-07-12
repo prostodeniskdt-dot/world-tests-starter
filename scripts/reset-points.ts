@@ -1,6 +1,6 @@
 /**
- * Обнуляет очки и счётчик пройденных тестов у всех пользователей (таблица user_stats).
- * История попыток (attempts) не удаляется.
+ * Начинает новый сезон рейтинга и обнуляет очки у всех пользователей.
+ * История попыток сохраняется, но не влияет на новый сезон.
  *
  * Подключение: DATABASE_URL из .env.local.
  * Использование: npx tsx scripts/reset-points.ts
@@ -24,14 +24,31 @@ const pool = new Pool({
 });
 
 async function main() {
-  console.log("=== Сброс очков (user_stats) ===\n");
+  console.log("=== Новый сезон рейтинга ===\n");
 
-  const result = await pool.query(
-    `UPDATE public.user_stats SET total_points = 0, tests_completed = 0, updated_at = now()`
-  );
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `UPDATE public.points_seasons SET is_active = false WHERE is_active`
+    );
+    const seasonResult = await client.query(
+      `INSERT INTO public.points_seasons (is_active) VALUES (true) RETURNING id, started_at`
+    );
+    const result = await client.query(
+      `UPDATE public.user_stats SET total_points = 0, tests_completed = 0, updated_at = now()`
+    );
+    await client.query("COMMIT");
 
-  console.log(`✓ Обновлено записей: ${result.rowCount ?? 0}`);
-  console.log("Очки и счётчик тестов у всех пользователей обнулены. Обновите страницу рейтинга.");
+    console.log(`✓ Создан сезон: ${seasonResult.rows[0].id}`);
+    console.log(`✓ Обновлено записей: ${result.rowCount ?? 0}`);
+    console.log("Рейтинг обнулён, история попыток сохранена.");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 main()

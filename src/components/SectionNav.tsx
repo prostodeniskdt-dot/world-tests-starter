@@ -70,48 +70,34 @@ export function SectionNav() {
         </div>
 
         {mobileOpen && (
-          <div id="mobile-section-navigation" className="border-t border-zinc-100 py-2 md:hidden">
+          <div
+            id="mobile-section-navigation"
+            className="max-h-[calc(100dvh-var(--site-header-height,7rem))] overflow-y-auto border-t border-zinc-100 py-3 md:hidden"
+          >
             {NAVIGATION_GROUPS.map((group) => {
-              const isActive = activeGroupId === group.id;
-              const isOpen = openGroup === group.id;
-              const panelId = `mobile-navigation-${group.id}`;
               return (
-                <div key={group.id} className="border-b border-zinc-100 last:border-0">
-                  <button
-                    type="button"
-                    onClick={() => setOpenGroup(isOpen ? null : group.id)}
-                    className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                      isActive ? "text-primary-700" : "text-zinc-800"
-                    }`}
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                  >
-                    <span>{group.title}</span>
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                  {isOpen && (
-                    <div id={panelId} className="space-y-1 pb-3 pl-3">
-                      {group.items.map((item) => (
-                        <Link
-                          key={item.id}
-                          href={item.href}
-                          aria-current={
-                            isNavigationItemActive(pathname, item.href) ? "page" : undefined
-                          }
-                          className={`block rounded-lg px-3 py-2.5 text-sm ${
-                            isNavigationItemActive(pathname, item.href)
-                              ? "bg-primary-50 font-semibold text-primary-700"
-                              : "text-zinc-700 hover:bg-zinc-50"
-                          }`}
-                        >
-                          {item.title}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
+                <div key={group.id} className="border-b border-zinc-100 px-1 pb-3 pt-2 first:pt-0 last:border-0">
+                  <div className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                    {group.title}
+                  </div>
+                  <div className="grid grid-cols-1 gap-1">
+                    {group.items.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        aria-current={
+                          isNavigationItemActive(pathname, item.href) ? "page" : undefined
+                        }
+                        className={`flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm ${
+                          isNavigationItemActive(pathname, item.href)
+                            ? "bg-primary-50 font-semibold text-primary-700"
+                            : "text-zinc-700 hover:bg-zinc-50"
+                        }`}
+                      >
+                        {item.title}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               );
             })}

@@ -90,7 +90,7 @@ export default function TestsPage() {
       <LoginModal />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.85fr)] gap-8 xl:gap-10 items-start">
-          <div className="min-w-0">
+          <div className="min-w-0 order-2 xl:order-1">
             {user ? (
               <div className="surface-card p-6 sm:p-8 lg:p-10">
                 <header className="mb-8 max-w-2xl">
@@ -177,8 +177,8 @@ export default function TestsPage() {
             )}
           </div>
 
-          <div className="flex flex-col xl:sticky xl:top-28" id="leaderboard">
-            <LiveLeaderboard />
+          <div className="flex flex-col order-1 xl:order-2 xl:sticky xl:top-28" id="leaderboard">
+            <LiveLeaderboard initialLimit={5} />
           </div>
         </div>
       </div>

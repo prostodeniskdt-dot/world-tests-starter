@@ -21,6 +21,7 @@ html {
   --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   --gradient-silver: linear-gradient(135deg, #d6d3d1 0%, #a8a29e 100%);
   --gradient-bronze: linear-gradient(135deg, #fdba74 0%, #c2410c 100%);
+  --site-header-height: 6.5rem;
 }
 
 body {
@@ -31,6 +32,13 @@ body {
     radial-gradient(ellipse 120% 80% at 0% -20%, rgba(251, 191, 36, 0.12), transparent 50%),
     radial-gradient(ellipse 90% 60% at 100% 0%, rgba(139, 94, 60, 0.07), transparent 45%);
   background-attachment: fixed;
+}
+
+@media (max-width: 767px), (hover: none) {
+  body {
+    background-attachment: scroll;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 /* Display only where marked — long titles stay in Nunito for readability */

@@ -24,12 +24,12 @@ export function TestPagination({ page, pageSize, total, onPageChange }: Paginati
       <p className="text-sm text-zinc-500">
         Показано {from}–{to} из {total}
       </p>
-      <div className="flex items-center gap-1 flex-wrap">
+      <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-1">
         <button
           type="button"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="px-3 py-1.5 text-sm rounded-lg border border-zinc-200 disabled:opacity-40 hover:bg-zinc-50"
+          className="min-h-11 px-3 py-2 text-sm rounded-lg border border-zinc-200 disabled:opacity-40 hover:bg-zinc-50"
         >
           Назад
         </button>
@@ -38,7 +38,7 @@ export function TestPagination({ page, pageSize, total, onPageChange }: Paginati
             key={p}
             type="button"
             onClick={() => onPageChange(p)}
-            className={`min-w-[2.25rem] px-2 py-1.5 text-sm rounded-lg border ${
+            className={`hidden sm:inline-flex min-h-11 min-w-11 items-center justify-center px-2 py-2 text-sm rounded-lg border ${
               p === page
                 ? "border-primary-500 bg-primary-50 text-primary-700 font-semibold"
                 : "border-zinc-200 hover:bg-zinc-50"
@@ -51,7 +51,7 @@ export function TestPagination({ page, pageSize, total, onPageChange }: Paginati
           type="button"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="px-3 py-1.5 text-sm rounded-lg border border-zinc-200 disabled:opacity-40 hover:bg-zinc-50"
+          className="min-h-11 px-3 py-2 text-sm rounded-lg border border-zinc-200 disabled:opacity-40 hover:bg-zinc-50"
         >
           Вперёд
         </button>

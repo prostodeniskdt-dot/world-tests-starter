@@ -30,7 +30,7 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
             type="date"
             name="fromDate"
             defaultValue={fromDate}
-            className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
+            className="w-full min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base sm:text-sm"
           />
         </div>
         <div>
@@ -39,7 +39,7 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
             type="date"
             name="toDate"
             defaultValue={toDate}
-            className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
+            className="w-full min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base sm:text-sm"
           />
         </div>
         <div>
@@ -47,7 +47,7 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
           <select
             name="testId"
             defaultValue={testId}
-            className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
+            className="w-full min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base sm:text-sm"
           >
             <option value="">Все</option>
             {testOptions.map((t) => (
@@ -59,7 +59,7 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
         </div>
         <div>
           <label className="block text-xs font-medium text-zinc-600 mb-1">Результат % (мин — макс)</label>
-          <div className="flex gap-1">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <input
               type="number"
               name="minScore"
@@ -67,7 +67,7 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
               max={100}
               placeholder="0"
               defaultValue={minScore}
-              className="w-16 rounded border border-zinc-300 px-2 py-2 text-sm"
+              className="w-full min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base sm:text-sm"
             />
             <span className="self-center text-zinc-500">—</span>
             <input
@@ -77,17 +77,17 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
               max={100}
               placeholder="100"
               defaultValue={maxScore}
-              className="w-16 rounded border border-zinc-300 px-2 py-2 text-sm"
+              className="w-full min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base sm:text-sm"
             />
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-2 sm:items-center">
         <label className="text-xs font-medium text-zinc-600">Сортировка:</label>
         <select
           name="sortBy"
           defaultValue={sortBy}
-          className="rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base sm:text-sm"
           onChange={(e) => {
             const form = e.target.form;
             if (form) form.submit();
@@ -100,7 +100,7 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
         <select
           name="sortOrder"
           defaultValue={sortOrder}
-          className="rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base sm:text-sm"
           onChange={(e) => {
             const form = e.target.form;
             if (form) form.submit();
@@ -111,13 +111,13 @@ export function ProfileFilters({ basePath, userId, testOptions }: ProfileFilters
         </select>
         <button
           type="submit"
-          className="rounded-lg bg-primary-600 text-white px-4 py-2 text-sm font-medium hover:bg-primary-700"
+          className="min-h-11 rounded-lg bg-primary-600 text-white px-4 py-2 text-sm font-medium hover:bg-primary-700"
         >
           Применить
         </button>
         <a
           href={resetHref}
-          className="text-sm text-zinc-600 hover:underline"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg px-4 text-sm text-zinc-600 hover:bg-zinc-100"
         >
           Сбросить
         </a>

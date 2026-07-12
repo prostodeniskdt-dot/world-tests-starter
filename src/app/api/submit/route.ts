@@ -68,29 +68,27 @@ export async function POST(req: Request) {
     );
   }
 
-  // Идемпотентность: резервируем ключ до обработки, чтобы исключить гонку двойной записи
-  if (idempotencyKey) {
-    const { rows: insertRows } = await db.query(
-      `INSERT INTO submit_idempotency (key, user_id, test_id, response_body, expires_at)
-       VALUES ($1, $2, $3, NULL, now() + interval '48 hours')
-       ON CONFLICT (key) DO NOTHING
-       RETURNING key`,
-      [idempotencyKey, userId, testId]
-    );
+  // Идемпотентность: резервируем обязательный ключ до обработки, чтобы исключить гонку двойной записи
+  const { rows: insertRows } = await db.query(
+    `INSERT INTO submit_idempotency (key, user_id, test_id, response_body, expires_at)
+     VALUES ($1, $2, $3, NULL, now() + interval '48 hours')
+     ON CONFLICT (key) DO NOTHING
+     RETURNING key`,
+    [idempotencyKey, userId, testId]
+  );
 
-    if (insertRows.length === 0) {
-      const { rows: idemRows } = await db.query(
-        `SELECT response_body FROM submit_idempotency WHERE key = $1 AND user_id = $2`,
-        [idempotencyKey, userId]
-      );
-      if (idemRows.length > 0 && idemRows[0].response_body != null) {
-        return NextResponse.json(idemRows[0].response_body as object);
-      }
-      return NextResponse.json(
-        { ok: false, error: "Повторная отправка. Подождите и обновите страницу." },
-        { status: 409 }
-      );
+  if (insertRows.length === 0) {
+    const { rows: idemRows } = await db.query(
+      `SELECT response_body FROM submit_idempotency WHERE key = $1 AND user_id = $2`,
+      [idempotencyKey, userId]
+    );
+    if (idemRows.length > 0 && idemRows[0].response_body != null) {
+      return NextResponse.json(idemRows[0].response_body as object);
     }
+    return NextResponse.json(
+      { ok: false, error: "Повторная отправка. Подождите и обновите страницу." },
+      { status: 409 }
+    );
   }
 
   // Дополнительная проверка в БД (на случай если бан был установлен после создания токена)
@@ -239,10 +237,14 @@ export async function POST(req: Request) {
     );
 
     const { rows: attemptRows } = await db.query(
-      `SELECT id FROM attempts WHERE user_id = $1 AND test_id = $2 ORDER BY created_at DESC LIMIT 1`,
-      [userId, testId]
+      `SELECT id, points_credited
+       FROM attempts
+       WHERE user_id = $1 AND test_id = $2 AND idempotency_key = $3
+       LIMIT 1`,
+      [userId, testId, idempotencyKey]
     );
     const attemptId = attemptRows[0]?.id;
+    const pointsEarned = Number(attemptRows[0]?.points_credited ?? 0);
 
     if (attemptId) {
       for (const qId of questionIds) {
@@ -274,33 +276,30 @@ export async function POST(req: Request) {
         totalQuestions,
         scorePercent,
         pointsAwarded,
-        totalPoints: row?.total_points ?? pointsAwarded,
+        pointsEarned,
+        totalPoints: row?.total_points ?? pointsEarned,
         testsCompleted: row?.tests_completed ?? 1,
         questionResults,
       },
     };
 
     // Сохраняем ответ для идемпотентности (повторный запрос с тем же ключом вернёт этот ответ)
-    if (idempotencyKey) {
-      await db.query(
-        `UPDATE submit_idempotency
-         SET response_body = $3, expires_at = now() + interval '48 hours'
-         WHERE key = $1 AND user_id = $2`,
-        [idempotencyKey, userId, JSON.stringify(responsePayload)]
-      );
-    }
+    await db.query(
+      `UPDATE submit_idempotency
+       SET response_body = $3, expires_at = now() + interval '48 hours'
+       WHERE key = $1 AND user_id = $2`,
+      [idempotencyKey, userId, JSON.stringify(responsePayload)]
+    );
 
     return NextResponse.json(responsePayload);
   } catch (err: any) {
-    if (idempotencyKey) {
-      try {
-        await db.query(
-          `DELETE FROM submit_idempotency WHERE key = $1 AND user_id = $2 AND response_body IS NULL`,
-          [idempotencyKey, userId]
-        );
-      } catch {
-        /* ignore cleanup errors */
-      }
+    try {
+      await db.query(
+        `DELETE FROM submit_idempotency WHERE key = $1 AND user_id = $2 AND response_body IS NULL`,
+        [idempotencyKey, userId]
+      );
+    } catch {
+      /* ignore cleanup errors */
     }
     return NextResponse.json(
       {

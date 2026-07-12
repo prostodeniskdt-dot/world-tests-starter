@@ -29,7 +29,10 @@ export function Nav() {
           initialMode={authMode}
         />
       )}
-      <header className="border-b border-stone-200/80 bg-surface-raised/90 backdrop-blur-md sticky top-0 z-40 shadow-soft">
+      <header
+        data-site-header
+        className="border-b border-stone-200/80 bg-surface-raised/90 backdrop-blur-md sticky top-0 z-40 shadow-soft"
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 min-w-0">
           <Link
             href="/"

@@ -57,11 +57,11 @@ function getRankVisual(rank: number) {
   };
 }
 
-export function LiveLeaderboard() {
+export function LiveLeaderboard({ initialLimit = 25 }: { initialLimit?: number }) {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [displayLimit, setDisplayLimit] = useState(25);
+  const [displayLimit, setDisplayLimit] = useState(initialLimit);
 
   const fetchLeaderboard = async () => {
     setIsRefreshing(true);
@@ -156,41 +156,35 @@ export function LiveLeaderboard() {
                       {visual.icon ?? r.rank}
                     </div>
 
-                    <Link
-                      href={`/profile?userId=${r.user_id}`}
-                      className="min-w-0 flex-1 flex items-start gap-3 sm:gap-3.5 group"
-                    >
+                    <div className="min-w-0 flex-1 flex items-start gap-3 sm:gap-3.5">
                       <div
                         className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${visual.avatar}`}
                       >
                         {initial}
                       </div>
                       <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
-                        <div className="font-semibold text-stone-950 leading-snug break-words group-hover:text-primary-900">
+                        <Link
+                          href={`/profile?userId=${r.user_id}`}
+                          className="block font-semibold text-stone-950 leading-snug break-words hover:text-primary-900 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
+                        >
                           {r.display_name || "Участник"}
-                        </div>
+                        </Link>
                         {r.telegram_username ? (
-                          <span
-                            className="inline-block text-sm text-stone-500 leading-relaxed"
-                            onClick={(e) => e.stopPropagation()}
+                          <a
+                            href={`https://t.me/${r.telegram_username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block text-sm text-stone-500 leading-relaxed hover:underline"
                           >
-                            <a
-                              href={`https://t.me/${r.telegram_username}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              @{r.telegram_username}
-                            </a>
-                          </span>
+                            @{r.telegram_username}
+                          </a>
                         ) : (
                           <span className="block text-sm text-stone-400 leading-relaxed">
                             {isTop3 ? visual.label : `Место ${r.rank}`}
                           </span>
                         )}
                       </div>
-                    </Link>
+                    </div>
 
                     <div className="shrink-0 text-right pt-0.5 pl-2">
                       <div

@@ -53,7 +53,7 @@ export function UserMenu() {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 rounded-full hover:bg-zinc-100 p-2 transition-all"
+        className="flex min-h-11 items-center gap-2 sm:gap-3 rounded-full hover:bg-zinc-100 p-1 sm:p-2 transition-all"
         aria-expanded={isOpen}
         aria-controls="user-account-menu"
         aria-haspopup="menu"
@@ -72,14 +72,16 @@ export function UserMenu() {
             {user.firstName.charAt(0).toUpperCase()}
           </div>
         )}
-        <span className="hidden md:block text-sm font-semibold text-zinc-900">{fullName}</span>
+        <span className="hidden sm:block max-w-32 truncate text-sm font-semibold text-zinc-900">
+          {user.firstName}
+        </span>
       </button>
 
       {isOpen && (
         <div
           id="user-account-menu"
           role="menu"
-          className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-zinc-200 py-2 z-50 animate-scale-in"
+          className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] sm:w-72 bg-white rounded-xl shadow-xl border border-zinc-200 py-2 z-50 animate-scale-in"
         >
           <div className="px-4 py-3 border-b border-zinc-200">
             <div className="font-semibold text-sm text-zinc-900">{fullName}</div>
@@ -98,7 +100,7 @@ export function UserMenu() {
           <Link
             href={`/profile?userId=${user.userId}`}
             role="menuitem"
-            className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+            className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
             onClick={() => setIsOpen(false)}
           >
             <User className="h-4 w-4" aria-hidden="true" />
@@ -107,7 +109,7 @@ export function UserMenu() {
           <Link
             href="/profile/materials"
             role="menuitem"
-            className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+            className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
             onClick={() => setIsOpen(false)}
           >
             <FileText className="h-4 w-4" aria-hidden="true" />
@@ -117,7 +119,7 @@ export function UserMenu() {
             <Link
               href="/admin"
               role="menuitem"
-              className="flex items-center gap-3 px-4 py-2 text-sm text-primary-700 hover:bg-primary-50 transition-colors border-t border-zinc-200 mt-1"
+              className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm text-primary-700 hover:bg-primary-50 transition-colors border-t border-zinc-200 mt-1"
               onClick={() => setIsOpen(false)}
             >
               <Shield className="h-4 w-4" aria-hidden="true" />
@@ -127,7 +129,7 @@ export function UserMenu() {
           <button
             onClick={handleLogout}
             role="menuitem"
-            className="w-full flex items-center gap-3 text-left px-4 py-2 text-sm text-error hover:bg-red-50 transition-colors"
+            className="w-full flex min-h-11 items-center gap-3 text-left px-4 py-2 text-sm text-error hover:bg-red-50 transition-colors"
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />
             Выйти

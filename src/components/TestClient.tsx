@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { UserGate, useLocalUser } from "@/components/UserGate";
 import { ArrowRight, Award, Send } from "lucide-react";
 import { DifficultyBadge } from "@/components/DifficultyBadge";
@@ -43,6 +43,7 @@ type SubmitResponse =
         totalQuestions: number;
         scorePercent: number;
         pointsAwarded: number;
+        pointsEarned: number;
         totalPoints: number;
         testsCompleted: number;
         questionResults?: Record<string, boolean>;
@@ -81,6 +82,7 @@ export function TestClient({ test }: { test: PublicTest }) {
   } | null>(null);
   const { user: currentUser } = useLocalUser();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const confirmModalRef = useRef<HTMLDivElement>(null);
   // Ключ идемпотентности: один на одно нажатие «Завершить тест», чтобы повторная отправка не создавала дубль попытки
   const [submitIdempotencyKey, setSubmitIdempotencyKey] = useState<string | null>(null);
 
@@ -127,6 +129,52 @@ export function TestClient({ test }: { test: PublicTest }) {
     }
   }, [test.id, currentUser?.userId]);
 
+  useEffect(() => {
+    const siteHeader = document.querySelector<HTMLElement>("[data-site-header]");
+    if (!siteHeader) return;
+
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        "--site-header-height",
+        `${siteHeader.getBoundingClientRect().height}px`
+      );
+    };
+    updateHeaderHeight();
+
+    const observer = new ResizeObserver(updateHeaderHeight);
+    observer.observe(siteHeader);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!showConfirmModal) return;
+    const modal = confirmModalRef.current;
+    const focusable = modal?.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    focusable?.[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowConfirmModal(false);
+        return;
+      }
+      if (event.key !== "Tab" || !focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showConfirmModal]);
+
   // При открытии модалки подтверждения генерируем ключ идемпотентности для этой отправки
   const openConfirmModal = () => {
     setSubmitIdempotencyKey(crypto.randomUUID());
@@ -151,7 +199,7 @@ export function TestClient({ test }: { test: PublicTest }) {
         </div>
       </header>
 
-      <div className="sticky top-[4.5rem] z-20 rounded-xl border border-stone-200/80 bg-surface-raised/95 backdrop-blur-md shadow-soft p-4">
+      <div className="sticky top-[calc(var(--site-header-height,6.5rem)+0.5rem)] z-20 rounded-xl border border-stone-200/80 bg-surface-raised/95 backdrop-blur-md shadow-soft p-3 sm:p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-stone-700">
             Прогресс: {answeredCount} / {test.questions.length} вопросов
@@ -238,9 +286,20 @@ export function TestClient({ test }: { test: PublicTest }) {
 
             {/* Модальное окно подтверждения */}
             {showConfirmModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
-                <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in relative max-h-[90vh] overflow-y-auto">
-                  <h3 className="text-lg sm:text-xl font-bold mb-4">Подтверждение отправки</h3>
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4"
+                onMouseDown={(event) => {
+                  if (event.currentTarget === event.target) setShowConfirmModal(false);
+                }}
+              >
+                <div
+                  ref={confirmModalRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="submit-confirm-title"
+                  className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl animate-scale-in relative max-h-[90vh] overflow-y-auto"
+                >
+                  <h3 id="submit-confirm-title" className="text-lg sm:text-xl font-bold mb-4">Подтверждение отправки</h3>
                   <p className="text-zinc-600 mb-4">
                     Вы ответили на {answeredCount} из {test.questions.length} вопросов. 
                     Вы уверены, что хотите завершить тест?
@@ -259,7 +318,7 @@ export function TestClient({ test }: { test: PublicTest }) {
                       </p>
                     </div>
                   )}
-                  <div className="flex gap-3">
+                  <div className="flex flex-col-reverse sm:flex-row gap-3">
                     <button
                       onClick={async () => {
                         if (submitted) {
@@ -375,13 +434,13 @@ export function TestClient({ test }: { test: PublicTest }) {
                           setSubmitting(false);
                         }
                       }}
-                      className="flex-1 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-all"
+                      className="flex-1 min-h-11 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-all"
                     >
                       Да, завершить
                     </button>
                     <button
                       onClick={() => setShowConfirmModal(false)}
-                      className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-primary-100 transition-colors"
+                      className="flex-1 min-h-11 rounded-lg border px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-primary-100 transition-colors"
                     >
                       Отмена
                     </button>
@@ -411,11 +470,15 @@ export function TestClient({ test }: { test: PublicTest }) {
                         <div className="text-success font-semibold">{result.result.scorePercent}%</div>
                       </div>
                       <div className="bg-white rounded-lg p-3 border border-green-200">
-                        <div className="text-zinc-600 mb-1">Очки за попытку</div>
+                        <div className="text-zinc-600 mb-1">Начислено в рейтинг</div>
                         <div className="font-bold text-2xl text-primary-600">
-                          +{result.result.pointsAwarded}
+                          +{result.result.pointsEarned}
                         </div>
-                        {result.result.scorePercent >= 80 && (
+                        {result.result.pointsEarned === 0 ? (
+                          <div className="mt-1 text-xs text-stone-500 font-medium">
+                            Личный рекорд не улучшен. Практиковаться можно без ограничений.
+                          </div>
+                        ) : result.result.scorePercent >= 80 && (
                           <div className="mt-1 text-xs text-primary-600 font-medium">
                             {result.result.scorePercent === 100 ? '🌟 Идеально! +30% бонус' : 
                              result.result.scorePercent >= 90 ? '⭐ Отлично! +15% бонус' : 

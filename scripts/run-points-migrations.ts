@@ -30,6 +30,7 @@ const MIGRATION_FILES = [
   "20260216_submit_idempotency.sql",
   "20260216_attempts_audit.sql",
   "20260216_drop_old_record_attempt.sql",
+  "20260712_best_score_points_season.sql",
 ];
 
 async function main() {
