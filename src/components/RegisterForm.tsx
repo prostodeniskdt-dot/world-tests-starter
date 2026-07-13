@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { validateEmail } from "@/lib/emailValidator";
 import { validatePasswordStrength } from "@/lib/password";
 import { useLocalUser } from "./UserGate";
@@ -53,12 +53,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       return;
     }
 
-    // Проверка на существующий email
-    if (emailError && emailError.includes("уже зарегистрирован")) {
-      setError(emailError);
-      setLoading(false);
-      return;
-    }
+    // Проверка на существующий email выполняется на сервере при регистрации.
 
     // Валидация пароля
     const passwordValidation = validatePasswordStrength(password);
@@ -118,44 +113,15 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     }
   };
 
-  // Проверка существующего email при вводе (debounce)
-  useEffect(() => {
-    const checkEmail = async () => {
-      if (!email || !email.includes("@")) {
-        setEmailError(null);
-        return;
-      }
-
-      // Сначала проверяем валидацию формата и временных email
-      const validation = validateEmail(email);
-      if (!validation.valid) {
-        setEmailError(validation.error || null);
-        return;
-      }
-
-      // Если валидация прошла, проверяем существование пользователя
-      try {
-        const response = await fetch("/api/auth/check-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim() }),
-        });
-        const result = await response.json();
-        
-        if (result.ok && result.exists) {
-          setEmailError("Пользователь с таким email уже зарегистрирован. Войдите в систему.");
-        } else {
-          setEmailError(null);
-        }
-      } catch {
-        // Игнорируем ошибки проверки, чтобы не мешать пользователю
-        setEmailError(null);
-      }
-    };
-
-    const timeoutId = setTimeout(checkEmail, 800);
-    return () => clearTimeout(timeoutId);
-  }, [email]);
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (!value || !value.includes("@")) {
+      setEmailError(null);
+      return;
+    }
+    const validation = validateEmail(value);
+    setEmailError(validation.valid ? null : validation.error || null);
+  };
 
   // Нормализуем telegram username - убираем @ если пользователь вводит
   const handleTelegramChange = (value: string) => {
@@ -173,7 +139,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           id="email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => handleEmailChange(e.target.value)}
           required
           placeholder="example@email.com"
           className={`w-full rounded-md border px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] sm:min-h-0 ${

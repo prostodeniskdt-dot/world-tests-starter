@@ -8,11 +8,17 @@ import { Spinner } from "./Spinner";
 
 type Props = {
   isOwnProfile: boolean;
+  canViewPrivateData: boolean;
   initialAbout: string | null;
   initialAchievements: string | null;
 };
 
-export function ProfileBioSection({ isOwnProfile, initialAbout, initialAchievements }: Props) {
+export function ProfileBioSection({
+  isOwnProfile,
+  canViewPrivateData,
+  initialAbout,
+  initialAchievements,
+}: Props) {
   const router = useRouter();
   const [about, setAbout] = useState(initialAbout ?? "");
   const [achievements, setAchievements] = useState(initialAchievements ?? "");
@@ -24,6 +30,7 @@ export function ProfileBioSection({ isOwnProfile, initialAbout, initialAchieveme
   }, [initialAbout, initialAchievements]);
 
   if (!isOwnProfile) {
+    if (!canViewPrivateData) return null;
     const a = (initialAbout ?? "").trim();
     const ach = (initialAchievements ?? "").trim();
     if (!a && !ach) return null;

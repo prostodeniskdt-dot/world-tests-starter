@@ -51,9 +51,9 @@ export async function POST(req: Request) {
     return authResult;
   }
 
-  const { userId, payload } = authResult;
+  const { userId, isAdmin } = authResult;
   const { testId, answers, idempotencyKey } = parsed.data;
-  const testAccess = { userId, isAdmin: payload.isAdmin };
+  const testAccess = { userId, isAdmin };
 
   // Лимит по пользователю (в дополнение к лимиту по IP)
   const userRateLimit = await checkRateLimit(submitRateLimiterByUser, userId);

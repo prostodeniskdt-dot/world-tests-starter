@@ -21,11 +21,26 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 let pool: Pool | null = null;
 
+function getDbSsl(): false | { rejectUnauthorized: boolean; ca?: string } {
+  if (process.env.DB_SSL !== "true") return false;
+
+  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false";
+  const ca = process.env.DB_SSL_CA?.trim();
+  if (ca) {
+    return {
+      rejectUnauthorized: true,
+      ca: ca.includes("\\n") ? ca.replace(/\\n/g, "\n") : ca,
+    };
+  }
+
+  return { rejectUnauthorized };
+}
+
 function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
       connectionString: required("DATABASE_URL"),
-      ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
+      ssl: getDbSsl(),
       connectionTimeoutMillis: 15000,
     });
   }

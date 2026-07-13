@@ -1,4 +1,3 @@
-import "server-only";
 import sanitizeHtml, { type Attributes } from "sanitize-html";
 import { isAllowedKnowledgeMediaUrl, normalizeKnowledgeMediaSrc } from "@/lib/knowledgeMediaUrl";
 

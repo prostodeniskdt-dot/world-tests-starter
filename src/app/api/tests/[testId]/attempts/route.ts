@@ -13,12 +13,12 @@ export async function GET(
     return authResult;
   }
 
-  const { userId, payload } = authResult;
+  const { userId, isAdmin } = authResult;
   const { testId } = params;
 
   const testSecret = await getSecretTest(testId, {
     userId,
-    isAdmin: payload.isAdmin,
+    isAdmin,
   });
   if (!testSecret) {
     return NextResponse.json(

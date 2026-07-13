@@ -1,8 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
+import { getServerAuth } from "@/lib/auth-server";
 import { getTestWithQuestionsById, getTestById, canViewTestQuestionBreakdownInProfile } from "@/lib/tests-registry";
 import type { PublicTestQuestion } from "@/tests/types";
 import { Check, X, ArrowLeft } from "lucide-react";
@@ -122,9 +121,7 @@ export default async function AttemptDetailPage({
 }) {
   const { attemptId } = await params;
   const { userId: requestedUserId } = await searchParams;
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
-  const currentUser = token ? verifyToken(token) : null;
+  const currentUser = await getServerAuth();
 
   if (!currentUser) {
     return (

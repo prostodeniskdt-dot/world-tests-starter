@@ -1,8 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
+import { getServerAuth } from "@/lib/auth-server";
 import { Trophy, Award, Calendar, ExternalLink, BarChart3, FileDown } from "lucide-react";
 import { ProfileDeleteAccount } from "@/components/ProfileDeleteAccount";
 import { ProfileFilters } from "@/components/ProfileFilters";
@@ -47,9 +46,7 @@ export default async function ProfilePage({
   }>;
 }) {
   const params = await searchParams;
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
-  const currentUser = token ? verifyToken(token) : null;
+  const currentUser = await getServerAuth();
 
   const requestedUserId = params.userId;
   const userId = requestedUserId || currentUser?.userId;
@@ -81,98 +78,102 @@ export default async function ProfilePage({
     notFound();
   }
 
-  const { rows: statsRows } = await db.query(
-    `SELECT * FROM user_stats WHERE user_id = $1 LIMIT 1`,
-    [userId]
-  );
-  const stats = statsRows[0] || null;
-
-  // Параметры фильтрации и сортировки
-  const fromDate = params.fromDate || "";
-  const toDate = params.toDate || "";
-  const filterTestId = params.testId || "";
-  const minScore = params.minScore ? parseInt(params.minScore, 10) : null;
-  const maxScore = params.maxScore ? parseInt(params.maxScore, 10) : null;
-  const sortBy = params.sortBy === "points" ? "points" : params.sortBy === "percent" ? "percent" : "date";
-  const sortOrder = params.sortOrder === "asc" ? "ASC" : "DESC";
-
-  // Запрос попыток: только по существующим тестам (INNER JOIN), с фильтрами и сортировкой
-  const conditions: string[] = ["a.user_id = $1", "t.id IS NOT NULL"];
-  const values: (string | number)[] = [userId];
-  let paramIdx = 2;
-
-  if (fromDate) {
-    conditions.push(`a.created_at >= $${paramIdx}::date`);
-    values.push(fromDate);
-    paramIdx++;
-  }
-  if (toDate) {
-    conditions.push(`a.created_at <= ($${paramIdx}::date + interval '1 day')`);
-    values.push(toDate);
-    paramIdx++;
-  }
-  if (filterTestId) {
-    conditions.push(`a.test_id = $${paramIdx}`);
-    values.push(filterTestId);
-    paramIdx++;
-  }
-  if (minScore !== null && !Number.isNaN(minScore)) {
-    conditions.push(`a.score_percent >= $${paramIdx}`);
-    values.push(minScore);
-    paramIdx++;
-  }
-  if (maxScore !== null && !Number.isNaN(maxScore)) {
-    conditions.push(`a.score_percent <= $${paramIdx}`);
-    values.push(maxScore);
-    paramIdx++;
-  }
-
-  const orderColumn =
-    sortBy === "points" ? "a.points_awarded" : sortBy === "percent" ? "a.score_percent" : "a.created_at";
-
-  const { rows: attemptRows } = await db.query(
-    `SELECT a.id, a.test_id, a.score_percent, a.points_awarded, a.created_at, t.title as test_title
-     FROM attempts a
-     INNER JOIN tests t ON t.id = a.test_id
-     WHERE ${conditions.join(" AND ")}
-     ORDER BY ${orderColumn} ${sortOrder}
-     LIMIT 50`,
-    values
-  );
-  const attemptsList = (attemptRows || []) as Attempt[];
-
-  // Аналитика по категориям (только по существующим тестам)
-  const { rows: categoryRows } = await db.query(
-    `SELECT t.category, COUNT(*)::int as attempts_count, COUNT(DISTINCT a.test_id)::int as unique_tests, ROUND(AVG(a.score_percent), 1)::float as avg_score
-     FROM attempts a
-     INNER JOIN tests t ON t.id = a.test_id
-     WHERE a.user_id = $1
-     GROUP BY t.category
-     ORDER BY attempts_count DESC`,
-    [userId]
-  );
-  const categoryStats = (categoryRows || []) as CategoryStat[];
-
-  // Тесты для выпадающего списка фильтра (все уникальные из попыток пользователя)
-  const { rows: testOptionsRows } = await db.query(
-    `SELECT DISTINCT t.id, t.title FROM attempts a
-     INNER JOIN tests t ON t.id = a.test_id
-     WHERE a.user_id = $1 ORDER BY t.title`,
-    [userId]
-  );
-  const testOptions = (testOptionsRows || []).map((r: { id: string; title: string }) => ({
-    id: r.id,
-    title: r.title,
-  }));
-
   const isOwnProfile = currentUser.userId === userId;
   const consentPublicRating = Boolean(user.consent_public_rating);
+  const showPublicInfo = isOwnProfile || consentPublicRating;
+  const canViewPrivateData = showPublicInfo;
+
+  let stats: { total_points: number; tests_completed: number } | null = null;
+  let attemptsList: Attempt[] = [];
+  let categoryStats: CategoryStat[] = [];
+  let testOptions: { id: string; title: string }[] = [];
+
+  if (canViewPrivateData) {
+    const { rows: statsRows } = await db.query(
+      `SELECT * FROM user_stats WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    stats = statsRows[0] || null;
+
+    const fromDate = params.fromDate || "";
+    const toDate = params.toDate || "";
+    const filterTestId = params.testId || "";
+    const minScore = params.minScore ? parseInt(params.minScore, 10) : null;
+    const maxScore = params.maxScore ? parseInt(params.maxScore, 10) : null;
+    const sortBy = params.sortBy === "points" ? "points" : params.sortBy === "percent" ? "percent" : "date";
+    const sortOrder = params.sortOrder === "asc" ? "ASC" : "DESC";
+
+    const conditions: string[] = ["a.user_id = $1", "t.id IS NOT NULL"];
+    const values: (string | number)[] = [userId];
+    let paramIdx = 2;
+
+    if (fromDate) {
+      conditions.push(`a.created_at >= $${paramIdx}::date`);
+      values.push(fromDate);
+      paramIdx++;
+    }
+    if (toDate) {
+      conditions.push(`a.created_at <= ($${paramIdx}::date + interval '1 day')`);
+      values.push(toDate);
+      paramIdx++;
+    }
+    if (filterTestId) {
+      conditions.push(`a.test_id = $${paramIdx}`);
+      values.push(filterTestId);
+      paramIdx++;
+    }
+    if (minScore !== null && !Number.isNaN(minScore)) {
+      conditions.push(`a.score_percent >= $${paramIdx}`);
+      values.push(minScore);
+      paramIdx++;
+    }
+    if (maxScore !== null && !Number.isNaN(maxScore)) {
+      conditions.push(`a.score_percent <= $${paramIdx}`);
+      values.push(maxScore);
+      paramIdx++;
+    }
+
+    const orderColumn =
+      sortBy === "points" ? "a.points_awarded" : sortBy === "percent" ? "a.score_percent" : "a.created_at";
+
+    const { rows: attemptRows } = await db.query(
+      `SELECT a.id, a.test_id, a.score_percent, a.points_awarded, a.created_at, t.title as test_title
+       FROM attempts a
+       INNER JOIN tests t ON t.id = a.test_id
+       WHERE ${conditions.join(" AND ")}
+       ORDER BY ${orderColumn} ${sortOrder}
+       LIMIT 50`,
+      values
+    );
+    attemptsList = (attemptRows || []) as Attempt[];
+
+    const { rows: categoryRows } = await db.query(
+      `SELECT t.category, COUNT(*)::int as attempts_count, COUNT(DISTINCT a.test_id)::int as unique_tests, ROUND(AVG(a.score_percent), 1)::float as avg_score
+       FROM attempts a
+       INNER JOIN tests t ON t.id = a.test_id
+       WHERE a.user_id = $1
+       GROUP BY t.category
+       ORDER BY attempts_count DESC`,
+      [userId]
+    );
+    categoryStats = (categoryRows || []) as CategoryStat[];
+
+    const { rows: testOptionsRows } = await db.query(
+      `SELECT DISTINCT t.id, t.title FROM attempts a
+       INNER JOIN tests t ON t.id = a.test_id
+       WHERE a.user_id = $1 ORDER BY t.title`,
+      [userId]
+    );
+    testOptions = (testOptionsRows || []).map((r: { id: string; title: string }) => ({
+      id: r.id,
+      title: r.title,
+    }));
+  }
+
   const displayName =
     user.telegram_username?.trim()
       ? user.telegram_username
       : `${user.first_name || ""} ${(user.last_name || "").charAt(0) || ""}.`.trim() || "Участник";
-  const showPublicInfo = isOwnProfile || consentPublicRating;
-
   const profileBasePath = "/profile";
 
   const avatarUrl = user.avatar_url as string | null | undefined;
@@ -239,13 +240,14 @@ export default async function ProfilePage({
 
           <ProfileBioSection
             isOwnProfile={isOwnProfile}
+            canViewPrivateData={canViewPrivateData}
             initialAbout={user.profile_about != null ? String(user.profile_about) : null}
             initialAchievements={
               user.profile_achievements != null ? String(user.profile_achievements) : null
             }
           />
 
-        {stats && (
+        {canViewPrivateData && stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
             <div className="rounded-lg border-2 border-primary-200 bg-gradient-to-br from-zinc-900 to-zinc-800 p-6">
               <div className="flex items-center gap-3 mb-2">
@@ -268,6 +270,12 @@ export default async function ProfilePage({
         </div>
       </div>
 
+      {!isOwnProfile && !canViewPrivateData && (
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-6 text-center text-zinc-600">
+          Пользователь не разрешил публичный просмотр профиля и статистики.
+        </div>
+      )}
+
       {isOwnProfile && (
         <ProfileContributions
           items={contributions.items}
@@ -278,7 +286,7 @@ export default async function ProfilePage({
       {isOwnProfile && <ProfileDashboardLinks />}
 
       {/* Аналитика по категориям */}
-      {categoryStats.length > 0 && (
+      {canViewPrivateData && categoryStats.length > 0 && (
         <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -305,7 +313,7 @@ export default async function ProfilePage({
         </div>
       )}
 
-      {attemptsList.length > 0 && (
+      {canViewPrivateData && attemptsList.length > 0 && (
         <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2">
@@ -429,7 +437,7 @@ export default async function ProfilePage({
         </div>
       )}
 
-      {attemptsList.length === 0 && (
+      {canViewPrivateData && attemptsList.length === 0 && isOwnProfile && (
         <div className="rounded-xl border border-zinc-200 bg-white shadow-soft p-12 text-center">
           <Trophy className="h-16 w-16 text-zinc-300 mx-auto mb-4" />
           <div className="text-zinc-600 mb-4">Пока нет попыток.</div>

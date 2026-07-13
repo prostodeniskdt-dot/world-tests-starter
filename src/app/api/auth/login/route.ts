@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { signToken } from "@/lib/jwt";
 import { checkRateLimit, loginRateLimiter } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/request";
 
 const loginSchema = z.object({
   email: z.string().email("Невалидный email адрес"),
@@ -13,8 +14,7 @@ const loginSchema = z.object({
 
 export async function POST(req: Request) {
   // Получаем IP адрес
-  const forwarded = req.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0] : "unknown";
+  const ip = getClientIp(req);
 
   // Проверяем rate limit
   const rateLimit = await checkRateLimit(loginRateLimiter, ip);
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     if (!msg.includes("avatar_url") && !msg.includes("profile_cover_url")) {
       console.error("Error finding user:", err);
       return NextResponse.json(
-        { ok: false, error: "Ошибка базы данных: " + msg },
+        { ok: false, error: "Внутренняя ошибка сервера" },
         { status: 500 }
       );
     }

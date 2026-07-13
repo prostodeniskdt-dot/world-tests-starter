@@ -1,9 +1,8 @@
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
-// Создаем разные лимитеры для разных эндпоинтов
 export const loginRateLimiter = new RateLimiterMemory({
-  points: 5, // Количество запросов
-  duration: 60, // За период (в секундах)
+  points: 5,
+  duration: 60,
 });
 
 export const submitRateLimiter = new RateLimiterMemory({
@@ -11,7 +10,6 @@ export const submitRateLimiter = new RateLimiterMemory({
   duration: 60,
 });
 
-// Лимит по пользователю: не более 10 отправок в минуту на одного user_id
 export const submitRateLimiterByUser = new RateLimiterMemory({
   points: 10,
   duration: 60,
@@ -19,7 +17,27 @@ export const submitRateLimiterByUser = new RateLimiterMemory({
 
 export const registerRateLimiter = new RateLimiterMemory({
   points: 3,
-  duration: 3600, // 1 час
+  duration: 3600,
+});
+
+export const checkEmailRateLimiter = new RateLimiterMemory({
+  points: 10,
+  duration: 900,
+});
+
+export const forgotPasswordRateLimiter = new RateLimiterMemory({
+  points: 3,
+  duration: 900,
+});
+
+export const forgotPasswordByEmailRateLimiter = new RateLimiterMemory({
+  points: 3,
+  duration: 900,
+});
+
+export const resetPasswordRateLimiter = new RateLimiterMemory({
+  points: 5,
+  duration: 900,
 });
 
 export async function checkRateLimit(
@@ -35,13 +53,15 @@ export async function checkRateLimit(
         ? new Date(Date.now() + result.msBeforeNext)
         : undefined,
     };
-  } catch (result: any) {
+  } catch (result: unknown) {
+    const msBeforeNext =
+      result && typeof result === "object" && "msBeforeNext" in result
+        ? Number((result as { msBeforeNext?: number }).msBeforeNext)
+        : undefined;
     return {
       allowed: false,
       remaining: 0,
-      resetTime: result.msBeforeNext
-        ? new Date(Date.now() + result.msBeforeNext)
-        : undefined,
+      resetTime: msBeforeNext ? new Date(Date.now() + msBeforeNext) : undefined,
     };
   }
 }

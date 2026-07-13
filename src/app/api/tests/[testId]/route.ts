@@ -12,7 +12,7 @@ export async function GET(
   const { testId } = params;
   const test = await getPublicTest(testId, {
     userId: authResult.userId,
-    isAdmin: authResult.payload.isAdmin,
+    isAdmin: authResult.isAdmin,
   });
 
   if (!test) {

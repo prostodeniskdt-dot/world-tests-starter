@@ -1,36 +1,24 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
+import { requireAuth } from "@/lib/auth-middleware";
 
 /**
- * Middleware для проверки админских прав
- * Используйте в API routes, которые требуют админских прав
+ * Middleware для проверки админских прав.
+ * is_admin и is_banned перечитываются из БД через requireAuth.
  */
-export async function requireAdmin(req: Request): Promise<{ ok: true; userId: string } | NextResponse> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
-
-  if (!token) {
-    return NextResponse.json(
-      { ok: false, error: "Требуется авторизация" },
-      { status: 401 }
-    );
+export async function requireAdmin(
+  req: Request
+): Promise<{ ok: true; userId: string } | NextResponse> {
+  const authResult = await requireAuth(req);
+  if (authResult instanceof NextResponse) {
+    return authResult;
   }
 
-  const payload = verifyToken(token);
-  if (!payload) {
-    return NextResponse.json(
-      { ok: false, error: "Невалидный токен" },
-      { status: 401 }
-    );
-  }
-
-  if (!payload.isAdmin) {
+  if (!authResult.isAdmin) {
     return NextResponse.json(
       { ok: false, error: "Доступ запрещен. Требуются админские права." },
       { status: 403 }
     );
   }
 
-  return { ok: true, userId: payload.userId };
+  return { ok: true, userId: authResult.userId };
 }

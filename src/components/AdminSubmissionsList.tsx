@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { sanitizeArticleHtml } from "@/lib/sanitizeArticleHtml";
 
 type Submission = {
   id: number;
@@ -211,7 +212,7 @@ function SubmissionCard({
   }, [categories, s.category_id, s.id]);
 
   const author = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email || "—";
-  const html = String(s.content ?? "");
+  const html = sanitizeArticleHtml(String(s.content ?? ""));
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4">

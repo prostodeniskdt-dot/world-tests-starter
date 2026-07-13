@@ -68,8 +68,10 @@ npm run migrate-tests
 |------------|----------|
 | `DATABASE_URL` | Строка подключения PostgreSQL (из шага 1) |
 | `DB_SSL` | `true` — для облачной БД Timeweb |
-| `JWT_SECRET` | Секрет для JWT (длинная случайная строка) |
+| `JWT_SECRET` | Секрет для JWT (**обязательно**, минимум 32 символа; `openssl rand -base64 48`) |
 | `NEXT_PUBLIC_APP_URL` | URL сайта после деплоя (например `https://your-app.twc1.net`) |
+
+Опционально: `DB_SSL_CA` (PEM CA для PostgreSQL), `RESET_EMAIL_ENABLED`, `REDIS_URL` (rate limit при нескольких инстансах).
 
 ### Переменные для S3 (опционально, для загрузки изображений)
 
@@ -101,7 +103,7 @@ docker build -t o-tom-o-sem .
 docker run -p 8080:8080 \
   -e DATABASE_URL="postgresql://..." \
   -e DB_SSL=true \
-  -e JWT_SECRET="your-secret" \
+  -e JWT_SECRET="$(openssl rand -base64 48)" \
   -e NEXT_PUBLIC_APP_URL="http://localhost:8080" \
   o-tom-o-sem
 ```
@@ -116,7 +118,16 @@ docker run -p 8080:8080 \
 - [ ] Выполнены скрипты: `init.sql` → `add-admin-fields.sql` → `add-tests-v2.sql` → `20260320_catalogs.sql`.
 - [ ] Запущена миграция тестов: `npm run migrate-tests` (при необходимости укажите в `.env.local` IP вместо хоста).
 - [ ] Деплой идёт через **Dockerfile**, не через шаблон «Next.js».
-- [ ] Заданы переменные: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET`, `NEXT_PUBLIC_APP_URL`.
+- [ ] Заданы переменные: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET` (≥32 символов, не placeholder), `NEXT_PUBLIC_APP_URL`.
 - [ ] `NEXT_PUBLIC_APP_URL` указывает на итоговый HTTPS-адрес сайта (например `https://your-app.twc1.net`).
+- [ ] `JWT_SECRET` не закоммичен в репозиторий; ссылки сброса пароля не пишутся в логи.
+- [ ] После деплоя: `npm audit` без критичных уязвимостей; проверить, что чужой профиль без `consent_public_rating` не показывает статистику.
+
+### Безопасность (кратко)
+
+- JWT в `httpOnly` cookie; `is_admin` / `is_banned` перечитываются из БД на каждый API-запрос.
+- Админ-раздел защищён `src/app/admin/layout.tsx` (проверка прав в БД).
+- Rate limit: login, register, submit, forgot/reset password.
+- Security headers: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`.
 
 После этого сайт с тестами, пользователями и рейтингом будет работать на Timeweb Cloud как полноценное приложение с PostgreSQL.
