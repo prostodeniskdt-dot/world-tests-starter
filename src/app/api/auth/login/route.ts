@@ -139,16 +139,28 @@ export async function POST(req: Request) {
     );
   }
 
-  // Создаем JWT токен
-  const token = signToken({
-    userId: user.id,
-    email: user.email,
-    firstName: user.first_name,
-    lastName: user.last_name,
-    telegramUsername: user.telegram_username,
-    isAdmin: user.is_admin || false,
-    isBanned: user.is_banned || false,
-  });
+  let token: string;
+  try {
+    token = signToken({
+      userId: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      telegramUsername: user.telegram_username,
+      isAdmin: user.is_admin || false,
+      isBanned: user.is_banned || false,
+    });
+  } catch (err) {
+    console.error("JWT sign error:", err);
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Ошибка конфигурации сервера (JWT_SECRET). Обратитесь к администратору.",
+      },
+      { status: 500 }
+    );
+  }
 
   const userData = {
     userId: user.id,

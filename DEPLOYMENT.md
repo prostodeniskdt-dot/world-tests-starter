@@ -71,7 +71,7 @@ npm run migrate-tests
 | `JWT_SECRET` | Секрет для JWT (**обязательно**, минимум 32 символа; `openssl rand -base64 48`) |
 | `NEXT_PUBLIC_APP_URL` | URL сайта после деплоя (например `https://your-app.twc1.net`) |
 
-Опционально: `DB_SSL_CA` (PEM CA для PostgreSQL), `RESET_EMAIL_ENABLED`, `REDIS_URL` (rate limit при нескольких инстансах).
+Опционально: `DB_SSL_CA` (PEM CA для PostgreSQL), `DB_SSL_REJECT_UNAUTHORIZED=true` (строгая проверка SSL), `RESET_EMAIL_ENABLED`, `REDIS_URL` (rate limit при нескольких инстансах).
 
 ### Переменные для S3 (опционально, для загрузки изображений)
 

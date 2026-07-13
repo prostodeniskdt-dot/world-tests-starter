@@ -24,7 +24,6 @@ let pool: Pool | null = null;
 function getDbSsl(): false | { rejectUnauthorized: boolean; ca?: string } {
   if (process.env.DB_SSL !== "true") return false;
 
-  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false";
   const ca = process.env.DB_SSL_CA?.trim();
   if (ca) {
     return {
@@ -33,6 +32,9 @@ function getDbSsl(): false | { rejectUnauthorized: boolean; ca?: string } {
     };
   }
 
+  // По умолчанию false — совместимость с Timeweb/облаком (self-signed цепочка).
+  // Строгую проверку включайте явно: DB_SSL_REJECT_UNAUTHORIZED=true
+  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED === "true";
   return { rejectUnauthorized };
 }
 
