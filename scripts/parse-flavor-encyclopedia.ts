@@ -5,6 +5,7 @@
 import * as XLSX from "xlsx";
 import * as fs from "fs";
 import * as path from "path";
+import { extractRussianIngredient } from "../src/lib/ingredient-normalize";
 
 export type SectionKey =
   | "drinks"
@@ -332,6 +333,28 @@ function parseDetailSheet(
   return map;
 }
 
+function russifyEntry(entry: ParsedEncyclopediaEntry): ParsedEncyclopediaEntry | null {
+  const ingredient1 = extractRussianIngredient(
+    entry.ingredient1,
+    entry.original1
+  );
+  const ingredient2 = extractRussianIngredient(
+    entry.ingredient2,
+    entry.original2
+  );
+  if (!ingredient1 || !ingredient2) return null;
+  if (ingredient1 === ingredient2) return null;
+
+  return {
+    ...entry,
+    ingredient1,
+    ingredient2,
+    baseIngredient: entry.baseIngredient
+      ? extractRussianIngredient(entry.baseIngredient, entry.baseIngredient)
+      : null,
+  };
+}
+
 function mergeDetails(
   entries: ParsedEncyclopediaEntry[],
   detailMaps: Map<string, Partial<ParsedEncyclopediaEntry>>[]
@@ -393,7 +416,9 @@ export function parseEncyclopediaFile(
   }
 
   entries = mergeDetails(entries, detailMaps);
-  return entries;
+  return entries
+    .map(russifyEntry)
+    .filter((e): e is ParsedEncyclopediaEntry => e !== null);
 }
 
 export function parseAllEncyclopediaFiles(

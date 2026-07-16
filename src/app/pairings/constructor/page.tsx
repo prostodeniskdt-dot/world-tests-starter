@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { displayIngredient } from "@/lib/ingredient-normalize";
 
 type PairingsMap = Record<string, string[]>;
 
@@ -11,12 +12,14 @@ function computeBridges(
   pairingsMap: PairingsMap
 ): string[] {
   if (selected.length === 0) return [];
-  let acc = pairingsMap[selected[0]] ?? [];
+  const norm = (s: string) => s.trim().toLowerCase();
+  let acc = (pairingsMap[selected[0]] ?? []).map(norm);
   for (let i = 1; i < selected.length; i++) {
-    const next = pairingsMap[selected[i]] ?? [];
-    acc = acc.filter((p) => next.includes(p));
+    const next = new Set((pairingsMap[selected[i]] ?? []).map(norm));
+    acc = acc.filter((p) => next.has(p));
   }
-  return acc.filter((b) => !selected.includes(b));
+  const selectedNorm = new Set(selected.map(norm));
+  return acc.filter((b) => !selectedNorm.has(b));
 }
 
 function computeSuggestions(
@@ -24,12 +27,15 @@ function computeSuggestions(
   pairingsMap: PairingsMap,
   bridges: string[]
 ): string[] {
+  const norm = (s: string) => s.trim().toLowerCase();
   const all = new Set<string>();
   selected.forEach((ing) =>
-    (pairingsMap[ing] ?? []).forEach((p) => all.add(p))
+    (pairingsMap[ing] ?? []).forEach((p) => all.add(norm(p)))
   );
-  selected.forEach((s) => all.delete(s));
-  bridges.forEach((b) => all.delete(b));
+  const selectedNorm = new Set(selected.map(norm));
+  const bridgeNorm = new Set(bridges.map(norm));
+  selectedNorm.forEach((s) => all.delete(s));
+  bridgeNorm.forEach((b) => all.delete(b));
   return [...all].slice(0, 30);
 }
 
@@ -67,7 +73,9 @@ export default function PairingsConstructorPage() {
           const map: PairingsMap = {};
           Object.entries(data.pairings).forEach(
             ([k, v]: [string, unknown]) => {
-              map[k] = (v as { pairedIngredients: string[] }).pairedIngredients ?? [];
+              const key = k.trim().toLowerCase();
+              map[key] =
+                (v as { pairedIngredients: string[] }).pairedIngredients ?? [];
             }
           );
           setPairingsMap(map);
@@ -92,7 +100,10 @@ export default function PairingsConstructorPage() {
     : ingredients.filter((i) => !selected.includes(i)).slice(0, 20);
 
   const addIngredient = (ing: string) => {
-    if (!selected.includes(ing)) setSelected([...selected, ing]);
+    const normalized = ing.trim().toLowerCase();
+    if (!normalized) return;
+    const exists = selected.some((s) => s.trim().toLowerCase() === normalized);
+    if (!exists) setSelected([...selected, normalized]);
     setSearchQuery("");
     setShowPicker(false);
   };
@@ -102,13 +113,13 @@ export default function PairingsConstructorPage() {
   };
 
   const ideas = bridges.length > 0
-    ? bridges.slice(0, 5).map((b) =>
-        selected.length >= 2
-          ? `${selected.join(" + ")} + ${b}`
-          : selected.length === 1
-          ? `${selected[0]} + ${b}`
-          : b
-      )
+    ? bridges.slice(0, 5).map((b) => {
+        const bridge = displayIngredient(b);
+        const parts = selected.map(displayIngredient);
+        if (selected.length >= 2) return `${parts.join(" + ")} + ${bridge}`;
+        if (selected.length === 1) return `${parts[0]} + ${bridge}`;
+        return bridge;
+      })
     : [];
 
   return (
@@ -141,7 +152,7 @@ export default function PairingsConstructorPage() {
                 key={ing}
                 className="inline-flex items-center gap-1 rounded-lg bg-primary-100 px-3 py-1.5 text-sm font-medium text-primary-800"
               >
-                {ing}
+                {displayIngredient(ing)}
                 <button
                   onClick={() => removeIngredient(ing)}
                   className="rounded p-0.5 hover:bg-primary-200"
@@ -175,7 +186,7 @@ export default function PairingsConstructorPage() {
                     onClick={() => addIngredient(ing)}
                     className="rounded-lg bg-white border border-zinc-200 px-3 py-1.5 text-sm hover:bg-primary-50 hover:border-primary-300"
                   >
-                    {ing}
+                    {displayIngredient(ing)}
                   </button>
                 ))}
               </div>
@@ -200,7 +211,7 @@ export default function PairingsConstructorPage() {
                       key={b}
                       className="rounded-lg bg-emerald-100 px-3 py-1.5 text-sm font-medium text-emerald-800"
                     >
-                      {b}
+                      {displayIngredient(b)}
                     </span>
                   ))}
                 </div>
@@ -219,7 +230,7 @@ export default function PairingsConstructorPage() {
                       onClick={() => addIngredient(s)}
                       className="rounded-lg bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-primary-100"
                     >
-                      {s}
+                      {displayIngredient(s)}
                     </button>
                   ))}
                 </div>

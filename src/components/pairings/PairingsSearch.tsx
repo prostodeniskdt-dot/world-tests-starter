@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
+import { displayIngredient } from "@/lib/ingredient-normalize";
 
 type PairingsSearchProps = {
   onSelectIngredient: (ingredient: string) => void;
@@ -155,7 +156,7 @@ export function PairingsSearch({
                     activeIndex === index ? "bg-primary-50" : "hover:bg-primary-50"
                   }`}
                 >
-                  {ing}
+                  {displayIngredient(ing)}
                 </li>
               ))
             )}

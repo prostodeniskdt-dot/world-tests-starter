@@ -26,19 +26,6 @@ const pool = new Pool({
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
 });
 
-function inferLegacyCategory(
-  group: string | null
-): "fruits" | "herbs_spices" | "other" {
-  if (!group) return "other";
-  const g = group.toLowerCase();
-  if (
-    /цитрус|фрукт|ягод|тропическ|косточков|бахчев/.test(g)
-  )
-    return "fruits";
-  if (/трав|специ|пряност|цвет|лист/.test(g)) return "herbs_spices";
-  return "other";
-}
-
 async function upsertPart(
   part: (typeof ENCYCLOPEDIA_PARTS)[number],
   count: number
@@ -123,61 +110,6 @@ async function insertEntry(
   return (res.rowCount ?? 0) > 0;
 }
 
-async function mergeIntoLegacyPairings(
-  entries: ParsedEncyclopediaEntry[]
-): Promise<{ inserted: number; skipped: number }> {
-  let inserted = 0;
-  let skipped = 0;
-
-  const seen = new Set<string>();
-
-  for (const entry of entries) {
-    const main = entry.ingredient1.trim();
-    const paired = entry.ingredient2.trim();
-    if (!main || !paired) continue;
-
-    const key = `${main.toLowerCase()}::${paired.toLowerCase()}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    const category = inferLegacyCategory(entry.group1);
-
-    try {
-      const res = await pool.query(
-        `INSERT INTO flavor_pairings (main_ingredient, paired_ingredient, main_category)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (main_ingredient, paired_ingredient) DO NOTHING`,
-        [main, paired, category]
-      );
-      if (res.rowCount && res.rowCount > 0) inserted++;
-      else skipped++;
-    } catch (err) {
-      console.error(`  Ошибка legacy ${main}+${paired}:`, (err as Error).message);
-    }
-
-    // Обратная пара для поиска
-    const revKey = `${paired.toLowerCase()}::${main.toLowerCase()}`;
-    if (!seen.has(revKey)) {
-      seen.add(revKey);
-      const revCategory = inferLegacyCategory(entry.group2);
-      try {
-        const res = await pool.query(
-          `INSERT INTO flavor_pairings (main_ingredient, paired_ingredient, main_category)
-           VALUES ($1, $2, $3)
-           ON CONFLICT (main_ingredient, paired_ingredient) DO NOTHING`,
-          [paired, main, revCategory]
-        );
-        if (res.rowCount && res.rowCount > 0) inserted++;
-        else skipped++;
-      } catch {
-        /* ignore */
-      }
-    }
-  }
-
-  return { inserted, skipped };
-}
-
 async function main() {
   const bazaDir = path.join(process.cwd(), "baza");
   console.log("Импорт энциклопедии из", bazaDir);
@@ -207,24 +139,43 @@ async function main() {
   for (const part of ENCYCLOPEDIA_PARTS) {
     const partId = partIds.get(part.slug)!;
     const entries = byPart.get(part.slug) ?? [];
+    const externalIds = entries.map((e) => e.externalId);
     let count = 0;
     for (const entry of entries) {
       if (await insertEntry(partId, entry)) count++;
+    }
+    if (externalIds.length > 0) {
+      const del = await pool.query(
+        `DELETE FROM flavor_encyclopedia_entries
+         WHERE part_id = $1 AND NOT (external_id = ANY($2::text[]))`,
+        [partId, externalIds]
+      );
+      if (del.rowCount && del.rowCount > 0) {
+        console.log(`  ${part.title}: удалено устаревших ${del.rowCount}`);
+      }
+    } else {
+      await pool.query(
+        `DELETE FROM flavor_encyclopedia_entries WHERE part_id = $1`,
+        [partId]
+      );
     }
     totalInserted += count;
     console.log(`  ${part.title}: ${count} upsert`);
   }
 
-  console.log("\n--- Слияние с flavor_pairings ---");
-  const { inserted, skipped } = await mergeIntoLegacyPairings(allEntries);
-  console.log(`  Новых пар: ${inserted}, пропущено (дубли): ${skipped}`);
+  await pool.end();
 
-  console.log(`\n✅ Готово. Энциклопедия: ${totalInserted} записей.`);
+  console.log("\n--- Пересборка flavor_pairings ---");
+  const { execSync } = await import("child_process");
+  execSync("npx tsx scripts/rebuild-flavor-pairings.ts", {
+    stdio: "inherit",
+    cwd: process.cwd(),
+  });
+
+  console.log(`\n✅ Готово. Энциклопедия: ${totalInserted} записей (русифицировано).`);
 }
 
-main()
-  .catch((err) => {
-    console.error("Ошибка:", err);
-    process.exit(1);
-  })
-  .finally(() => pool.end());
+main().catch((err) => {
+  console.error("Ошибка:", err);
+  process.exit(1);
+});
