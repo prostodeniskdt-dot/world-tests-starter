@@ -58,12 +58,16 @@ export default function PairingsReferencePage() {
         <div className="flex items-center gap-3 mb-2">
           <BookOpen className="h-8 w-8 text-primary-600" aria-hidden="true" />
           <h1 className="text-2xl sm:text-3xl font-bold font-display text-stone-950">
-            Справочник сочетаний
+            Быстрый справочник
           </h1>
         </div>
         <p className="text-zinc-600 leading-relaxed">
-          Найди ингредиент и узнай, что с ним сочетается. Кликни по тегу, чтобы
-          посмотреть сочетания для него.
+          Найди ингредиент и узнай, что с ним сочетается. Для подробных объяснений
+          откройте{" "}
+          <Link href="/pairings/encyclopedia" className="text-primary-600 hover:underline">
+            Энциклопедию
+          </Link>
+          .
         </p>
       </div>
 

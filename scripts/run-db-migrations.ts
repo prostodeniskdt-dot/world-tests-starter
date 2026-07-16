@@ -66,6 +66,7 @@ const MIGRATION_FILES = [
   "20260505_cocktails_sensory_notes.sql",
   "20260506_cocktails_prepared_by.sql",
   "20260712_best_score_points_season.sql",
+  "20260716_flavor_encyclopedia.sql",
 ];
 
 function isMigrationSafe(sql: string, fileName: string): { safe: boolean; reason?: string } {

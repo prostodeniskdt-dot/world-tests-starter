@@ -1,12 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Plus, Gamepad2 } from "lucide-react";
+import { BookOpen, Plus, Gamepad2, Library } from "lucide-react";
 
 const PAIRINGS_SUBS = [
   {
+    id: "encyclopedia",
+    title: "Энциклопедия",
+    description:
+      "Полная база по частям: напитки, еда, десерты, соусы — с научными объяснениями",
+    href: "/pairings/encyclopedia",
+    icon: Library,
+  },
+  {
     id: "reference",
-    title: "Справочник",
+    title: "Быстрый справочник",
     description: "Найди ингредиент и узнай, что с ним сочетается",
     href: "/pairings/reference",
     icon: BookOpen,
@@ -38,11 +46,11 @@ export default function PairingsHubPage() {
           </h1>
         </div>
         <p className="text-zinc-600 leading-relaxed">
-          Мини-игра и база знаний о сочетаниях вкусов. Выберите раздел:
+          Энциклопедия, быстрый справочник, конструктор и мини-игра. Выберите раздел:
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {PAIRINGS_SUBS.map((sub) => {
           const Icon = sub.icon;
           return (
